@@ -10,6 +10,10 @@ if(count($_POST) > 0 && isset($_POST['c_id'])){
     $stmt->execute();
     $result = $stmt->get_result();
     
+    // DEBUG: log or print how many rows we got
+    error_log("profileaccountdata: memberz2 rows for ID {$ii}: {$result->num_rows}");
+    echo "<!-- memberz2 rows: {$result->num_rows} -->";
+
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
 ?>
@@ -72,6 +76,9 @@ if(count($_POST) > 0 && isset($_POST['c_id'])){
 
 <?php
         }
+    } else {
+        // show a message if no member record was found
+        echo "<p style='color:red;'>No member details found for ID {$ii}.</p>";
     }
     
     // Fix SQL injection for transaction query
