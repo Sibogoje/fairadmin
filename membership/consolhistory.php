@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <td><?php echo htmlspecialchars($rowz['DateOfBirth']); ?></td>
                             <td><?php echo htmlspecialchars($rowz['Gender']); ?></td>
                             <td><?php echo htmlspecialchars($rowz['DateAccountOpened']); ?></td>
-                            <td><?php echo number_format($initAmt, 2); ?></td>
+                            <td><?php echo number_format($rowz['ApprovedBenefit'] ?? 0, 2); ?></td>
                             <td><?php echo number_format($interest, 2); ?></td>
                             <td><?php echo number_format($expenses, 2); ?></td>
                             <td><?php echo number_format($payments, 2); ?></td>
