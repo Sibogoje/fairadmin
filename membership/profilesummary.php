@@ -44,8 +44,8 @@ $stmt = $conn->prepare("SELECT * from `memberz2` where `MemberID` = '$ii' ");
                     <td scope="col"><?php echo $row['DateOfBirth']; ?></td>
                     <th scope="col" style="vertical-align: top;">Account Opened</th>
 					<td scope="col"><?php echo $row['DateAccountOpened']; ?></td>
-					 <th scope="col" style="vertical-align: top;">Postal Address</th>
-					<td scope="col"><?php echo $row['MemberPostalAddress']; ?></td>
+					 <th scope="col" style="vertical-align: top;">Gender</th>
+					<td scope="col"><?php echo $row['Gender']; ?></td>
 					</tr>
 					
 						<tr>

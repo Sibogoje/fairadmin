@@ -39,8 +39,8 @@ if(count($_POST) > 0 && isset($_POST['c_id'])){
             <td scope="col"><?php echo htmlspecialchars($row['DateOfBirth']); ?></td>
             <th scope="col" style="vertical-align: top;">Account Opened</th>
             <td scope="col"><?php echo htmlspecialchars($row['DateAccountOpened']); ?></td>
-            <th scope="col" style="vertical-align: top;">Postal Address</th>
-            <td scope="col"><?php echo htmlspecialchars($row['MemberPostalAddress']); ?></td>
+            <th scope="col" style="vertical-align: top;">Gender</th>
+            <td scope="col"><?php echo htmlspecialchars($row['Gender']); ?></td>
         </tr>
         
         <tr>
