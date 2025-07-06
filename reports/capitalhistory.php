@@ -28,7 +28,7 @@ if (in_array("all", $mntharray)){
 
 
 if(count($_POST)>0){
-$stmt12 = $conn->prepare("SELECT MemberNo, Name, Surname, DOB, Gender, TransactionDate, AmountPaid FROM " . $choose);
+$stmt12 = $conn->prepare("SELECT MemberNo, Name, Surname, DOB, Gender, TransactionDate, Amount Paid FROM " . $choose);
 						$stmt12->execute();
 						$result12 = $stmt12->get_result();
 						if ($result12->num_rows > 0) {
