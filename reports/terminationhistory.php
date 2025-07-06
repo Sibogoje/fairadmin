@@ -46,7 +46,7 @@ if (count($_POST) > 0) {
                         <td><?php echo $row12['Gender']; ?></td>
                         <td><?php echo $row12['DOB']; ?></td>
                         <td><?php echo $row12['TransactionDate']; ?></td>
-                        <td><?php echo number_format($row12['NewBalance'], 2); ?></td>
+                        <td><?php echo number_format($row12['Amount'], 2); ?></td>
                     </tr>
 <?php
         }
