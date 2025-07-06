@@ -1,0 +1,2 @@
+[23-May-2022 00:59:29 UTC] PHP Warning:  ini_set(): Session ini settings cannot be changed when a session is active in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/fund/employers.php on line 43
+[23-May-2022 00:59:29 UTC] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/fund/employers.php on line 10

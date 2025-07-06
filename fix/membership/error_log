@@ -1,0 +1,25 @@
+[24-Jun-2025 04:38:06 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'u747325399_fairfix.mbr_list' doesn't exist in /home3/dxtustit/public_html/fix/membership/index.php:108
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/membership/index.php(108): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/membership/index.php on line 108
+[24-Jun-2025 04:38:17 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'u747325399_fairfix.mbr_list' doesn't exist in /home3/dxtustit/public_html/fix/membership/index.php:108
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/membership/index.php(108): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/membership/index.php on line 108
+[24-Jun-2025 04:39:12 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'u747325399_fairfix.mbr_list' doesn't exist in /home3/dxtustit/public_html/fix/membership/index.php:108
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/membership/index.php(108): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/membership/index.php on line 108
+[24-Jun-2025 04:39:21 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'u747325399_fairfix.mbr_list' doesn't exist in /home3/dxtustit/public_html/fix/membership/index.php:108
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/membership/index.php(108): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/membership/index.php on line 108
+[24-Jun-2025 04:39:29 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Table 'u747325399_fairfix.mbr_list' doesn't exist in /home3/dxtustit/public_html/fix/membership/index.php:108
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/membership/index.php(108): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/membership/index.php on line 108

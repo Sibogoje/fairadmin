@@ -1,0 +1,167 @@
+[22-May-2022 12:14:27 UTC] PHP Warning:  require_once(../scripts/connection.php): Failed to open stream: No such file or directory in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/index.php on line 3
+[22-May-2022 12:14:27 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '../scripts/connection.php' (include_path='.:/opt/alt/php80/usr/share/pear:/opt/alt/php80/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/index.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/index.php on line 3
+[22-May-2022 12:14:30 UTC] PHP Warning:  require_once(../scripts/connection.php): Failed to open stream: No such file or directory in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/index.php on line 3
+[22-May-2022 12:14:30 UTC] PHP Fatal error:  Uncaught Error: Failed opening required '../scripts/connection.php' (include_path='.:/opt/alt/php80/usr/share/pear:/opt/alt/php80/usr/share/php:/usr/share/pear:/usr/share/php') in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/index.php:3
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/index.php on line 3
+[22-May-2022 16:44:32 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 16:54:39 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 16:54:51 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 16:55:31 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 16:55:34 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:01:25 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:01:33 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:01:46 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:02:14 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:03:25 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:03:32 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:03:47 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:03:53 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:05:08 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:05:11 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:05:16 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:05:47 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:05:50 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:06:40 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php(12): mysqli_stmt->bind_param()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:06:43 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php(12): mysqli_stmt->bind_param()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:06:48 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php(12): mysqli_stmt->bind_param()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[22-May-2022 18:16:39 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php:12
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php(12): mysqli_stmt->bind_param()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/parse.php on line 12
+[23-May-2022 00:50:32 UTC] PHP Warning:  Undefined variable $conn in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/logout.php on line 10
+[23-May-2022 00:50:32 UTC] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/logout.php:10
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/logout.php on line 10
+[25-May-2022 07:39:58 UTC] PHP Fatal error:  Uncaught TypeError: mysqli_fetch_assoc(): Argument #1 ($result) must be of type mysqli_result, bool given in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php:184
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php(184): mysqli_fetch_assoc()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php on line 184
+[25-May-2022 07:40:07 UTC] PHP Fatal error:  Uncaught TypeError: mysqli_fetch_assoc(): Argument #1 ($result) must be of type mysqli_result, bool given in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php:184
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php(184): mysqli_fetch_assoc()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php on line 184
+[25-May-2022 07:40:08 UTC] PHP Fatal error:  Uncaught TypeError: mysqli_fetch_assoc(): Argument #1 ($result) must be of type mysqli_result, bool given in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php:184
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php(184): mysqli_fetch_assoc()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php on line 184
+[25-May-2022 07:40:10 UTC] PHP Fatal error:  Uncaught TypeError: mysqli_fetch_assoc(): Argument #1 ($result) must be of type mysqli_result, bool given in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php:184
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php(184): mysqli_fetch_assoc()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php on line 184
+[25-May-2022 07:40:15 UTC] PHP Fatal error:  Uncaught TypeError: mysqli_fetch_assoc(): Argument #1 ($result) must be of type mysqli_result, bool given in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php:184
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php(184): mysqli_fetch_assoc()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php on line 184
+[25-May-2022 07:42:03 UTC] PHP Fatal error:  Uncaught TypeError: mysqli_fetch_assoc(): Argument #1 ($result) must be of type mysqli_result, bool given in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php:184
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php(184): mysqli_fetch_assoc()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/dash.php on line 184
+[24-Jun-2025 04:12:37 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'u747325399_fairfix'@'localhost' (using password: YES) in /home3/dxtustit/public_html/fix/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/fix/index.php(4): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/fix/scripts/connection.php on line 7
+[24-Jun-2025 04:12:40 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'u747325399_fairfix'@'localhost' (using password: YES) in /home3/dxtustit/public_html/fix/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/fix/index.php(4): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/fix/scripts/connection.php on line 7
+[24-Jun-2025 04:14:06 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'u747325399_fairfix'@'localhost' (using password: YES) in /home3/dxtustit/public_html/fix/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/fix/index.php(4): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/fix/scripts/connection.php on line 7
+[24-Jun-2025 04:15:10 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'u747325399_fairfix'@'localhost' (using password: YES) in /home3/dxtustit/public_html/fix/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/fix/index.php(4): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/fix/scripts/connection.php on line 7
+[24-Jun-2025 04:15:20 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'u747325399_fairfix'@'localhost' (using password: YES) in /home3/dxtustit/public_html/fix/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/fix/index.php(4): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/fix/scripts/connection.php on line 7

@@ -1,0 +1,79 @@
+[19-May-2022 12:38:17 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:181
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(181): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 181
+[23-May-2022 00:55:07 UTC] PHP Warning:  Undefined variable $gg in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/header.php on line 99
+[23-May-2022 00:59:07 UTC] PHP Warning:  Undefined variable $gg in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/header.php on line 99
+[23-May-2022 06:43:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:142
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(142): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 142
+[25-May-2022 08:43:07 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:142
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(142): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 142
+[25-May-2022 08:44:32 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:142
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(142): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 142
+[25-May-2022 10:41:22 UTC] PHP Fatal error:  Uncaught Error: Call to a member function execute() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/interest.php:173
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/interest.php on line 173
+[25-May-2022 10:51:20 UTC] PHP Fatal error:  Uncaught Error: Call to a member function execute() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/interest.php:173
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/interest.php on line 173
+[25-May-2022 12:36:33 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:142
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(142): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 142
+[25-May-2022 12:40:46 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php:155
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php on line 155
+[25-May-2022 12:40:55 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php:155
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php on line 155
+[25-May-2022 12:44:42 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php:155
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php on line 155
+[25-May-2022 12:45:42 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php:155
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php on line 155
+[25-May-2022 13:20:31 UTC] PHP Fatal error:  Uncaught Error: Call to a member function bind_param() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php:142
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduleprocess.php on line 142
+[26-May-2022 07:03:32 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:142
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(142): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 142
+[26-May-2022 07:03:51 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php:142
+Stack trace:
+#0 /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php(142): mysqli->prepare()
+#1 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/adhoc.php on line 142
+[26-May-2022 07:08:15 UTC] PHP Fatal error:  Uncaught Error: Call to a member function execute() on bool in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduled.php:97
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/fairlife/fair/Transactions/scheduled.php on line 97
+[24-Jun-2025 04:34:11 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/fix/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/Transactions/adhoc.php on line 76
+[26-Jun-2025 06:10:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/fix/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/fix/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/fix/Transactions/adhoc.php on line 76

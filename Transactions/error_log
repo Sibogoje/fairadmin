@@ -1,0 +1,1519 @@
+[12-May-2025 12:36:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 12:37:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 12:39:12 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 12:40:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 13:02:03 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 13:02:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 13:04:54 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[12-May-2025 13:05:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-May-2025 13:06:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-May-2025 13:08:59 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-May-2025 13:09:43 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-May-2025 13:12:58 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[15-May-2025 13:08:32 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[15-May-2025 13:08:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[15-May-2025 13:20:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[15-May-2025 13:21:55 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[15-May-2025 13:22:33 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[15-May-2025 13:22:33 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[15-May-2025 13:23:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[15-May-2025 13:23:47 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[15-May-2025 13:23:47 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[15-May-2025 13:25:40 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[15-May-2025 13:25:40 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[15-May-2025 13:27:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[15-May-2025 13:27:22 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[15-May-2025 13:27:22 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[15-May-2025 13:28:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[15-May-2025 13:28:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-May-2025 13:04:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-May-2025 13:06:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-May-2025 13:07:46 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[19-May-2025 12:27:51 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[19-May-2025 12:28:40 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[19-May-2025 12:29:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 11:49:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 11:50:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 11:51:48 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 11:55:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 12:06:31 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 12:14:45 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 12:15:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 12:15:48 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 12:16:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-May-2025 12:17:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[21-May-2025 08:46:09 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[21-May-2025 08:46:09 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[21-May-2025 08:49:12 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[21-May-2025 08:49:12 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[21-May-2025 08:49:32 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[21-May-2025 08:49:36 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[21-May-2025 08:49:36 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[21-May-2025 12:34:56 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[21-May-2025 12:36:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[21-May-2025 12:38:25 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[21-May-2025 12:39:21 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[21-May-2025 12:41:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[21-May-2025 12:43:50 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[22-May-2025 13:30:33 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[22-May-2025 13:31:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[22-May-2025 13:31:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[22-May-2025 13:33:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[22-May-2025 13:34:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[22-May-2025 13:36:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:46:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:46:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:47:17 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:48:19 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:48:40 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:49:03 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:49:25 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:49:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:50:13 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:50:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:51:17 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 12:51:38 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 13:01:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 13:02:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 13:31:29 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 13:31:55 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 13:32:28 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-May-2025 13:33:23 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-May-2025 11:14:08 UTC] PHP Warning:  Undefined variable $MemberID in /home3/dxtustit/public_html/Transactions/adhocprocess.php on line 115
+[26-May-2025 13:42:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-May-2025 13:43:17 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-May-2025 13:43:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-May-2025 13:44:06 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-May-2025 13:44:21 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[26-May-2025 13:44:21 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[26-May-2025 13:45:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[26-May-2025 13:45:50 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[26-May-2025 13:45:50 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[27-May-2025 13:41:02 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:41:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:42:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:43:22 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:43:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:44:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:44:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:45:15 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:45:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:46:02 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:46:23 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[27-May-2025 13:46:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 08:12:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 08:12:43 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 08:13:07 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 08:13:33 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 08:14:13 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:29:02 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:29:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:30:16 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:31:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:32:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:32:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:33:19 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:33:48 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[28-May-2025 11:34:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:24:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:25:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:25:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:25:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:27:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:27:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:28:09 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:28:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:29:00 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:29:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-May-2025 12:29:58 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[31-May-2025 16:50:06 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[31-May-2025 16:50:06 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[31-May-2025 16:51:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[31-May-2025 16:51:07 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[31-May-2025 16:51:07 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[03-Jun-2025 10:49:29 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:49:55 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:50:45 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:52:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:53:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:53:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:54:19 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 10:56:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:05:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:06:11 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:06:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:06:44 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home3/dxtustit/public_html/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/Transactions/adhoc.php(7): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/scripts/connection.php on line 7
+[03-Jun-2025 11:07:39 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:08:16 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home3/dxtustit/public_html/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/Transactions/adhoc.php(7): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/scripts/connection.php on line 7
+[03-Jun-2025 11:08:53 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:10:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:11:01 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:11:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:12:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:13:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:14:12 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:14:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:15:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:21:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:22:43 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:23:17 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:24:07 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jun-2025 11:50:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:22:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:25:32 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:28:56 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:29:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:33:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:36:13 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:36:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:37:11 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:37:56 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[04-Jun-2025 12:38:49 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[04-Jun-2025 12:38:49 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[04-Jun-2025 12:40:25 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[04-Jun-2025 12:40:33 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[04-Jun-2025 12:40:33 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[05-Jun-2025 11:02:31 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[05-Jun-2025 11:05:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[05-Jun-2025 11:11:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[05-Jun-2025 11:19:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[06-Jun-2025 13:20:46 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[06-Jun-2025 13:20:46 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[06-Jun-2025 13:21:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[06-Jun-2025 13:21:55 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[06-Jun-2025 13:21:55 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[06-Jun-2025 13:22:40 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[06-Jun-2025 13:23:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[06-Jun-2025 13:36:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[06-Jun-2025 13:38:01 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[06-Jun-2025 14:12:13 UTC] PHP Warning:  Undefined variable $MemberID in /home3/dxtustit/public_html/Transactions/adhocprocess.php on line 115
+[06-Jun-2025 14:12:22 UTC] PHP Warning:  Undefined variable $MemberID in /home3/dxtustit/public_html/Transactions/adhocprocess.php on line 115
+[09-Jun-2025 12:19:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[09-Jun-2025 12:20:09 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[09-Jun-2025 12:20:40 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[09-Jun-2025 12:21:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[10-Jun-2025 12:06:05 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[10-Jun-2025 12:06:05 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[10-Jun-2025 12:12:45 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[10-Jun-2025 12:12:53 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[10-Jun-2025 12:12:53 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[10-Jun-2025 12:37:28 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[11-Jun-2025 12:42:53 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[11-Jun-2025 12:43:31 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[11-Jun-2025 12:44:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[11-Jun-2025 12:44:56 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[11-Jun-2025 12:45:17 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-Jun-2025 13:01:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-Jun-2025 13:02:38 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-Jun-2025 13:03:09 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[13-Jun-2025 13:03:51 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:28:03 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:28:57 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:29:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:30:19 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:31:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:32:00 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[16-Jun-2025 13:32:00 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[16-Jun-2025 13:35:57 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[16-Jun-2025 13:35:57 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[16-Jun-2025 13:39:15 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[16-Jun-2025 13:39:18 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[16-Jun-2025 13:39:18 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[16-Jun-2025 13:40:06 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:40:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:41:00 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:41:33 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[16-Jun-2025 13:41:54 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:07:21 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:08:46 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:10:21 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:10:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:11:12 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:13:55 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:14:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[18-Jun-2025 12:14:52 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[18-Jun-2025 12:14:52 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[18-Jun-2025 12:16:50 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[18-Jun-2025 12:16:55 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[18-Jun-2025 12:16:55 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[18-Jun-2025 12:20:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[18-Jun-2025 12:21:03 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[18-Jun-2025 12:21:03 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[19-Jun-2025 06:44:32 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[19-Jun-2025 06:44:32 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[19-Jun-2025 06:45:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[19-Jun-2025 06:45:30 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[19-Jun-2025 06:45:30 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[20-Jun-2025 08:25:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-Jun-2025 08:25:54 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[20-Jun-2025 09:37:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:36:21 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:36:50 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:37:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:39:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:39:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:43:06 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:45:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[23-Jun-2025 12:46:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[24-Jun-2025 13:00:34 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[24-Jun-2025 13:00:34 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[24-Jun-2025 13:01:13 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[24-Jun-2025 13:01:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[24-Jun-2025 13:02:29 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:30:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:30:51 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:31:10 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:43:45 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:47:57 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:48:21 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:48:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:49:07 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:49:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:49:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:50:09 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:50:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:51:13 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:51:39 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:52:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:54:21 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 10:54:50 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:12:50 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:14:36 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:15:11 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:16:38 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:17:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:17:33 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:18:12 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:18:36 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:19:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:19:29 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:20:01 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:20:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:20:49 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:21:24 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[26-Jun-2025 11:21:47 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 08:00:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 08:00:57 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 08:01:19 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 08:01:44 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 08:02:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 08:03:11 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:09:06 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:10:15 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:11:32 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:11:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:13:07 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:13:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:14:56 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:18:53 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:20:09 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:25:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:26:00 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:26:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:27:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:28:02 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[30-Jun-2025 09:28:25 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:12:05 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:12:36 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:13:09 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:13:35 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:14:10 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:15:42 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:16:36 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:18:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:18:55 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:19:27 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:20:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:20:43 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[01-Jul-2025 12:20:56 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[01-Jul-2025 12:20:56 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[01-Jul-2025 12:22:36 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/Transactions/terminate.php(180): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[01-Jul-2025 12:22:41 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 11
+[01-Jul-2025 12:22:41 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/Transactions/transact.php on line 12
+[02-Jul-2025 09:42:53 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:43:22 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:43:40 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:44:01 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:44:23 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:44:45 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:45:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[02-Jul-2025 09:46:00 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:28:43 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:29:14 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:29:52 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:31:13 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:32:41 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:34:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:35:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76
+[03-Jul-2025 13:35:30 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/Transactions/adhoc.php:76
+Stack trace:
+#0 /home3/dxtustit/public_html/Transactions/adhoc.php(76): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/Transactions/adhoc.php on line 76

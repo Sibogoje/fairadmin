@@ -1,0 +1,21 @@
+[12-May-2025 07:45:26 UTC] File deletion script executed successfully.
+[12-May-2025 07:45:58 UTC] File deletion script executed successfully.
+[12-May-2025 07:47:00 UTC] File deletion script executed successfully.
+[12-May-2025 07:47:56 UTC] File deletion script executed successfully.
+[12-May-2025 07:48:17 UTC] File deletion script executed successfully.
+[19-May-2025 10:19:13 UTC] File deletion script executed successfully.
+[27-May-2025 07:48:29 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home3/dxtustit/public_html/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/index.php(4): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/scripts/connection.php on line 7
+[09-Jun-2025 09:42:07 UTC] File deletion script executed successfully.
+[11-Jun-2025 10:59:38 UTC] File deletion script executed successfully.
+[11-Jun-2025 11:00:03 UTC] File deletion script executed successfully.
+[11-Jun-2025 11:00:40 UTC] File deletion script executed successfully.
+[16-Jun-2025 07:52:35 UTC] File deletion script executed successfully.
+[16-Jun-2025 10:54:19 UTC] File deletion script executed successfully.
+[24-Jun-2025 13:17:54 UTC] File deletion script executed successfully.
+[27-Jun-2025 11:26:11 UTC] File deletion script executed successfully.
+[03-Jul-2025 07:13:11 UTC] File deletion script executed successfully.

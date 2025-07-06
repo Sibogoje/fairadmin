@@ -1,0 +1,281 @@
+[13-May-2025 09:16:04 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:16:04 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:16:04 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[13-May-2025 09:16:35 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[13-May-2025 09:16:35 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect integer value: '' for column `dxtustit_fair2`.`tblnextofkin`.`KinPostOfficeID` at row 1 in /home3/dxtustit/public_html/membership/knew.php:55
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/knew.php(55): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/knew.php on line 55
+[13-May-2025 09:16:46 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[13-May-2025 09:16:46 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect integer value: '' for column `dxtustit_fair2`.`tblnextofkin`.`KinPostOfficeID` at row 1 in /home3/dxtustit/public_html/membership/knew.php:55
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/knew.php(55): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/knew.php on line 55
+[13-May-2025 09:16:56 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:16:56 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:16:56 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[13-May-2025 09:17:24 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[13-May-2025 09:17:24 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect integer value: '' for column `dxtustit_fair2`.`tblnextofkin`.`KinPostOfficeID` at row 1 in /home3/dxtustit/public_html/membership/knew.php:55
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/knew.php(55): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/knew.php on line 55
+[13-May-2025 09:17:33 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:17:33 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:17:33 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[13-May-2025 09:17:53 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:17:53 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:17:53 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[13-May-2025 09:24:04 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[13-May-2025 09:28:53 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect integer value: '' for column `dxtustit_fair2`.`tblguardians`.`GuardianPostOfficeID` at row 1 in /home3/dxtustit/public_html/membership/gnew.php:73
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/gnew.php(73): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/gnew.php on line 73
+[13-May-2025 09:29:04 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect integer value: '' for column `dxtustit_fair2`.`tblguardians`.`GuardianPostOfficeID` at row 1 in /home3/dxtustit/public_html/membership/gnew.php:73
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/gnew.php(73): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/gnew.php on line 73
+[13-May-2025 09:33:03 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[13-May-2025 09:33:46 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[13-May-2025 09:34:01 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[13-May-2025 09:35:31 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect integer value: '' for column `dxtustit_fair2`.`tblguardians`.`GuardianPostOfficeID` at row 1 in /home3/dxtustit/public_html/membership/gnew.php:73
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/gnew.php(73): mysqli_stmt->execute()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/gnew.php on line 73
+[13-May-2025 09:36:34 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[13-May-2025 09:40:56 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[13-May-2025 09:41:39 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:41:39 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:41:39 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[13-May-2025 09:42:15 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[13-May-2025 09:42:15 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:42:15 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 09:42:15 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/knew.php(112): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[13-May-2025 10:02:05 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect table name '' in /home3/dxtustit/public_html/membership/kedit.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/kedit.php(37): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/kedit.php on line 37
+[13-May-2025 10:06:55 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 10:06:55 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[13-May-2025 10:06:55 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[20-May-2025 11:44:24 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: Too many connections in /home3/dxtustit/public_html/scripts/connection.php:7
+Stack trace:
+#0 /home3/dxtustit/public_html/scripts/connection.php(7): mysqli->__construct()
+#1 /home3/dxtustit/public_html/membership/profileaccountdata.php(3): require_once('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/scripts/connection.php on line 7
+[22-May-2025 13:38:28 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[22-May-2025 13:38:38 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[24-May-2025 04:19:31 UTC] PHP Warning:  Undefined array key "GuardianFirstNames" in /home3/dxtustit/public_html/membership/profilehistory.php on line 110
+[24-May-2025 04:19:31 UTC] PHP Warning:  Undefined array key "employerID" in /home3/dxtustit/public_html/membership/profilehistory.php on line 140
+[26-May-2025 06:32:19 UTC] PHP Warning:  Undefined array key "employerID" in /home3/dxtustit/public_html/membership/profilehistory.php on line 140
+[27-May-2025 08:13:54 UTC] PHP Warning:  Undefined array key "GuardianFirstNames" in /home3/dxtustit/public_html/membership/profilehistory.php on line 110
+[27-May-2025 08:13:54 UTC] PHP Warning:  Undefined array key "employerID" in /home3/dxtustit/public_html/membership/profilehistory.php on line 140
+[27-May-2025 09:51:11 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:51:34 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:51:51 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:56:17 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:56:46 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:57:16 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:57:48 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:58:07 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 09:58:48 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 09:58:48 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 09:58:48 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[27-May-2025 10:01:09 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:01:09 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:01:09 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[27-May-2025 10:02:39 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:02:39 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:02:39 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[27-May-2025 10:03:21 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:03:21 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:03:21 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[27-May-2025 10:04:28 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[27-May-2025 10:04:28 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:04:28 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:04:28 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/knew.php(112): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:09:56 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 10:11:07 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 10:11:56 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:11:56 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:11:56 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[27-May-2025 10:15:50 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[27-May-2025 10:15:50 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:15:50 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:15:50 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/knew.php(112): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:21:06 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 10:30:36 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[27-May-2025 10:34:54 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:34:54 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:34:54 UTC] PHP Warning:  Undefined variable $gg in /home3/dxtustit/public_html/header.php on line 133
+[27-May-2025 10:35:18 UTC] PHP Warning:  Undefined array key "KinCell" in /home3/dxtustit/public_html/membership/knew.php on line 15
+[27-May-2025 10:35:18 UTC] PHP Warning:  Undefined global variable $_SESSION in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:35:18 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/header.php on line 4
+[27-May-2025 10:35:18 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/knew.php(112): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:38:08 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:38:26 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:38:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:44:20 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[27-May-2025 10:44:37 UTC] PHP Fatal error:  Uncaught Error: mysqli object is already closed in /home3/dxtustit/public_html/header.php:37
+Stack trace:
+#0 /home3/dxtustit/public_html/header.php(37): mysqli_query()
+#1 /home3/dxtustit/public_html/membership/gnew.php(128): include('/home3/dxtustit...')
+#2 {main}
+  thrown in /home3/dxtustit/public_html/header.php on line 37
+[28-May-2025 09:00:10 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[28-May-2025 09:00:28 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[30-May-2025 07:25:43 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[30-May-2025 07:25:55 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[30-May-2025 09:54:37 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[31-May-2025 14:35:13 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[12-Jun-2025 08:22:00 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[26-Jun-2025 10:18:57 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[26-Jun-2025 10:20:07 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[30-Jun-2025 08:08:59 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[30-Jun-2025 08:17:45 UTC] PHP Warning:  Undefined array key "profilepic" in /home3/dxtustit/public_html/membership/edit.php on line 230
+[02-Jul-2025 07:59:14 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[02-Jul-2025 07:59:18 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 07:59:18 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:00:35 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[02-Jul-2025 08:00:38 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:00:38 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:01:40 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:01:40 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:10:27 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:10:27 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:11:24 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:11:24 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:15:50 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[02-Jul-2025 08:15:52 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 08:15:52 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 09:32:40 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolcsv.php:26
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolcsv.php(26): mysqli->query()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolcsv.php on line 26
+[02-Jul-2025 09:33:42 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[02-Jul-2025 09:33:45 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolcsv.php:26
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolcsv.php(26): mysqli->query()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolcsv.php on line 26
+[02-Jul-2025 09:34:21 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolcsv.php:26
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolcsv.php(26): mysqli->query()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolcsv.php on line 26
+[02-Jul-2025 11:11:19 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[02-Jul-2025 11:11:21 UTC] PHP Warning:  Undefined variable $row in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[02-Jul-2025 11:11:21 UTC] PHP Warning:  Trying to access array offset on value of type null in /home3/dxtustit/public_html/membership/consolall.php on line 43
+[03-Jul-2025 08:17:36 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[03-Jul-2025 08:17:47 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[03-Jul-2025 08:18:04 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[03-Jul-2025 08:18:07 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolcsv.php:26
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolcsv.php(26): mysqli->query()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolcsv.php on line 26
+[03-Jul-2025 08:18:28 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12
+[03-Jul-2025 08:19:37 UTC] PHP Fatal error:  Uncaught mysqli_sql_exception: SELECT command denied to user 'dxtustit_fair2'@'localhost' for table `u747325399_fair2`.`tblmembers` in /home3/dxtustit/public_html/membership/consolhistory.php:12
+Stack trace:
+#0 /home3/dxtustit/public_html/membership/consolhistory.php(12): mysqli->prepare()
+#1 {main}
+  thrown in /home3/dxtustit/public_html/membership/consolhistory.php on line 12

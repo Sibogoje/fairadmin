@@ -1,0 +1,14 @@
+[18-Mar-2024 05:14:53 UTC] PHP Fatal error:  Uncaught Error: Call to a member function execute() on bool in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php:36
+Stack trace:
+#0 {main}
+  thrown in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 36
+[12-Apr-2024 11:48:08 UTC] PHP Warning:  Trying to access array offset on value of type null in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 73
+[12-Apr-2024 11:48:12 UTC] PHP Warning:  Trying to access array offset on value of type null in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 73
+[03-Jul-2024 07:40:33 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 40
+[04-Jul-2024 17:46:26 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 40
+[09-Jul-2024 13:59:26 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 40
+[09-Jul-2024 14:00:02 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairlife/fund/assetshist.php on line 40
+[04-Oct-2024 04:04:25 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairfix/fund/assetshist.php on line 40
+[04-Oct-2024 04:04:49 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairfix/fund/assetshist.php on line 40
+[04-Oct-2024 04:04:55 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairfix/fund/assetshist.php on line 40
+[07-Oct-2024 07:20:34 UTC] PHP Deprecated:  number_format(): Passing null to parameter #1 ($num) of type float is deprecated in /home/u747325399/domains/liquag.com/public_html/dev/fairfix/fund/assetshist.php on line 40
