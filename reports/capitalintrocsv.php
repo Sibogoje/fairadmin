@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $row['DOB'],
                 $row['Gender'],
                 $row['TransactionDate'],
-                number_format($row['Amount Paid'], 2)
+                number_format($row['AmountPaid'], 2)
             ];
             fputcsv($f, $line, $delimiter);
         }
