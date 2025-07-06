@@ -83,10 +83,6 @@ $stmt12 = $conn->prepare("SELECT MemberNo, Name, Surname, DOB, Gender, Transacti
   <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
 
 <?php						
-						
-} else {
-  header('location: ./');
-}
 
 
 
