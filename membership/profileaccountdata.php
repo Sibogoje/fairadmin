@@ -135,31 +135,9 @@ if(count($_POST) > 0 && isset($_POST['c_id'])){
 <?php
 } else {
     header('location: ./');
+    exit();
 }
 ?>
-                  </tr>
-				   
-<?php						
-						}
-						?>
-						</tbody>
-						 </table>
-						<?php
-						
-						} else {
-						  echo "0 results";
-
-
-
-						} 
-?>
-  <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
-
-<?php						
-						
-} else {
-  header('location: ./');
-}
 
 
 
