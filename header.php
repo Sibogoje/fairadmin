@@ -541,7 +541,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
 <?php if ($role == 'admin' || $role=='Operations' ){ ?>         
        <li>
         <a href="https://fairlifeadmin.com/reports/capitalintroductionreport.php">
-          <i class="bi bi-circle"></i><span>Capital Introduction </span>
+          <i class="bi bi-circle"></i><span>Capital Transfer In Report </span>
         </a>
       </li>
       <?php } ?>

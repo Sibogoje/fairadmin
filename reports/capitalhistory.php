@@ -1,4 +1,3 @@
-
 <?php
 require_once '../scripts/connection.php';
 $ii = $_POST['single'];
@@ -18,10 +17,10 @@ $name = array($mntharray2);
 if (in_array("all", $mntharray)){
  // echo $mntharray2;
   //console("HHHH");
-   $choose = "`tblmemberaccounts` WHERE TransactionTypeID IN ('1', '2') AND  DATE(TransactionDate) BETWEEN '$d1'  AND '$d2'  ORDER BY TransactionDate DESC, accountsID DESC";  
+   $choose = "`transaction_type1_view` WHERE DATE(TransactionDate) BETWEEN '$d1'  AND '$d2'  ORDER BY TransactionDate DESC";  
 }else{
   
- $choose = "`tblmemberaccounts` WHERE TransactionTypeID IN ('1', '2') AND  `memberID` IN ({$mntharray2}) AND DATE(TransactionDate) BETWEEN '$d1'  AND '$d2'  ORDER BY TransactionDate DESC, accountsID DESC";   
+ $choose = "`transaction_type1_view` WHERE MemberNo IN ({$mntharray2}) AND DATE(TransactionDate) BETWEEN '$d1'  AND '$d2'  ORDER BY TransactionDate DESC";   
 }
 
 
@@ -29,17 +28,7 @@ if (in_array("all", $mntharray)){
 
 
 if(count($_POST)>0){
-$stmt12 = $conn->prepare("SELECT   
-`accountsID`,
-`TransactionDate`,
-  `TransactionTypeID`,
-  `memberID`,
-  `Details`,
-  `Credit`,
-  `StartingBalance`,
-  `Amount`,
-  `NewBalance`,
-  `Comments`  FROM ".$choose);
+$stmt12 = $conn->prepare("SELECT MemberNo, Name, Surname, DOB, Gender, TransactionDate, AmountPaid FROM " . $choose);
 						$stmt12->execute();
 						$result12 = $stmt12->get_result();
 						if ($result12->num_rows > 0) {
@@ -49,14 +38,13 @@ $stmt12 = $conn->prepare("SELECT
 		<table class="table datatable"  id="free">
 			<thead>
                   <tr>
-                    <th scope="col">Member ID</th>
-                    <th scope="col">TransactionDate</th>
-                    <th scope="col">Details</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Comments</th>
-					<th scope="col">Prev balance</th>
-					<th scope="col">Amount</th>
-					<th scope="col">NewBalance</th>
+                    <th scope="col">Member No</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Surname</th>
+                    <th scope="col">DOB</th>
+                    <th scope="col">Gender</th>
+                    <th scope="col">Transaction Date</th>
+                    <th scope="col">Amount Paid</th>
                   </tr>
                 </thead>
                 <tbody>
