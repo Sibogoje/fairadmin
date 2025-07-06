@@ -25,11 +25,11 @@ if(count($_POST)>0){
   m.MemberPostalAddress,
   d.RetirementFundID
 FROM
-  `u747325399_fair2`.`tblmembers` AS m
+  `tblmembers` AS m
 JOIN
-  `u747325399_fair2`.`tbldeceased` AS d ON m.DeceasedID = d.DeceasedID
+  `tbldeceased` AS d ON m.DeceasedID = d.DeceasedID
 JOIN
-  `u747325399_fair2`.`tblmemberaccounts` AS ma ON m.MemberID = ma.memberID
+  `tblmemberaccounts` AS ma ON m.MemberID = ma.memberID
 WHERE
   ma.TransactionDate BETWEEN '$d1' AND '$d2'
   AND d.RetirementFundID = '$ff'
