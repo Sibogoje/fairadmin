@@ -458,21 +458,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
         </a>
       </li>
       <?php } ?>
-<?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-<li>
-<a href="https://fairlifeadmin.com/membership/defined.php">
-<i class="bi bi-circle"></i><span>Defined Statement</span>
-</a>
-</li>
-<?php } ?>
 
-<?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-<li>
-<a href="https://fairlifeadmin.com/membership/defined2.php">
-<i class="bi bi-circle"></i><span>Defined Statement 2</span>
-</a>
-</li>
-<?php } ?>
 
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
        <li>
