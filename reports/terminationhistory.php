@@ -29,13 +29,11 @@ if (count($_POST) > 0) {
                     <tr>
                         <th scope="col">Member No</th>
                         <th scope="col">Full Name</th>
+                        <th scope="col">Gender</th>
+                        <th scope="col">DOB</th>
                         <th scope="col">Termination Date</th>
-                        <th scope="col">Transaction Date</th>
-                        <th scope="col">Details</th>
-                        <th scope="col">Comments</th>
-                        <th scope="col">Opening Balance</th>
                         <th scope="col">Amount</th>
-                        <th scope="col">Closing Balance</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -45,12 +43,9 @@ if (count($_POST) > 0) {
                     <tr>
                         <td><?php echo $row12['MemberNo']; ?></td>
                         <td><?php echo $row12['MemberFirstname'] . " " . $row12['MemberSurname']; ?></td>
-                        <td><?php echo $row12['TerminationDate']; ?></td>
-                        <td><?php echo $row12['TransactionDate']; ?></td>
-                        <td><?php echo $row12['Details']; ?></td>
-                        <td><?php echo $row12['Comments']; ?></td>
-                        <td><?php echo number_format($row12['StartingBalance'], 2); ?></td>
-                        <td><?php echo number_format($row12['Amount'], 2); ?></td>
+                        <td><?php echo $row12['Gender']; ?></td>
+                        <td><?php echo $row12['DOB']; ?></td>
+                        <td><?php echo $row12['TransactionDate']; ?></td>>
                         <td><?php echo number_format($row12['NewBalance'], 2); ?></td>
                     </tr>
 <?php
