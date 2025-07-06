@@ -18,7 +18,7 @@ if (in_array("all", $mntharray)) {
 }
 
 if (count($_POST) > 0) {
-    $stmt12 = $conn->prepare("SELECT MemberNo, MemberFirstname, MemberSurname, TerminationDate, TransactionDate, Details, Comments, StartingBalance, Amount, NewBalance FROM " . $choose);
+    $stmt12 = $conn->prepare("SELECT MemberNo, MemberFirstname, MemberSurname, TerminationDate, DOB, Gender, TransactionDate, Details, Comments, StartingBalance, Amount, NewBalance FROM " . $choose);
     $stmt12->execute();
     $result12 = $stmt12->get_result();
     if ($result12->num_rows > 0) {
