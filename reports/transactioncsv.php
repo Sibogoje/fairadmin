@@ -24,8 +24,8 @@ if (count($_POST) > 0) {
         MemberFirstname, 
         TerminationDate, 
         TransactionDate, 
-        Details, 
-        Comments, 
+        DOB, 
+        Gender, 
         StartingBalance, 
         Amount, 
         NewBalance 
@@ -39,12 +39,12 @@ if (count($_POST) > 0) {
         $f = fopen('php://memory', 'w');
 
         // Set column headers
-        $fields = array('MemberNo', 'MemberSurname', 'MemberFirstname', 'TerminationDate', 'TransactionDate', 'Details', 'Comments', 'StartingBalance', 'Amount', 'NewBalance');
+        $fields = array('MemberNo', 'MemberSurname', 'MemberFirstname',  'DOB', 'Gender', 'Termination Date',  'Amount');
         fputcsv($f, $fields, $delimiter);
 
         // Output each row of the data, format line as CSV and write to file pointer
         while ($row = $query->fetch_assoc()) {
-            $lineData = array($row['MemberNo'], $row['MemberSurname'], $row['MemberFirstname'], $row['TerminationDate'], $row['TransactionDate'], $row['Details'], $row['Comments'], $row['StartingBalance'], $row['Amount'], $row['NewBalance']);
+            $lineData = array($row['MemberNo'], $row['MemberSurname'], $row['MemberFirstname'],  $row['TransactionDate'], $row['DOB'], $row['Gender'],  $row['Amount']);
             fputcsv($f, $lineData, $delimiter);
         }
 
