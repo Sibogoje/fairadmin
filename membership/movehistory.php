@@ -7,7 +7,7 @@ $ii = $_POST['c_id'];
 if(count($_POST)>0){
     
         
-$stmt = $conn->prepare("SELECT * from memberz2 where MemberID = '$ii' ");
+$stmt = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
 						$stmt->execute();
 						$result = $stmt->get_result();
 						if ($result->num_rows > 0) {
@@ -30,7 +30,7 @@ $stmt = $conn->prepare("SELECT * from memberz2 where MemberID = '$ii' ");
                     <td scope="col"><?php echo $row['MemberFirstname']." ".$row['MemberSurname']; ?></td>
                     <th scope="col" style="vertical-align: top;">MemberNo</th>
 					<td scope="col"><?php echo $row['MemberNo']; ?></td>
-					<th scope="col" style="vertical-align: top;">National ID</th>
+					<th scope="col" style="vertical-align: top;">FundName</th>
 					<td scope="col"><?php echo $row['FundName']; ?></td>
 					</tr>
 					
