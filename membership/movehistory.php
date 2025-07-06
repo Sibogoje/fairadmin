@@ -31,7 +31,7 @@ $stmt = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
                     <th scope="col" style="vertical-align: top;">MemberNo</th>
 					<td scope="col"><?php echo $row['MemberNo']; ?></td>
 					<th scope="col" style="vertical-align: top;">National ID</th>
-					<td scope="col"><?php echo $row['MemberIDnumber']; ?></td>
+					<td scope="col"><?php echo $row['FundName']; ?></td>
 					</tr>
 					
 					
