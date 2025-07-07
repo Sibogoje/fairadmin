@@ -589,6 +589,13 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
         </a>
       </li>
 <?php } ?>
+<?php if ($role == 'admin' || $role=='Operations'){ ?>          
+   <li>
+        <a href="https://fairlifeadmin.com/reports/deceased.php">
+          <i class="bi bi-circle"></i><span>Deceased Member Report</span>
+        </a>
+      </li>
+<?php } ?>
     </ul>
   </li><!-- End Tables Nav -->
 
