@@ -186,8 +186,8 @@ $conn->close();
   <meta content="" name="keywords">
 <script src='../jquery-3.2.1.min.js' type='text/javascript'></script>
   <!-- Favicons -->
-  <link href="https://fair.liquag.com/" rel="icon">
-  <link href="https://fair.liquag.com/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/" rel="icon">
+  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -704,7 +704,7 @@ $('#postofficeID').select2({
 </html>
 <?php
 }else{
-    header('Location: https://fair.liquag.com/index.php');
+    header('Location: https://fairlifeadmin.com/index.php');
 }
 
 ?>

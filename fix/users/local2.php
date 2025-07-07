@@ -92,7 +92,7 @@ if(isset($_SESSION['zid']) && $_SESSION['role'] == 'admin') {
     }
 } else {
     // Redirect to login page if user is not logged in
-    header('Location: https://fair.liquag.com/logout.php');
+    header('Location: https://fairlifeadmin.com/logout.php');
 }
 ?>
 
@@ -111,8 +111,8 @@ if(isset($_SESSION['zid']) && $_SESSION['role'] == 'admin') {
       
 
   <!-- Favicons -->
-  <link href="https://fair.liquag.com//logo.png" rel="icon">
-  <link href="https://fair.liquag.com/logo.png" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com//logo.png" rel="icon">
+  <link href="https://fairlifeadmin.com/logo.png" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">

@@ -235,7 +235,7 @@ if (!file_exists($file_path)) {
                     &nbsp;&nbsp;
                    " ?>
                    <button type="button" data-link="dedit.php?id=<?php echo $row['id']; ?>" class="btn btn delete" data-id="<?php echo $row['id']; ?>" 
-                   data-filepath="<?php echo "https://fair.liquag.com/membership/uploads/".$row['member']."/".$row['name']." "?>">
+                   data-filepath="<?php echo "https://fairlifeadmin.com/membership/uploads/".$row['member']."/".$row['name']." "?>">
                        <i class="bi bi-folder-x" style='font-size: 25px; color: red;'></i></button>
                 
                     <?php 
@@ -399,7 +399,7 @@ $(document).on("click",".edit",function(e){
 </html>
 <?php
 }else{
-    header('Location: https://fair.liquag.com/logout.php');
+    header('Location: https://fairlifeadmin.com/logout.php');
 }
 
 ?>

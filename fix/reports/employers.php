@@ -27,8 +27,8 @@ require_once '../scripts/connection.php';
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="https://fair.liquag.com/logo.png" rel="icon">
-  <link href="https://fair.liquag.com/logo.png" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/logo.png" rel="icon">
+  <link href="https://fairlifeadmin.com/logo.png" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -540,7 +540,7 @@ alert("Please select fund to save report");
 </html>
 <?php
 }else{
-    header('Location: https://fair.liquag.com/index.php');
+    header('Location: https://fairlifeadmin.com/index.php');
 }
 
 ?>

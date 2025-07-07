@@ -91,8 +91,8 @@ $conn->close();
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="https://fair.liquag.com/" rel="icon">
-  <link href="https://fair.liquag.com/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/" rel="icon">
+  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">

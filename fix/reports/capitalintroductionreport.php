@@ -27,8 +27,8 @@ require_once '../scripts/connection.php';
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="https://fair.liquag.com/" rel="icon">
-  <link href="https://fair.liquag.com/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/" rel="icon">
+  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -359,7 +359,7 @@ $('#sss').select2({
 </html>
 <?php
 }else{
-    header('Location: https://fair.liquag.com/index.php');
+    header('Location: https://fairlifeadmin.com/index.php');
 }
 
 ?>
