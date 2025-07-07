@@ -182,9 +182,8 @@ html.loading body {
               </form><!-- End floating Labels Form -->
 <br><br>
               <!-- Quill Editor Default -->
-                <div class="card-body">
-                    <h5 class="card-title">Deceased Member Report</h5>
-                    <p>Click the button below to generate the deceased member report based on the selected criteria.</p>
+
+
 			  
 			  <form class="row g-3 needs-validation" id="fff" method="post" action="" target="" enctype="multipart/form-data" novalidate>
 			  

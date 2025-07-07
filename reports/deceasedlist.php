@@ -1,7 +1,7 @@
 <?php
 require_once '../scripts/connection.php';
-$d1 = $_POST['date1'] ?? '';
-$d2 = $_POST['date2'] ?? '';
+$d1  = $_POST['date1'] ?? '';
+$d2  = $_POST['date2'] ?? '';
 $sel = $_POST['single'] ?? [];
 
 if (!$d1 || !$d2 || empty($sel)) {
@@ -9,26 +9,25 @@ if (!$d1 || !$d2 || empty($sel)) {
   exit;
 }
 
-// build filter
+// build filter: use members.DateAccountOpened
 if (in_array('all', $sel)) {
-  $where = "DateOfDeath BETWEEN ? AND ?";
-  $params = "ss";
-  $vals = [$d1, $d2];
+    $where  = "m.DateAccountOpened BETWEEN ? AND ?";
+    $params = "ss";
+    $vals    = [$d1, $d2];
 } else {
-  $ids = implode(',', array_map('intval', $sel));
-  $where = "d.DeceasedID IN ($ids) AND DateOfDeath BETWEEN ? AND ?";
-  $params = "ss";
-  $vals = [$d1, $d2];
+    $ids     = implode(',', array_map('intval', $sel));
+    $where   = "m.DateAccountOpened BETWEEN ? AND ? AND d.DeceasedID IN ($ids)";
+    $params  = "ss";
+    $vals     = [$d1, $d2];
 }
 
 $sql = "
  SELECT 
-   d.DeceasedID,
-   CONCAT(d.DeceasedSurname, ' ', d.DeceasedFirstnames) AS DeceasedName,
-   d.DateOfDeath,
-   m.RelationshipDeceased
+   CONCAT(d.DeceasedSurname,' ',d.DeceasedFirstnames) AS DeceasedName,
+   m.RelationshipDeceased,
+   m.DateOfBirth
  FROM tbldeceased d
- LEFT JOIN tblmembers m ON m.DeceasedID = d.DeceasedID
+ JOIN tblmembers   m ON m.DeceasedID = d.DeceasedID
  WHERE $where
  ORDER BY d.DeceasedSurname, d.DeceasedFirstnames
 ";
@@ -45,20 +44,24 @@ if ($res->num_rows === 0) {
   exit;
 }
 
-echo '<div class="table-responsive"><table class="table datatable" id="free">
-        <thead>
-          <tr>
-            <th>Name of Deceased</th>
-            <th>Relationship to Beneficiary</th>
-            <th>Date of Birth</th>
-          </tr>
-        </thead><tbody>';
+echo '<div class="table-responsive">
+        <table class="table datatable" id="free">
+          <thead>
+            <tr>
+              <th>Name of Deceased</th>
+              <th>Relationship to Beneficiary</th>
+              <th>Beneficiary DOB</th>
+            </tr>
+          </thead>
+          <tbody>';
 while ($row = $res->fetch_assoc()) {
   echo '<tr>',
-       '<td>', htmlspecialchars($row['DeceasedName']), '</td>',
+       '<td>', htmlspecialchars($row['DeceasedName']),                '</td>',
        '<td>', htmlspecialchars($row['RelationshipDeceased'] ?? '-'), '</td>',
-       '<td>', htmlspecialchars($row['DateOfDeath']), '</td>',
+       '<td>', htmlspecialchars($row['DateOfBirth']),                 '</td>',
        '</tr>';
 }
-echo '</tbody></table></div>',
-     '<script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>';
+echo '    </tbody>
+        </table>
+      </div>
+      <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>';
