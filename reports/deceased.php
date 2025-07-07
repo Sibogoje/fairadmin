@@ -154,24 +154,12 @@ html.loading body {
 					         <?php echo htmlspecialchars($r['DeceasedSurname'].' '.$r['DeceasedFirstnames']);?>
 					      </option>
 					    <?php } ?>
-						<?php 
-						$stmt12 = $conn->prepare("SELECT DISTINCT * FROM `tblmembers` where `Terminated` = '0' ");
-						$stmt12->execute();
-						$result12 = $stmt12->get_result();
-						if ($result12->num_rows > 0) {
-						  // output data of each row
-						while($row12 = $result12->fetch_assoc()) {
-						$MemberNo = $row12['MemberNo'];
-						//$retirementfund = $row12['RetirementFundID'];
-					    	
-							
-
-						?>
-					<option value="<?php echo $row12['MemberID']; ?>"><?php echo $row12['MemberNo']." - ".$row12['MemberSurname']."  ".$row12['MemberFirstname'] ; ?></option>
-						<?php   }
-						} else {
-						  echo "0 results";
-						} ?> 
+					</select>
+                    <label for="single"><b>Select Deceased:</b></label>
+                    <div class="valid-feedback">
+                      Looks good!
+                    </div>
+                  </div>						
 					</select>
                     
 				  <div class="valid-feedback">
@@ -180,13 +168,7 @@ html.loading body {
                   </div>
 				  </div>	
 
-				  
 
-
-	
-				     <div class="text-center" >
-                  <button type="submit"  class="btn btn-warning add"  formaction="balancescsv.php"   style="width: 100%;"><b>Download Balance as CSV</b></button>
-               </div>
                <div class="text-center mt-2">
                    <button type="button" class="btn btn-primary" id="show_deceased" style="width:100%"><b>Show Deceased Report</b></button>
                    <button type="submit" class="btn btn-secondary mt-1" formaction="deceasedcsv.php" formtarget="_blank" style="width:100%"><b>Download Deceased CSV</b></button>
