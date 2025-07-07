@@ -140,9 +140,20 @@ html.loading body {
 				
                   <div class="form-floating">
 				  
-					 <select type="text" class="form-control" id="single"    placeholder="MemberID" name="single[]" multiple="multiple"  required>
+					 <select class="form-control" id="single" name="single[]" multiple required>
 					     	<option value="" ></option>
 					<option value="all">All</option>
+					<?php 
+					$stmt12 = $conn->prepare("SELECT DeceasedID, DeceasedSurname, DeceasedFirstnames, DateOfDeath 
+                               FROM tbldeceased ORDER BY DeceasedSurname, DeceasedFirstnames");
+					$stmt12->execute();
+					$ds = $stmt12->get_result();
+					while($r = $ds->fetch_assoc()) {
+					?>
+					      <option value="<?php echo $r['DeceasedID'];?>">
+					         <?php echo htmlspecialchars($r['DeceasedSurname'].' '.$r['DeceasedFirstnames']);?>
+					      </option>
+					    <?php } ?>
 						<?php 
 						$stmt12 = $conn->prepare("SELECT DISTINCT * FROM `tblmembers` where `Terminated` = '0' ");
 						$stmt12->execute();
@@ -175,6 +186,10 @@ html.loading body {
 	
 				     <div class="text-center" >
                   <button type="submit"  class="btn btn-warning add"  formaction="balancescsv.php"   style="width: 100%;"><b>Download Balance as CSV</b></button>
+               </div>
+               <div class="text-center mt-2">
+                   <button type="button" class="btn btn-primary" id="show_deceased" style="width:100%"><b>Show Deceased Report</b></button>
+                   <button type="submit" class="btn btn-secondary mt-1" formaction="deceasedcsv.php" formtarget="_blank" style="width:100%"><b>Download Deceased CSV</b></button>
                </div>
                <!-- <div class="text-center" >
                   <button type="submit"  class="btn btn-warning add" formaction="paymentsprint.php"   style="width: 100%;"><b>Download Balance as PDF</b></button>
@@ -218,6 +233,11 @@ html.loading body {
         </div>
       </div>
     </section>
+    <!-- Deceased Report -->
+    <div class="card-body mt-4" id="deceased_report">
+        <h5 class="card-title">Deceased Member Report</h5>
+        <div id="deceased_list"><!-- loaded via AJAX --></div>
+    </div>
 
 
 		  
@@ -356,6 +376,19 @@ $('#sss').select2({
 
 
 });
+</script>
+
+<script>
+  $('#show_deceased').click(function(){
+    $.ajax({
+      url: 'deceasedlist.php',
+      method: 'POST',
+      data: $('#user_form').serialize(),
+      success: function(html){
+        $('#deceased_list').html(html);
+      }
+    });
+  });
 </script>
 		
 
