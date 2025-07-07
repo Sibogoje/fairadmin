@@ -24,8 +24,9 @@ if (in_array('all', $sel)) {
 $sql = "
  SELECT 
    CONCAT(d.DeceasedSurname,' ',d.DeceasedFirstnames) AS DeceasedName,
-   m.RelationshipDeceased,
-   m.DateOfBirth
+   CONCAT(m.MemberFirstname,' ',m.MemberSurname)    AS BeneficiaryName,
+    m.RelationshipDeceased,
+    d.DateOfDeath                                AS DeceasedDOB
  FROM tbldeceased d
  JOIN tblmembers   m ON m.DeceasedID = d.DeceasedID
  WHERE $where
@@ -49,16 +50,18 @@ echo '<div class="table-responsive">
           <thead>
             <tr>
               <th>Name of Deceased</th>
+              <th>Beneficiary Name</th>
               <th>Relationship to Beneficiary</th>
-              <th>Beneficiary DOB</th>
+              <th>Deceased Date of Death</th>
             </tr>
           </thead>
           <tbody>';
 while ($row = $res->fetch_assoc()) {
   echo '<tr>',
-       '<td>', htmlspecialchars($row['DeceasedName']),                '</td>',
-       '<td>', htmlspecialchars($row['RelationshipDeceased'] ?? '-'), '</td>',
-       '<td>', htmlspecialchars($row['DateOfBirth']),                 '</td>',
+       '<td>', htmlspecialchars($row['DeceasedName']),       '</td>',
+       '<td>', htmlspecialchars($row['BeneficiaryName']),    '</td>',
+       '<td>', htmlspecialchars($row['RelationshipDeceased']),'</td>',
+       '<td>', htmlspecialchars($row['DeceasedDOB']),        '</td>',
        '</tr>';
 }
 echo '    </tbody>
