@@ -5,14 +5,14 @@ if(count($_POST) > 0 && isset($_POST['c_id'])){
     $ii = $_POST['c_id'];
     
     // Use proper prepared statement with parameter binding
-    $stmt = $conn->prepare("SELECT * FROM memberz2 WHERE MemberID = ?");
+    $stmt = $conn->prepare("SELECT * FROM memberz WHERE MemberID = ?");
     $stmt->bind_param("i", $ii);
     $stmt->execute();
     $result = $stmt->get_result();
     
     // DEBUG: log or print how many rows we got
-    error_log("profileaccountdata: memberz2 rows for ID {$ii}: {$result->num_rows}");
-    echo "<!-- memberz2 rows: {$result->num_rows} -->";
+    error_log("profileaccountdata: memberz rows for ID {$ii}: {$result->num_rows}");
+    echo "<!-- memberz rows: {$result->num_rows} -->";
 
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
