@@ -71,57 +71,6 @@ if(isset($_SESSION['zid'])) {
 
     <div class="card col-lg-12">
       <div class="card-body">
-        <h5 class="card-title">Interest Received (last 12 Months)</h5>
-        <!-- Table with stripped rows -->
-        <div class="table responsive">
-          <button type="button" id="adjbtn" class="btn btn-danger adjustment" style="width: 100%;" name="submit">Process Adjustment</button>
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">Start Date</th>
-                <th scope="col">Allocation Date</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Allocated</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php 
-              $prevmon = date("m");
-              $current = $prevmon - 1;
-              $year = date("Y");
-              
-              $stmt = $conn->prepare("SELECT * FROM `tblinterestreceived` ORDER BY InterestDate DESC LIMIT 12");
-              $stmt->execute();
-              $result = $stmt->get_result();
-              if ($result->num_rows > 0) {
-                while($row = $result->fetch_assoc()) {
-                  $ver = "";
-                  if ($row['Allocated'] == 1){
-                    $ver = "Yes";
-                  } else {
-                    $ver = "No";
-                  }
-              ?>
-              <tr>
-                <td scope="row"><?php echo $row['InterestStartDate']; ?></td>
-                <td scope="row"><?php echo $row['InterestDate']; ?></td>
-                <td><?php echo $row['InterestAmount']; ?></td>
-                <td><?php echo $ver; ?></td>
-              </tr>
-              <?php 
-                }
-              } else {
-                echo "<b style='color: red;'>No Interest Paid For ".$current."/".$year."</b>";
-              } 
-              ?>                 
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="card col-lg-12">
-      <div class="card-body">
         <h5 class="card-title">Recent Adjustments (last 12 Months)</h5>
         <div class="table responsive">
           <table class="table table-striped datatable nowrap" id="jj" style="width: 100%;">
