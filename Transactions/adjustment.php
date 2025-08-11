@@ -125,34 +125,37 @@ if(isset($_SESSION['zid'])) {
   <!-- Template Main JS File -->
   <script src="../assets/js/main.js"></script>
 
-  <script>
-    $(".adjustment").click(function(){
-      $("#adjbtn").attr("disabled", true);
-      var data = $("#adjustmentform").serialize();
-      $.ajax({
-        data: data,
-        type: "post",
-        url: "caladjustment.php",
-        success: function(dataResult){
-          var dataResult = JSON.parse(dataResult);
-          if(dataResult.statusCode==200){
-            var success1 = (dataResult.dones);
-            alert(success1);
-            location.reload();    
-          }
-          else if(dataResult.statusCode==201){
-            var error = (dataResult.error);
-            alert(error);
-          }
-        }
-      });
-    });
-  </script>            
 
-</body>
-</html>
+<script>
+$(document).ready(function() {
+  $(".adjustment").click(function(){
+    console.log('Process Adjustment button clicked');
+    $("#adjbtn").attr("disabled", true);
+    var data = $("#adjustmentform").serialize();
+    $.ajax({
+      data: data,
+      type: "post",
+      url: "caladjustment.php",
+      success: function(dataResult){
+        var dataResult = JSON.parse(dataResult);
+        if(dataResult.statusCode==200){
+          var success1 = (dataResult.dones);
+          alert(success1);
+          location.reload();
+        }
+        else if(dataResult.statusCode==201){
+          var error = (dataResult.error);
+          alert(error);
+        }
+      }
+    });
+  });
+});
+</script>
 <?php
 } else {
   header('location: ../login.php');
 }
 ?>
+</body>
+</html>
