@@ -127,8 +127,10 @@ if(isset($_SESSION['zid'])) {
 
 
 <script>
+console.log('Adjustment script loaded');
 $(document).ready(function() {
-  $(".adjustment").click(function(){
+  console.log('jQuery ready');
+  $(".adjustment").on('click', function(){
     console.log('Process Adjustment button clicked');
     $("#adjbtn").attr("disabled", true);
     var data = $("#adjustmentform").serialize();
