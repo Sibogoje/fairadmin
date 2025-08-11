@@ -123,6 +123,8 @@ $(document).ready(function() {
         if(parsed.statusCode==200){
           var success1 = (parsed.dones);
           $("#logs").html('<div class="alert alert-success">'+success1+'</div>');
+          // Clear form fields
+          $("#adjustmentform")[0].reset();
         }
         else {
           var error = (parsed.error);
