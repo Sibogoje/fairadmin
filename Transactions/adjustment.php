@@ -57,6 +57,13 @@ if(isset($_SESSION['zid'])) {
               <div class="valid-feedback">Looks good!</div>
             </div>
           </div>
+          <div class="col-md-12">
+            <div class="form-floating">
+              <input type="date" class="form-control" id="adjustmentDate" name="adjustmentDate" required placeholder="Adjustment Date">
+              <label for="adjustmentDate">Adjustment Date</label>
+              <div class="valid-feedback">Looks good!</div>
+            </div>
+          </div>
           <div class="text-center">
             <button type="button" id="adjbtn" class="btn btn-danger adjustment" style="width: 100%;" name="submit">Process Adjustment</button>
           </div>
@@ -94,7 +101,7 @@ $(document).ready(function() {
   $(".adjustment").on('click', function(){
     console.log('Process Adjustment button clicked');
     $("#adjbtn").attr("disabled", true);
-    var data = $("#adjustmentform").serialize();
+  var data = $("#adjustmentform").serialize();
     $.ajax({
       data: data,
       type: "post",

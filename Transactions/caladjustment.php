@@ -14,6 +14,7 @@ if (!isset($_SESSION['zid'])) {
 
 if (isset($_POST['adjustmentAmount'])) {
     $adjustmentAmount = floatval($_POST['adjustmentAmount']);
+    $adjustmentDate = isset($_POST['adjustmentDate']) ? $_POST['adjustmentDate'] : date('Y-m-d');
     $totalBalance = 0;
     $members = [];
     $result = $conn->query("SELECT memberID, NewBalance FROM balances WHERE Term = 0 AND NewBalance > 0");
@@ -26,13 +27,13 @@ if (isset($_POST['adjustmentAmount'])) {
     foreach ($members as $member) {
         $portion = ($member['NewBalance'] / $totalBalance) * $adjustmentAmount;
         $newBalance = $member['NewBalance'] - $portion;
-        $stmt = $conn->prepare("INSERT INTO tblmemberaccounts (TransactionDate, TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount, NewBalance, Comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $date = date('Y-m-d');
-        $transactionTypeID = 13;
-        $details = 'Adjustment';
-        $credit = 0;
-        $comments = 'Bulk adjustment';
-        $stmt->bind_param('sisssddds', $date, $transactionTypeID, $member['memberID'], $details, $credit, $member['NewBalance'], $portion, $newBalance, $comments);
+    $stmt = $conn->prepare("INSERT INTO tblmemberaccounts (TransactionDate, TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount, NewBalance, Comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $date = $adjustmentDate;
+    $transactionTypeID = 13;
+    $details = 'Adjustment';
+    $credit = 0;
+    $comments = 'Bulk adjustment';
+    $stmt->bind_param('sisssddds', $date, $transactionTypeID, $member['memberID'], $details, $credit, $member['NewBalance'], $portion, $newBalance, $comments);
         if ($stmt->execute()) {
             $success++;
             $conn->query("UPDATE balances SET NewBalance = $newBalance WHERE memberID = '{$member['memberID']}'");
@@ -40,6 +41,8 @@ if (isset($_POST['adjustmentAmount'])) {
             $fail++;
         }
         $stmt->close();
+
+
     }
 } else {
     echo json_encode(['statusCode' => 400, 'error' => 'No adjustment amount provided']);
