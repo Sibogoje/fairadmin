@@ -1,70 +1,165 @@
+
+<!DOCTYPE html>
 <?php
 session_start();
+if(isset($_SESSION['zid']))
+{
+$gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
-if (!isset($_SESSION['zid'])) {
-    header('Location: https://grinpath.com/fairlife/index.php');
-    exit;
-}
-
-if (isset($_POST['submit'])) {
-    $adjustmentAmount = floatval($_POST['adjustmentAmount']);
-    $totalBalance = 0;
-    $members = [];
-    $result = $conn->query("SELECT memberID, NewBalance FROM balances WHERE Term = 0 AND NewBalance > 0");
-    while ($row = $result->fetch_assoc()) {
-        $members[] = $row;
-        $totalBalance += $row['NewBalance'];
-    }
-    $success = 0;
-    $fail = 0;
-    foreach ($members as $member) {
-        $portion = ($member['NewBalance'] / $totalBalance) * $adjustmentAmount;
-        $newBalance = $member['NewBalance'] - $portion;
-        $stmt = $conn->prepare("INSERT INTO tblmemberaccounts (TransactionDate, TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount, NewBalance, Comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $date = date('Y-m-d');
-        $transactionTypeID = 13;
-        $details = 'Adjustment';
-        $credit = 0;
-        $comments = 'Bulk adjustment';
-        $stmt->bind_param('sisssddds', $date, $transactionTypeID, $member['memberID'], $details, $credit, $member['NewBalance'], $portion, $newBalance, $comments);
-        if ($stmt->execute()) {
-            $success++;
-            $conn->query("UPDATE balances SET NewBalance = $newBalance WHERE memberID = '{$member['memberID']}'");
-        } else {
-            $fail++;
-        }
-        $stmt->close();
-    }
-    $msg = "Adjustment complete. Success: $success, Fail: $fail.";
-    echo "<script>alert('$msg');window.location.href='adjustment.php';</script>";
-    exit;
-}
 ?>
-<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
     <title>Bulk Adjustment</title>
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs5/jq-3.6.0/dt-1.12.1/b-2.2.3/b-html5-2.2.3/b-print-2.2.3/date-1.1.2/fh-3.2.4/r-2.3.0/rg-1.2.0/sc-2.0.7/sb-1.3.4/sp-2.0.2/sl-1.4.0/datatables.min.css"/>
+    <script type="text/javascript" src="https://cdn.datatables.net/v/bs5/jq-3.6.0/dt-1.12.1/b-2.2.3/b-html5-2.2.3/b-print-2.2.3/date-1.1.2/fh-3.2.4/r-2.3.0/rg-1.2.0/sc-2.0.7/sb-1.3.4/sp-2.0.2/sl-1.4.0/datatables.min.js"></script>
+    <link href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href='../select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
+    <script src='../select2/dist/js/select2.min.js' type='text/javascript'></script>
     <link href="../assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="../assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
+    <link href="../assets/vendor/quill/quill.snow.css" rel="stylesheet">
+    <link href="../assets/vendor/quill/quill.bubble.css" rel="stylesheet">
+    <link href="../assets/vendor/remixicon/remixicon.css" rel="stylesheet">
+    <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <link href="../assets/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/css/bootstrap-select.min.css" />
 </head>
+
 <body>
-<?php include '../header.php'; ?>
-<main id="main" class="main">
-    <div class="pagetitle">
-        <h1>Bulk Adjustment</h1>
-    </div>
-    <div class="card col-lg-6 offset-lg-3">
-        <div class="card-body">
-            <h5 class="card-title">Enter Adjustment Amount</h5>
-            <form method="post" action="">
-                <div class="mb-3">
-                    <label for="adjustmentAmount" class="form-label">Adjustment Amount</label>
-                    <input type="number" step="0.01" class="form-control" id="adjustmentAmount" name="adjustmentAmount" required>
-                </div>
-                <button type="submit" name="submit" class="btn btn-danger">Process Adjustment</button>
-            </form>
+    <?php include '../header.php'; ?>
+    <main id="main" class="main">
+        <div class="pagetitle">
+            <h1>Bulk Adjustment</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="../dash.php">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Bulk Adjustment</li>
+                </ol>
+            </nav>
         </div>
-    </div>
-</main>
+        <div class="card col-lg-12" style="">
+            <div class="card-body">
+                <h5 class="card-title">Enter Adjustment Amount</h5>
+                <form class="row g-3 needs-validation" method="post" action="" id="adjustmentform" enctype="multipart/form-data" novalidate>
+                    <div class="col-md-12">
+                        <div class="form-floating">
+                            <input type="number" step="0.01" class="form-control" id="adjustmentAmount" name="adjustmentAmount" required placeholder="Adjustment Amount">
+                            <label for="adjustmentAmount">Adjustment Amount</label>
+                            <div class="valid-feedback">Looks good!</div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button type="button" id="adjbtn" class="btn btn-danger adjustment" style="width: 100%;" name="submit">Process Adjustment</button>
+                    </div>
+                </form>
+                <div class="card col-lg-12">
+                    <div class="card-body">
+                        <div class="logs" id="logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card col-lg-12">
+            <div class="card-body">
+                <h5 class="card-title">Recent Adjustments (last 12 Months)</h5>
+                <div class="table responsive">
+                    <table class="table table-striped datatable nowrap" id="jj" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th scope="col">Date</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Success</th>
+                                <th scope="col">Fail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $stmt = $conn->prepare("SELECT * FROM tbladjustmentlog ORDER BY Date DESC LIMIT 12 ");
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            if ($result->num_rows > 0) {
+                                while($row = $result->fetch_assoc()) {
+                                    ?>
+                                    <tr>
+                                        <td scope="row"><?php echo $row['Date']; ?></td>
+                                        <td><?php echo $row['Amount']; ?></td>
+                                        <td><?php echo $row['Success']; ?></td>
+                                        <td><?php echo $row['Fail']; ?></td>
+                                    </tr>
+                                    <?php
+                                }
+                            } else {
+                                echo "<b style='color: red;'>No Adjustments in last 12 months</b>";
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="../assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/vendor/php-email-form/validate.js"></script>
+    <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+    <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
+    <script src="../assets/js/main.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#jj').DataTable({
+                lengthMenu: [
+                    [10, 25, 50, -1],
+                    [10, 25, 50, 'All'],
+                ],
+                dom: 'Blfrtip',
+                buttons: [
+                    'copyHtml5',
+                    'excelHtml5',
+                    'csvHtml5',
+                    'pdfHtml5'
+                ],
+                responsive: true,
+            });
+        });
+        $(".adjustment").click(function(){
+            $("#adjbtn").attr("disabled", true);
+            var data = $("#adjustmentform").serialize();
+            $.ajax({
+                data: data,
+                type: "post",
+                url: "caladjustment.php",
+                success: function(dataResult){
+                    var dataResult = JSON.parse(dataResult);
+                    if(dataResult.statusCode==200){
+                        var success1 = (dataResult.dones);
+                        alert(success1);
+                        location.reload();
+                    }
+                    else if(dataResult.statusCode==201){
+                        var error = (dataResult.error);
+                        alert(error);
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+<?php
+}else{
+        header('Location: https://grinpath.com/fairlife/index.php');
+}
+?>
