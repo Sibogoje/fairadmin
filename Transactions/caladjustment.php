@@ -31,9 +31,10 @@ if (isset($_POST['adjustmentAmount'])) {
     $stmt = $conn->prepare("INSERT INTO tblmemberaccounts (TransactionDate, TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount, NewBalance, Comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $date = $adjustmentDate;
     $transactionTypeID = 13;
-    $details = 'Adjustment';
+    $yearMonth = date('Y-m', strtotime($date));
+    $details = 'Adjustment for - ' . $yearMonth;
     $credit = 0;
-    $comments = 'Bulk adjustment';
+    $comments = 'Adjustment for - ' . $yearMonth;
     $stmt->bind_param('sisssddds', $date, $transactionTypeID, $member['memberID'], $details, $credit, $member['NewBalance'], $portion, $newBalance, $comments);
         if ($stmt->execute()) {
             $success++;
