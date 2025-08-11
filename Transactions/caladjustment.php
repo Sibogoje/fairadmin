@@ -1,0 +1,51 @@
+<?php
+session_start();
+require_once '../scripts/connection.php';
+header('Content-Type: application/json');
+
+if (!isset($_SESSION['zid'])) {
+    echo json_encode(['statusCode' => 401, 'error' => 'Unauthorized']);
+    exit;
+}
+
+if (isset($_POST['adjustmentAmount'])) {
+    $adjustmentAmount = floatval($_POST['adjustmentAmount']);
+    $totalBalance = 0;
+    $members = [];
+    $result = $conn->query("SELECT memberID, NewBalance FROM balances WHERE Term = 0 AND NewBalance > 0");
+    while ($row = $result->fetch_assoc()) {
+        $members[] = $row;
+        $totalBalance += $row['NewBalance'];
+    }
+    $success = 0;
+    $fail = 0;
+    foreach ($members as $member) {
+        $portion = ($member['NewBalance'] / $totalBalance) * $adjustmentAmount;
+        $newBalance = $member['NewBalance'] - $portion;
+        $stmt = $conn->prepare("INSERT INTO tblmemberaccounts (TransactionDate, TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount, NewBalance, Comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $date = date('Y-m-d');
+        $transactionTypeID = 13;
+        $details = 'Adjustment';
+        $credit = 0;
+        $comments = 'Bulk adjustment';
+        $stmt->bind_param('sisssddds', $date, $transactionTypeID, $member['memberID'], $details, $credit, $member['NewBalance'], $portion, $newBalance, $comments);
+        if ($stmt->execute()) {
+            $success++;
+            $conn->query("UPDATE balances SET NewBalance = $newBalance WHERE memberID = '{$member['memberID']}'");
+        } else {
+            $fail++;
+        }
+        $stmt->close();
+    }
+    // Log the adjustment
+    $logstmt = $conn->prepare("INSERT INTO tbladjustmentlog (Date, Amount, Success, Fail) VALUES (?, ?, ?, ?)");
+    $logstmt->bind_param('sdii', $date, $adjustmentAmount, $success, $fail);
+    $logstmt->execute();
+    $logstmt->close();
+    echo json_encode(['statusCode' => 200, 'dones' => "Adjustment complete. Success: $success, Fail: $fail."]);
+    exit;
+} else {
+    echo json_encode(['statusCode' => 400, 'error' => 'No adjustment amount provided']);
+    exit;
+}
+?>
