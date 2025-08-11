@@ -69,45 +69,6 @@ if(isset($_SESSION['zid'])) {
       </div>
     </div>
 
-    <div class="card col-lg-12">
-      <div class="card-body">
-        <h5 class="card-title">Recent Adjustments (last 12 Months)</h5>
-        <div class="table responsive">
-          <table class="table table-striped datatable nowrap" id="jj" style="width: 100%;">
-            <thead>
-              <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Success</th>
-                <th scope="col">Fail</th>
-              </tr>
-            </thead>
-            <tbody>
-              <?php 
-              $stmt = $conn->prepare("SELECT * FROM tbladjustmentlog ORDER BY Date DESC LIMIT 12");
-              $stmt->execute();
-              $result = $stmt->get_result();
-              if ($result->num_rows > 0) {
-                while($row = $result->fetch_assoc()) {
-              ?>
-              <tr>
-                <td scope="row"><?php echo $row['Date']; ?></td>
-                <td><?php echo $row['Amount']; ?></td>
-                <td><?php echo $row['Success']; ?></td>
-                <td><?php echo $row['Fail']; ?></td>
-              </tr>
-              <?php
-                }
-              } else {
-                echo "<b style='color: red;'>No Adjustments in last 12 months</b>";
-              }
-              ?>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </main><!-- End #main -->
 
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
