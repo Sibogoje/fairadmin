@@ -1,4 +1,8 @@
+
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require_once '../scripts/connection.php';
 header('Content-Type: application/json');
@@ -37,13 +41,6 @@ if (isset($_POST['adjustmentAmount'])) {
         }
         $stmt->close();
     }
-    // Log the adjustment
-    $logstmt = $conn->prepare("INSERT INTO tbladjustmentlog (Date, Amount, Success, Fail) VALUES (?, ?, ?, ?)");
-    $logstmt->bind_param('sdii', $date, $adjustmentAmount, $success, $fail);
-    $logstmt->execute();
-    $logstmt->close();
-    echo json_encode(['statusCode' => 200, 'dones' => "Adjustment complete. Success: $success, Fail: $fail."]);
-    exit;
 } else {
     echo json_encode(['statusCode' => 400, 'error' => 'No adjustment amount provided']);
     exit;
