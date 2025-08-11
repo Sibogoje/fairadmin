@@ -108,12 +108,16 @@ $(document).ready(function() {
       url: "caladjustment.php",
       success: function(dataResult){
         var parsed = null;
-        try {
-          parsed = JSON.parse(dataResult);
-        } catch (e) {
-          $("#adjbtn").attr("disabled", false);
-          $("#logs").html('<div class="alert alert-danger">Server returned invalid response.</div>');
-          return;
+        if (typeof dataResult === 'string') {
+          try {
+            parsed = JSON.parse(dataResult);
+          } catch (e) {
+            $("#adjbtn").attr("disabled", false);
+            $("#logs").html('<div class="alert alert-danger">Server returned invalid response.</div>');
+            return;
+          }
+        } else {
+          parsed = dataResult;
         }
         $("#adjbtn").attr("disabled", false);
         if(parsed.statusCode==200){

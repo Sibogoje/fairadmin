@@ -1,4 +1,5 @@
 <?php
+ob_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -7,6 +8,7 @@ require_once '../scripts/connection.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['zid'])) {
+    ob_clean();
     echo json_encode(['statusCode' => 401, 'error' => 'Unauthorized']);
     exit;
 }
@@ -42,9 +44,11 @@ if (isset($_POST['adjustmentAmount'])) {
         $stmt->close();
     }
     $message = "Bulk adjustment complete. Success: $success, Failed: $fail.";
+    ob_clean();
     echo json_encode(['statusCode' => 200, 'dones' => $message]);
     exit;
 } else {
+    ob_clean();
     echo json_encode(['statusCode' => 400, 'error' => 'No adjustment amount provided']);
     exit;
 }
