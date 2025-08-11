@@ -107,16 +107,27 @@ $(document).ready(function() {
       type: "post",
       url: "caladjustment.php",
       success: function(dataResult){
-        var dataResult = JSON.parse(dataResult);
+        var parsed = null;
+        try {
+          parsed = JSON.parse(dataResult);
+        } catch (e) {
+          $("#adjbtn").attr("disabled", false);
+          $("#logs").html('<div class="alert alert-danger">Server returned invalid response.</div>');
+          return;
+        }
         $("#adjbtn").attr("disabled", false);
-        if(dataResult.statusCode==200){
-          var success1 = (dataResult.dones);
+        if(parsed.statusCode==200){
+          var success1 = (parsed.dones);
           $("#logs").html('<div class="alert alert-success">'+success1+'</div>');
         }
         else {
-          var error = (dataResult.error);
+          var error = (parsed.error);
           $("#logs").html('<div class="alert alert-danger">'+error+'</div>');
         }
+      },
+      error: function(xhr, status, error) {
+        $("#adjbtn").attr("disabled", false);
+        $("#logs").html('<div class="alert alert-danger">AJAX error: '+error+'</div>');
       }
     });
   });
