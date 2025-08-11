@@ -108,14 +108,14 @@ $(document).ready(function() {
       url: "caladjustment.php",
       success: function(dataResult){
         var dataResult = JSON.parse(dataResult);
+        $("#adjbtn").attr("disabled", false);
         if(dataResult.statusCode==200){
           var success1 = (dataResult.dones);
-          alert(success1);
-          location.reload();
+          $("#logs").html('<div class="alert alert-success">'+success1+'</div>');
         }
-        else if(dataResult.statusCode==201){
+        else {
           var error = (dataResult.error);
-          alert(error);
+          $("#logs").html('<div class="alert alert-danger">'+error+'</div>');
         }
       }
     });

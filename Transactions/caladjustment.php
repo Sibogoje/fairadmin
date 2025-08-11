@@ -41,9 +41,10 @@ if (isset($_POST['adjustmentAmount'])) {
             $fail++;
         }
         $stmt->close();
-
-
     }
+    $message = "Bulk adjustment complete. Success: $success, Failed: $fail.";
+    echo json_encode(['statusCode' => 200, 'dones' => $message]);
+    exit;
 } else {
     echo json_encode(['statusCode' => 400, 'error' => 'No adjustment amount provided']);
     exit;
