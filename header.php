@@ -30,6 +30,11 @@
         </li><!-- End Search Icon-->
 
         <li class="nav-item dropdown" >
+            <li>
+              <a href="https://grinpath.com/fairlife/Transactions/adjustment.php">
+                <i class="bi bi-circle"></i><span>Adjustment</span>
+              </a>
+            </li>
             
             <?php
             $sum1 = "";
