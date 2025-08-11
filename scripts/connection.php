@@ -1,8 +1,8 @@
 <?php
-$servername = "localhost";
-$username = "dxtustit_fair2";
-$password = "Fairline@151022";
-$dbname   = 'dxtustit_fair2';
+$servername = "srv1212.hstgr.io";
+$username = "u747325399_fair2";
+$password = "2Jznf67RS=";
+$dbname   = 'u747325399_fair2';
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
