@@ -336,11 +336,7 @@ $date = ('m');
 $month = idate("m");
 $month = "03";
 //echo $month;
-$balanceresult = mysqli_query($conn, "SELECT COUNT(DISTINCT `memberID`) AS value_sum FROM tblmemberaccounts where TransactionTypeID = 3 AND MONTH(TransactionDate) = '$month' AND YEAR(TransactionDate) = '2024' "); 
-$balancerow = mysqli_fetch_assoc($balanceresult); 
-$notification = $balancerow['value_sum'];
-      
-if ($notification > 0) {         
+       
     
 if ($role == 'admin' || $role=='Accounts'){ ?>          
 <li>
@@ -349,18 +345,14 @@ if ($role == 'admin' || $role=='Accounts'){ ?>
 </a>
 </li>
 <?php } 
-}
+
 ?>
 
 
 
 <?php
 
-$balanceresult = mysqli_query($conn, "SELECT COUNT(DISTINCT `memberID`) AS value_sum FROM tblmemberaccounts where TransactionTypeID = 8 AND MONTH(TransactionDate) = '$month' AND YEAR(TransactionDate) = '2023' "); 
-$balancerow = mysqli_fetch_assoc($balanceresult); 
-$notification = $balancerow['value_sum'];
-      
-if ($notification > 0) {  
+  
 
 if ($role == 'admin' || $role=='Accounts' ){ ?>          
    <li>
@@ -369,7 +361,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
         </a>
       </li>
       <?php }
-      }
+      
       
       ?>
 
