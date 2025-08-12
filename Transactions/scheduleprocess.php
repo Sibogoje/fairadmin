@@ -1,21 +1,24 @@
 <?php
 require_once '../scripts/connection.php';
 if(count($_POST)>0){
-$rr = "0";
-$val = 0;
-$null = NULL;
-/////////////retrieve all records that are not terminated ///////////////////////////////////
-$stmt = $conn->prepare("SELECT `MemberID`, `TransactionPercent`, `FixedPaymentAmount`, `balance` FROM `member_fees` WHERE `FixedPaymentAmount`>? and `Terminated` = 0 ");
-$stmt->bind_param("s", $val);
-$stmt->execute();
-$result = $stmt->get_result();
-if ($result->num_rows > 0) {
-while($row = $result->fetch_assoc()) {
-$MemberNo = $row['MemberID'];
-$update_date = date("Y-m-d");
-$FixedPaymentAmount = $row['FixedPaymentAmount'];
-$TransactionPercent = $row['TransactionPercent'];
-$prevbalance = $row['balance'];
+	$rr = "0";
+	$val = 0;
+	$null = NULL;
+	// Get the date from the POST data (from the date picker)
+	$update_date = isset($_POST['scheduledDate']) ? $_POST['scheduledDate'] : date("Y-m-d");
+	/////////////retrieve all records that are not terminated ///////////////////////////////////
+	$stmt = $conn->prepare("SELECT `MemberID`, `TransactionPercent`, `FixedPaymentAmount`, `balance` FROM `member_fees` WHERE `FixedPaymentAmount`>? and `Terminated` = 0 ");
+	$stmt->bind_param("s", $val);
+	$stmt->execute();
+	$result = $stmt->get_result();
+	if ($result->num_rows > 0) {
+		while($row = $result->fetch_assoc()) {
+			$MemberNo = $row['MemberID'];
+			// Use the picked date for all transactions
+			// $update_date already set above
+			$FixedPaymentAmount = $row['FixedPaymentAmount'];
+			$TransactionPercent = $row['TransactionPercent'];
+			$prevbalance = $row['balance'];
 
 
 $Details = "Regular Payments";
