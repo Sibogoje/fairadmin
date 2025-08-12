@@ -142,6 +142,9 @@ $uid = $row['MemberNo'];
               </div>
               <!-- End Table with stripped rows -->
   <div class="text-center">
+                  <div class="mb-3">
+                    <input type="date" id="scheduledDate" name="scheduledDate" class="form-control" required placeholder="Select Date">
+                  </div>
                   <button type="submit" id="regslar"  class="btn btn-warning regular" style="width: 100%;" name="process">Process All</button>
                   
                 </div>
@@ -216,38 +219,39 @@ $(document).ready(function() {
 		
 <script>
     $(function(){
-        $(".regular").click(function(){
-            var postid = "Process";
-            $("#regslar").attr("disabled", true);
-			var ff = "jj";
-              $.ajax({
-                type:'POST',
-                url:'scheduleprocess.php',
-                data:{'id':postid},
-                success:function(dataResult){
-					var dataResult = JSON.parse(dataResult);
-					if(dataResult.statusCode==200){
-						var succ = (dataResult.datas);
-						alert(succ);
-
-                        location.reload();	
-                        $("#regslar").attr("disabled", false);					
-					}
-					else if(dataResult.statusCode==201){
-						var error = (dataResult.datas);
-					   alert(error);
-             $("#regslar").attr("disabled", true);	
-					}else if(dataResult.statusCode==203){
-						var mid = (dataResult.datas);
-					   alert("Please Update Recent Transaction for = "+mid);
-             $("#regslar").attr("disabled", true);	
-            	
-					}
-            
-                }
-            });
-
-        });
+    $(".regular").click(function(){
+      var postid = "Process";
+      var selectedDate = $("#scheduledDate").val();
+      if (!selectedDate) {
+        alert("Please select a date before processing.");
+        return;
+      }
+      $("#regslar").attr("disabled", true);
+      var ff = "jj";
+      $.ajax({
+        type:'POST',
+        url:'scheduleprocess.php',
+        data:{'id':postid, 'scheduledDate': selectedDate},
+        success:function(dataResult){
+          var dataResult = JSON.parse(dataResult);
+          if(dataResult.statusCode==200){
+            var succ = (dataResult.datas);
+            alert(succ);
+            location.reload();    
+            $("#regslar").attr("disabled", false);                  
+          }
+          else if(dataResult.statusCode==201){
+            var error = (dataResult.datas);
+            alert(error);
+            $("#regslar").attr("disabled", true);  
+          }else if(dataResult.statusCode==203){
+            var mid = (dataResult.datas);
+            alert("Please Update Recent Transaction for = "+mid);
+            $("#regslar").attr("disabled", true);  
+          }
+        }
+      });
+    });
     });
 
 </script>
