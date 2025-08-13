@@ -22,7 +22,7 @@ while($row = $result->fetch_assoc()) {
     $newb = $approvedbenefit;
     $Comments = "";
     
-    $DateAccountOpened = date('Y-m-d');
+    $DateAccountOpened = $row['ateAccountOpened'];
     
     $insertnew = $conn->prepare("insert into `tblmemberaccounts` (
     
