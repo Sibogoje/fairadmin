@@ -254,11 +254,10 @@ $isAdmin = ($userRole === 'admin');
                 <thead>
                   <tr>
                     
-                    <td scope="row"><?php echo $row['MemberID']; ?> </td>
-                    <td scope="row"><?php echo $row['PaymentDate']; ?></td>
-                    <td scope="row"><?php echo $row['Name']; ?></td>
-                    <td scope="row"><?php echo $row['AdHocPayment']; ?></td>
-                    <td scope="row"><?php echo $row['Comments']; ?></td>
+                    <th scope="col">MemberID</th>
+                    <th scope="col">ID-Name</th>
+                    <th scope="col">Amount</th>
+				          	<th scope="col">Comment</th>
 
 
 					<th scope="col">Action</th>
@@ -280,9 +279,9 @@ while($row = $result->fetch_assoc()) {
                   <tr>
                     
 
-                    <td hidden scope="row"><?php echo $row['MemberID']; ?> </td>
+                    <td scope="row"><?php echo $row['MemberID']; ?> </td>
                     <td scope="row"><?php echo $row['Name']; ?></td>
-					
+					<td scope="row"><?php echo $row['PaymentDate']; ?></td>
 					<td><?php echo $row['AdHocPayment']; ?></td>
 					<td><?php echo $row['Comments']; ?></td>
 
