@@ -257,8 +257,8 @@ $isAdmin = ($userRole === 'admin');
                     <td scope="row"><?php echo $row['MemberID']; ?> </td>
                     <td scope="row"><?php echo $row['PaymentDate']; ?></td>
                     <td scope="row"><?php echo $row['Name']; ?></td>
-                    <td><?php echo $row['AdHocPayment']; ?></td>
-                    <td><?php echo $row['Comments']; ?></td>
+                    <td scope="row"><?php echo $row['AdHocPayment']; ?></td>
+                    <td scope="row"><?php echo $row['Comments']; ?></td>
 
 
 					<th scope="col">Action</th>
