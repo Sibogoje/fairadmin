@@ -266,7 +266,7 @@ $isAdmin = ($userRole === 'admin');
                 </thead>
                 <tbody>
 				<?php 
-$stmt = $conn->prepare("SELECT * FROM `tbltempadhocpayments`" );
+$stmt = $conn->prepare("SELECT * FROM `tbltempadhocpayments` order by `PaymentDate` ASC" );
 
 $stmt->execute();
 $result = $stmt->get_result();
