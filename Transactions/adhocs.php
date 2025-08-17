@@ -36,7 +36,7 @@ if (($handle = fopen($csvFile, "r")) !== false) {
 
             // Insert into tbltempadhocpayments
             $insert = $conn->prepare("INSERT INTO tbltempadhocpayments (MemberID, Name, PaymentDate, Details, AdHocPayment, Comments) VALUES (?, ?, STR_TO_DATE(?, '%d/%m/%Y'), ?, ?, ?)");
-            $insert->bind_param("issdsd", $memberID, $name, $transactionDate, $comments, $amount, $comments);
+            $insert->bind_param("isssds", $memberID, $name, $transactionDate, $comments, $amount, $comments);
             $insert->execute();
         }
     }
