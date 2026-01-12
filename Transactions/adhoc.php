@@ -254,7 +254,7 @@ $isAdmin = ($userRole === 'admin');
                 <thead>
                   <tr>
                     
-                    <th scope="col">MemberID</th>
+                    <th scope="col">Ref Number</th>
                     <th scope="col">PaymentDate</th>
                     <th scope="col">ID-Name</th>
                     <th scope="col">Amount</th>
