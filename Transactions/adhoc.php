@@ -279,7 +279,7 @@ while($row = $result->fetch_assoc()) {
 
                   <tr>
 <?php
-$input = $row['MemberID'];
+$input = $row['Name'];
 // remove anything that is not a digit
 $numberOnly = preg_replace('/\D+/', '', $input);
 //echo $numberOnly;
