@@ -278,10 +278,14 @@ while($row = $result->fetch_assoc()) {
 ?>
 
                   <tr>
-                    
-
-                    <td scope="row"><?php echo $row['MemberID']; ?> </td>
-                    <td scope="row"><?php echo $row['PaymentDate']; ?></td>
+<?php
+$input = $row['MemberID'];
+// remove anything that is not a digit
+$numberOnly = preg_replace('/\D+/', '', $input);
+echo $numberOnly;
+?>
+          <td scope="row"><?php echo $numberOnly; ?> </td>
+          <td scope="row"><?php echo $row['PaymentDate']; ?></td>
 					<td scope="row"><?php echo $row['Name']; ?></td>
 					<td><?php echo $row['AdHocPayment']; ?></td>
 					<td><?php echo $row['Comments']; ?></td>
