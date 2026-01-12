@@ -282,7 +282,7 @@ while($row = $result->fetch_assoc()) {
 $input = $row['MemberID'];
 // remove anything that is not a digit
 $numberOnly = preg_replace('/\D+/', '', $input);
-echo $numberOnly;
+//echo $numberOnly;
 ?>
           <td scope="row"><?php echo $numberOnly; ?> </td>
           <td scope="row"><?php echo $row['PaymentDate']; ?></td>
