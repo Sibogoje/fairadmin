@@ -6,8 +6,8 @@
   <header id="header" class="header fixed-top d-flex align-items-center">
 
     <div class="d-flex align-items-center justify-content-between">
-      <a href="https://grinpath.com/fairlife/dash.php" class="logo d-flex align-items-center">
-        <img src="https://grinpath.com/fairlife/logo.png" alt="">
+      <a href="https://fairlifeadmin.com/dash.php" class="logo d-flex align-items-center">
+        <img src="https://fairlifeadmin.com/logo.png" alt="">
         <span class="d-none d-lg-block">Fairlife</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
@@ -129,7 +129,7 @@ while($row = $resultz->fetch_assoc()) {
         <li class="nav-item dropdown pe-3">
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="https://grinpath.com/fairlife/logo.png" alt="Profile" class="rounded-circle">
+            <img src="https://fairlifeadmin.com/logo.png" alt="Profile" class="rounded-circle">
             <span class="d-none d-md-block dropdown-toggle ps-2"><?php echo $gg ?></span>
           </a><!-- End Profile Iamge Icon -->
 
@@ -164,7 +164,7 @@ while($row = $resultz->fetch_assoc()) {
             </li>
 
             <li id="logout">
-              <a class="dropdown-item d-flex align-items-center" href="https://grinpath.com/fairlife/logout.php">
+              <a class="dropdown-item d-flex align-items-center" href="https://fairlifeadmin.com/logout.php">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Sign Out</span>
               </a>
@@ -183,7 +183,7 @@ while($row = $resultz->fetch_assoc()) {
 <ul class="sidebar-nav" id="sidebar-nav">
 <?php if ($role == 'admin'){ ?>
   <li class="nav-item">
-    <a class="nav-link " href="https://grinpath.com/fairlife/dash.php">
+    <a class="nav-link " href="https://fairlifeadmin.com/dash.php">
       <i class="bi bi-grid"></i>
       <span>Dashboard</span>
     </a>
@@ -199,7 +199,7 @@ while($row = $resultz->fetch_assoc()) {
     <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
 <?php  if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
       <li>
-        <a href="https://grinpath.com/fairlife/membership/new.php">
+        <a href="https://fairlifeadmin.com/membership/new.php">
           <i class="bi bi-circle"></i><span>New Beneficiary</span>
         </a>
       </li>
@@ -208,7 +208,7 @@ while($row = $resultz->fetch_assoc()) {
 
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>
       <li>
-         <a href="https://grinpath.com/fairlife/membership/">
+         <a href="https://fairlifeadmin.com/membership/">
           <i class="bi bi-circle"></i><span>All Beneficiaries</span>
         </a>
       </li>
@@ -216,7 +216,7 @@ while($row = $resultz->fetch_assoc()) {
 
       <?php if ($role == 'admin' ){ ?>
       <li>
-         <a href="https://grinpath.com/fairlife/membership/pending.php">
+         <a href="https://fairlifeadmin.com/membership/pending.php">
           <i class="bi bi-circle"></i><span>Pending Approval</span>
         </a>
       </li>
@@ -224,7 +224,7 @@ while($row = $resultz->fetch_assoc()) {
       
       <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>
       <li>
-         <a href="https://grinpath.com/fairlife/membership/benlist.php">
+         <a href="https://fairlifeadmin.com/membership/benlist.php">
           <i class="bi bi-circle"></i><span>Employer Beneficiary Lists</span>
         </a>
       </li>
@@ -235,14 +235,14 @@ while($row = $resultz->fetch_assoc()) {
       
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
       <li>
-         <a href="https://grinpath.com/fairlife/membership/dnew.php">
+         <a href="https://fairlifeadmin.com/membership/dnew.php">
           <i class="bi bi-circle"></i><span>New Deceased</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
   <li>
-        <a href="https://grinpath.com/fairlife/membership/deceased.php">
+        <a href="https://fairlifeadmin.com/membership/deceased.php">
           <i class="bi bi-circle"></i><span>Deceased Profiles</span>
         </a>
       </li>
@@ -269,35 +269,35 @@ while($row = $resultz->fetch_assoc()) {
     <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
       <li>
-         <a href="https://grinpath.com/fairlife/fund/fnew.php">
+         <a href="https://fairlifeadmin.com/fund/fnew.php">
           <i class="bi bi-circle"></i><span>New Fund</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
       <li>
-         <a href="https://grinpath.com/fairlife/fund/">
+         <a href="https://fairlifeadmin.com/fund/">
           <i class="bi bi-circle"></i><span>All Funds</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
     <li>
-     <a href="https://grinpath.com/fairlife/fund/assets.php">
+     <a href="https://fairlifeadmin.com/fund/assets.php">
       <i class="bi bi-circle"></i><span>Fund Assets</span>
     </a>
     </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
       <li>
-         <a href="https://grinpath.com/fairlife/fund/enew.php">
+         <a href="https://fairlifeadmin.com/fund/enew.php">
           <i class="bi bi-circle"></i><span>New Employer</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
       <li>
-         <a href="https://grinpath.com/fairlife/fund/employers.php">
+         <a href="https://fairlifeadmin.com/fund/employers.php">
           <i class="bi bi-circle"></i><span>All Employers</span>
         </a>
       </li>
@@ -312,21 +312,21 @@ while($row = $resultz->fetch_assoc()) {
     <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
 <li>
-<a href="https://grinpath.com/fairlife/Transactions/clientr.php">
+<a href="https://fairlifeadmin.com/Transactions/clientr.php">
 <i class="bi bi-circle"></i><span>Client Requests</span>
 </a>
 </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>           
       <li>
-        <a href="https://grinpath.com/fairlife/Transactions/adhoc.php">
+        <a href="https://fairlifeadmin.com/Transactions/adhoc.php">
           <i class="bi bi-circle"></i><span>Adhoc Payments</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
       <li>
-        <a href="https://grinpath.com/fairlife/Transactions/scheduled.php">
+        <a href="https://fairlifeadmin.com/Transactions/scheduled.php">
           <i class="bi bi-circle"></i><span>Scheduled Payments</span>
         </a>
       </li>
@@ -340,7 +340,7 @@ $month = "03";
     
 if ($role == 'admin' || $role=='Accounts'){ ?>          
 <li>
-<a href="https://grinpath.com/fairlife/Transactions/interest.php">
+<a href="https://fairlifeadmin.com/Transactions/interest.php">
 <i class="bi bi-circle"></i><span>Interest Payment</span>
 </a>
 </li>
@@ -356,7 +356,7 @@ if ($role == 'admin' || $role=='Accounts'){ ?>
 
 if ($role == 'admin' || $role=='Accounts' ){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/Transactions/monthlyfees.php">
+        <a href="https://fairlifeadmin.com/Transactions/monthlyfees.php">
           <i class="bi bi-circle"></i><span>Monthly Fees Payment</span>
         </a>
       </li>
@@ -368,28 +368,28 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
 
         <li class="nav-item dropdown" >
             <li>
-              <a href="https://grinpath.com/fairlife/Transactions/adjustment.php">
+              <a href="https://fairlifeadmin.com/Transactions/adjustment.php">
                 <i class="bi bi-circle"></i><span>Adjustment</span>
               </a>
             </li>
 
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
       <li>
-        <a href="https://grinpath.com/fairlife/Transactions/additionalcapital.php">
+        <a href="https://fairlifeadmin.com/Transactions/additionalcapital.php">
           <i class="bi bi-circle"></i><span>Additional Capital</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/Transactions/othertransactions.php">
+        <a href="https://fairlifeadmin.com/Transactions/othertransactions.php">
           <i class="bi bi-circle"></i><span>Other Transactions</span>
         </a>
       </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role == 'Operations' ){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/Transactions/terminate.php">
+        <a href="https://fairlifeadmin.com/Transactions/terminate.php">
           <i class="bi bi-circle"></i><span>Terminate Member</span>
         </a>
       </li>
@@ -401,7 +401,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
     <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
   <li class="nav-item">
         
-            <a class="nav-link " href="https://grinpath.com/fairlife/membership/newfile.php">
+            <a class="nav-link " href="https://fairlifeadmin.com/membership/newfile.php">
           <i class="bi bi-file-earmark-medical-fill"></i>
           <span>All Member Files</span>
         </a>
@@ -416,14 +416,14 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
     <ul id="files-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
          <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
          <li>
-        <a href="https://grinpath.com/fairlife/files.php">
+        <a href="https://fairlifeadmin.com/files.php">
           <i class="bi bi-upload"></i><span>Uplaod Files</span>
         </a>
 
       <?php } ?>
        <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
          <li>
-        <a href="https://grinpath.com/fairlife/viewfiles.php">
+        <a href="https://fairlifeadmin.com/viewfiles.php">
           <i class="bi bi-eye"></i><span>View Files</span>
         </a>
 
@@ -439,21 +439,21 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
     <ul id="reports-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
          <li>
-        <a href="https://grinpath.com/fairlife/membership/profile.php">
+        <a href="https://fairlifeadmin.com/membership/profile.php">
           <i class="bi bi-circle"></i><span>Benefit Statement</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
        <li>
-        <a href="https://grinpath.com/fairlife/membership/membersummary.php">
+        <a href="https://fairlifeadmin.com/membership/membersummary.php">
           <i class="bi bi-circle"></i><span>Summary Statement</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
        <li>
-        <a href="https://grinpath.com/fairlife/membership/profileaccount.php">
+        <a href="https://fairlifeadmin.com/membership/profileaccount.php">
           <i class="bi bi-circle"></i><span>Statement</span>
         </a>
       </li>
@@ -462,7 +462,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
 
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
        <li>
-       <a href="https://grinpath.com/fairlife/reports/beneficiaries.php">
+       <a href="https://fairlifeadmin.com/reports/beneficiaries.php">
           <i class="bi bi-circle"></i><span>Beneficiary Report</span>
         </a>
       </li>
@@ -470,7 +470,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
       
       <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>
       <li>
-         <a href="https://grinpath.com/fairlife/membership/existence.php">
+         <a href="https://fairlifeadmin.com/membership/existence.php">
           <i class="bi bi-circle"></i><span>Existence Certificate</span>
         </a>
       </li>
@@ -478,55 +478,55 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
       
 <?php if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>         
         <li>
-        <a href="https://grinpath.com/fairlife/membership/membermove.php">
+        <a href="https://fairlifeadmin.com/membership/membermove.php">
           <i class="bi bi-circle"></i><span>New Entrant Statement</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
        <li>
-        <a href="https://grinpath.com/fairlife/membership/consolsummary.php">
+        <a href="https://fairlifeadmin.com/membership/consolsummary.php">
           <i class="bi bi-circle"></i><span>Beneficiary List</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
       <li>
-        <a href="https://grinpath.com/fairlife/fund/fundfeesreport.php">
+        <a href="https://fairlifeadmin.com/fund/fundfeesreport.php">
           <i class="bi bi-circle"></i><span>Fees Report</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
 <li>
-<a href="https://grinpath.com/fairlife/reports/transfees.php">
+<a href="https://fairlifeadmin.com/reports/transfees.php">
 <i class="bi bi-circle"></i><span>Transaction Fees Report</span>
 </a>
 </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>
       <li>
-        <a href="https://grinpath.com/fairlife/reports/funds.php">
+        <a href="https://fairlifeadmin.com/reports/funds.php">
           <i class="bi bi-circle"></i><span>Funds</span>
         </a>
       </li>
       <?php } ?><?php if ($role == 'admin'){ ?>         
    <li>
-        <a href="https://grinpath.com/fairlife/reports/employers.php">
+        <a href="https://fairlifeadmin.com/reports/employers.php">
           <i class="bi bi-circle"></i><span>Employer</span>
         </a>
       </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/reports/termination.php">
+        <a href="https://fairlifeadmin.com/reports/termination.php">
           <i class="bi bi-circle"></i><span>Termination Report</span>
         </a>
       </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations' ){ ?>         
        <li>
-        <a href="https://grinpath.com/fairlife/reports/capitalintroductionreport.php">
+        <a href="https://fairlifeadmin.com/reports/capitalintroductionreport.php">
           <i class="bi bi-circle"></i><span>Capital Transfer In Report </span>
         </a>
       </li>
@@ -534,7 +534,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
 
 <?php if ($role == 'admin'){ ?>          
                  <li>
-        <a href="https://grinpath.com/fairlife/reports/otherreport.php">
+        <a href="https://fairlifeadmin.com/reports/otherreport.php">
           <i class="bi bi-circle"></i><span>Individual Other Transactions</span>
         </a>
       </li>
@@ -542,56 +542,56 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
 
 <?php if ($role == 'admin' || $role=='Operations'){ ?>		  
        <li>
-        <a href="https://grinpath.com/fairlife/reports/adhocreport.php">
+        <a href="https://fairlifeadmin.com/reports/adhocreport.php">
           <i class="bi bi-circle"></i><span>Adhoc Report</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
        <li>
-        <a href="https://grinpath.com/fairlife/reports/scheduledreport.php">
+        <a href="https://fairlifeadmin.com/reports/scheduledreport.php">
           <i class="bi bi-circle"></i><span>Scheduled Report</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
        <li>
-        <a href="https://grinpath.com/fairlife/reports/interestreport.php">
+        <a href="https://fairlifeadmin.com/reports/interestreport.php">
           <i class="bi bi-circle"></i><span>Individual Interest Report</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
        <li>
-        <a href="https://grinpath.com/fairlife/reports/monthlyfeesreport.php">
+        <a href="https://fairlifeadmin.com/reports/monthlyfeesreport.php">
           <i class="bi bi-circle"></i><span>Individual Admin & Monthly Fees</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/reports/initialfees.php">
+        <a href="https://fairlifeadmin.com/reports/initialfees.php">
           <i class="bi bi-circle"></i><span>Individual Initial Fees Report</span>
         </a>
       </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/reports/payments.php">
+        <a href="https://fairlifeadmin.com/reports/payments.php">
           <i class="bi bi-circle"></i><span>Individual Payments Report</span>
         </a>
       </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/reports/balances.php">
+        <a href="https://fairlifeadmin.com/reports/balances.php">
           <i class="bi bi-circle"></i><span>Individual Balances</span>
         </a>
       </li>
 <?php } ?>
 <?php if ($role == 'admin' || $role=='Operations'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/reports/deceased.php">
+        <a href="https://fairlifeadmin.com/reports/deceased.php">
           <i class="bi bi-circle"></i><span>Deceased Member Report</span>
         </a>
       </li>
@@ -608,28 +608,28 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
     <ul id="settings-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
 <?php if ($role == 'admin'){ ?>
       <li>
-        <a href="https://grinpath.com/fairlife/settings/banks.php">
+        <a href="https://fairlifeadmin.com/settings/banks.php">
           <i class="bi bi-circle"></i><span>Banks</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
    <li>
-       <a href="https://grinpath.com/fairlife/settings/post.php">
+       <a href="https://fairlifeadmin.com/settings/post.php">
           <i class="bi bi-circle"></i><span>Post Offices</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>         
    <li>
-        <a href="https://grinpath.com/fairlife/users/transaction.php">
+        <a href="https://fairlifeadmin.com/users/transaction.php">
           <i class="bi bi-circle"></i><span>Transaction Types</span>
         </a>
       </li>
       <?php } ?>
 <?php if ($role == 'admin'){ ?>          
    <li>
-        <a href="https://grinpath.com/fairlife/users/fees.php">
+        <a href="https://fairlifeadmin.com/users/fees.php">
           <i class="bi bi-circle"></i><span>Fees Types</span>
         </a>
       </li>
@@ -646,7 +646,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
 
      
    <li>
-        <a href="https://grinpath.com/fairlife/users/local2.php">
+        <a href="https://fairlifeadmin.com/users/local2.php">
           <i class="bi bi-circle"></i><span>Local System Users</span>
         </a>
       </li>
@@ -680,7 +680,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
         if(secondsSinceLastActivity > maxInactivity){
            // console.log('User has been inactive for more than ' + maxInactivity + ' seconds');
             //Redirect them to your logout.php page.
-            location.href = 'https://grinpath.com/fairlife/logout.php';
+            location.href = 'https://fairlifeadmin.com/logout.php';
         }
     }, 1000);
 

@@ -18,7 +18,7 @@ $updatesession->execute();
     unset($_SESSION);
     session_destroy();
 
-header('Location: https://grinpath.com/fairlife/index.php');
+header('Location: https://fairlifeadmin.com/index.php');
 }
 
 ?>

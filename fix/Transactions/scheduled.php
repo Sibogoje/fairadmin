@@ -26,8 +26,8 @@ require_once '../scripts/connection.php';
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="https://grinpath.com/fairlife/fix/" rel="icon">
-  <link href="https://grinpath.com/fairlife/fix/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/fix/" rel="icon">
+  <link href="https://fairlifeadmin.com/fix/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -266,7 +266,7 @@ $(document).ready(function() {
 </html>
 <?php
 }else{
-    header('Location: https://grinpath.com/fairlife/fix/index.php');
+    header('Location: https://fairlifeadmin.com/fix/index.php');
 }
 
 ?>
