@@ -196,7 +196,7 @@ require_once 'scripts/connection.php';
 					if(dataResult.statusCode==200){
 					    var success = (dataResult.success);
 					   // alert(success);
-					   window.location.href = "https://grinpath.com/fairlife/dash.php";
+					   window.location.href = "https://fairlifeadmin.com/dash.php";
 					    
 					}else if(dataResult.statusCode==201){
 					    var exception = (dataResult.exception);
