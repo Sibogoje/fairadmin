@@ -1,5 +1,5 @@
 <?php
-$servername = "104.161.34.83";
+$servername = "148.163.121.29";
 $username = "dxtustit_fair2";
 $password = "Fairline@151022";
 $dbname   = 'dxtustit_fair2';
