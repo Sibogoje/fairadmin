@@ -186,8 +186,8 @@ $conn->close();
   <meta content="" name="keywords">
 <script src='../jquery-3.2.1.min.js' type='text/javascript'></script>
   <!-- Favicons -->
-  <link href="https://grinpath.com/fairlife/" rel="icon">
-  <link href="https://grinpath.com/fairlife/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/" rel="icon">
+  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -704,7 +704,7 @@ $('#postofficeID').select2({
 </html>
 <?php
 }else{
-    header('Location: https://grinpath.com/fairlife/index.php');
+    header('Location: https://fairlifeadmin.com/index.php');
 }
 
 ?>

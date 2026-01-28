@@ -77,8 +77,8 @@ $conn->close();
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="https://grinpath.com/fairlife/" rel="icon">
-  <link href="https://grinpath.com/fairlife/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/" rel="icon">
+  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">

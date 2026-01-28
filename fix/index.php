@@ -19,8 +19,8 @@ require_once 'scripts/connection.php';
 
 
   <!-- Favicons -->
-  <link href="https://grinpath.com/fairlife/fix/" rel="icon">
-  <link href="https://grinpath.com/fairlife/fix/" rel="apple-touch-icon">
+  <link href="https://fairlifeadmin.com/fix/" rel="icon">
+  <link href="https://fairlifeadmin.com/fix/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
