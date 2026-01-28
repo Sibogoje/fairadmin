@@ -19,23 +19,41 @@ $pazz = trim($row['password']);
 $id = trim($row['id']);
 $role = trim($row['role']);
 
+			// Regenerate session id to prevent fixation
+			session_regenerate_id(true);
 
-$_SESSION['user'] = $user;
-$_SESSION['role'] = $role;
-$_SESSION['zid'] = session_id();
-$_SESSION['xid'] = $id;
-$sessionid = session_id();
-$session = 1;
+			$_SESSION['user'] = $user;
+			$_SESSION['role'] = $role;
+			$_SESSION['zid'] = session_id();
+			$_SESSION['xid'] = $id;
+			$sessionid = session_id();
+			$session = 1;
 
-$updatesession = $conn->prepare("UPDATE realuzer SET session=? WHERE id=?");
-$updatesession->bind_param("ss", $session, $id);
-$updatesession->execute();
+			// Update server-side session marker
+			$updatesession = $conn->prepare("UPDATE realuzer SET session=? WHERE id=?");
+			$updatesession->bind_param("ss", $session, $id);
+			$updatesession->execute();
 
-$response = array(
-					'statusCode'=>200,
-					'success'=>"Allowed" 
-					);
-				echo json_encode($response);
+			// Ensure session cookie is HttpOnly and sent over HTTPS when available
+			$secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+			if (PHP_VERSION_ID >= 70300) {
+				setcookie(session_name(), session_id(), [
+					'expires' => 0,
+					'path' => '/',
+					'domain' => $_SERVER['HTTP_HOST'],
+					'secure' => $secure,
+					'httponly' => true,
+					'samesite' => 'Lax'
+				]);
+			} else {
+				setcookie(session_name(), session_id(), 0, '/', $_SERVER['HTTP_HOST'], $secure, true);
+			}
+
+			$response = array(
+				'statusCode' => 200,
+				'success' => "Allowed"
+			);
+			echo json_encode($response);
 
 }	 
 }else{

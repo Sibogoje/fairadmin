@@ -1,7 +1,14 @@
   
   <?php
   require_once 'scripts/connection.php';
-  $role = $_SESSION['role'];
+
+  // Prevent caching of authenticated pages so browser 'back' doesn't reveal content after logout
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Cache-Control: post-check=0, pre-check=0', false);
+  header('Pragma: no-cache');
+  header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
+  $role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
   ?>
   <header id="header" class="header fixed-top d-flex align-items-center">
 
