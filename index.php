@@ -2,7 +2,7 @@
 <?php
 session_start();
 require_once 'scripts/connection.php';
-
+//
 
 ?>
 <html lang="en">
