@@ -34,189 +34,69 @@ require_once 'scripts/connection.php';
   <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
   <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
+  <!DOCTYPE html>
+  <?php
+  session_start();
+  require_once 'scripts/connection.php';
+  ?>
+  <html lang="en">
 
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fairlife — Login</title>
 
-      
+    <link href="logo.png" rel="icon">
 
-  <!-- =======================================================
-  * Template Name: NiceAdmin - v2.2.2
-  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
-<style>
+    <!-- Fonts & Vendor CSS -->
+    <link href="https://fonts.googleapis.com/css?family=Inter:300,400,600,700&display=swap" rel="stylesheet">
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-  .bigger {
+    <!-- Project CSS -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/login.css" rel="stylesheet">
 
-      margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  
-      
-  }
+  </head>
 
-@media screen and (max-width: 600px) {
-  .bigger {
+  <body class="bg-light">
 
-      margin: 0;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  
- 
-  }
-}
-.center {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 25%;
-  margin-top: 10px;
-  margin-bottom: 15px;
-}
-.center2 {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  text-align: center;
-}
-</style>
+    <main class="d-flex vh-100 align-items-center justify-content-center">
+      <div class="card shadow-sm w-100" style="max-width:420px">
+        <div class="card-body p-4">
+          <div class="text-center mb-3">
+            <img src="logo.png" alt="FairLife" class="login-logo mb-2">
+            <h4 class="mb-0">FairLife Login</h4>
+            <small class="text-muted">Sign in to continue</small>
+          </div>
 
-</head>
+          <div id="alert-placeholder"></div>
 
-<body>
-
-  <!-- ======= Header ======= -->
-
-
-  <main id="main" class="main">
-
-
-<!-- New beneficiary form-->
-<div class="card col-lg-3 bigger" style="">
-        <div class="pagetitle">
-
-      <img src="logo.png" alt="Paris" class="center">
-      
-      <h3 class="center2"><b></b>FairLife Login</b></h3>
-
-    </div><!-- End Page Title -->
-            <div class="card-body">
-        
-			  
-			  <form class="row g-3" id="loginform" method="post"  enctype="multipart/form-data" >
-
-
-        <br/>
-
-                <div class="col-md-12">
-                  <div class="form-floating">
-                    <input type="text" class="form-control" id="username" placeholder="PaymentDate" autocomplete="off"  name="username" required>
-                    <label for="floatingName"><b>Username:</b></label>
-				  <div class="valid-feedback">
-                    Looks good!
-                  </div>
-                  </div>
-				  </div>
-				  
-				  
-				  <div class="col-md-12">
-                  <div class="form-floating">
-                    <input type="text" class="form-control" id="password" placeholder="AdHocPayment"  name="password" required >
-                    <label for="floatingName"><b>Password:</b></label>
-				  <div class="valid-feedback">
-                    Looks good!
-                  </div>
-                  </div>
-				  </div>
-
-   
-
-
-
-	
-				     <div class="text-center" >
-                  <button type="button" id="login"  class="btn btn-warning add" id="addreport" data-link="" data-id="rr"  style="width: 100%;"><b>Login</b></button>
-               </div>
-			   
-				  
-				  
-              </form><!-- End floating Labels Form -->
-<br><br>
-
-
+          <form id="loginform" method="post" action="parse.php" novalidate>
+            <div class="mb-3 form-floating">
+              <input type="text" class="form-control" id="username" name="username" placeholder="Username" autocomplete="username" required>
+              <label for="username">Username</label>
             </div>
-          </div>		  
-		  
 
+            <div class="mb-3 form-floating">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Password" autocomplete="current-password" required>
+              <label for="password">Password</label>
+            </div>
 
+            <div class="d-grid">
+              <button type="submit" id="loginBtn" class="btn btn-warning">Login</button>
+            </div>
+          </form>
 
-<!-- end of new beneficiary form -->
- 
-  </main>
+        </div>
+      </div>
+    </main>
 
+    <!-- Vendor JS Files -->
+    <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Main + Page JS -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/login.js"></script>
 
+  </body>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/apexcharts/apexcharts.min.js"></script>
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/chart.js/chart.min.js"></script>
-  <script src="assets/vendor/echarts/echarts.min.js"></script>
-  <script src="assets/vendor/quill/quill.min.js"></script>
-  <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
-  <script src="assets/vendor/tinymce/tinymce.min.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
-	<!-- Select2 CSS --> 
-
-  <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
-  <script>
- $(document).ready(function(){      
-	 $("#login").click(function(){
-		 
-		var user = $('#username').val(); 
-		var pass = $('#password').val();
-
-  var data = $("#loginform").serialize();
- //  $("html").addClass("loading");
-		$.ajax({
-			data: data,
-			type: "post",
-			url: "parse.php",
-			success: function(dataResult){
-					var dataResult = JSON.parse(dataResult);
-					if(dataResult.statusCode==200){
-					    var success = (dataResult.success);
-					   // alert(success);
-					   window.location.href = "https://fairlife.grinpath.com/dash.php";
-					    
-					}else if(dataResult.statusCode==201){
-					    var exception = (dataResult.exception);
-					    alert(exception);
-					    
-					}else{
-					    var error = (dataResult.error);
-					    alert(error);
-					    
-					}
-			}
-		});
-
-    });
-    
- }); 
-  </script>
-
-
-
-</body>
-
-</html>
+  </html>
