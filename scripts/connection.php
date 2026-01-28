@@ -1,5 +1,5 @@
 <?php
-$servername = "148.163.121.29";
+$servername = "srv1212.hstgr.io";
 $username = "u747325399_fairlifeSLA";
 $password = "u747325399fairlifeSLA";
 $dbname   = 'u747325399_fairlifeSLA';
