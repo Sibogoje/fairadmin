@@ -1,8 +1,8 @@
 <?php
 $servername = "148.163.121.29";
-$username = "dxtustit_fair2";
-$password = "Fairline@151022";
-$dbname   = 'dxtustit_fair2';
+$username = "u747325399_fairlifeSLA";
+$password = "u747325399fairlifeSLA";
+$dbname   = 'u747325399_fairlifeSLA';
 
 // Make mysqli throw exceptions so we can catch them
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
