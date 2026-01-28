@@ -102,8 +102,8 @@ $isAdmin = ($userRole === 'admin');
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="https://fairlifeadmin.com/" rel="icon">
-  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
+  <link href="https://grinpath.com/fairlife/" rel="icon">
+  <link href="https://grinpath.com/fairlife/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -254,7 +254,7 @@ $isAdmin = ($userRole === 'admin');
                 <thead>
                   <tr>
                     
-                    <th scope="col">MemberID</th>
+                    <th scope="col">Ref Number</th>
                     <th scope="col">PaymentDate</th>
                     <th scope="col">ID-Name</th>
                     <th scope="col">Amount</th>
@@ -446,7 +446,7 @@ $(document).on("click",".dnew",function(e){
 </html>
 <?php
 }else{
-    header('Location: https://fairlifeadmin.com/index.php');
+    header('Location: https://grinpath.com/fairlife/index.php');
 }
 
 ?>
