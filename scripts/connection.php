@@ -15,4 +15,6 @@ try {
     http_response_code(500);
     die("Database connection error. Please try again later.");
 }
+
+//
 ?>
