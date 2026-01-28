@@ -29,7 +29,7 @@
         <div class="card-body p-4">
           <div class="text-center mb-3">
             <img src="logo.png" alt="FairLife" class="login-logo mb-2">
-            <h4 class="mb-0">FairLife Login</h4>
+            <h4 class="mb-0">FairLife Benefit Services</h4>
             <small class="text-muted">Sign in to continue</small>
           </div>
 
