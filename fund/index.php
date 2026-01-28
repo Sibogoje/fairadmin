@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <?php
 session_start();
+// Enable error reporting temporarily for debugging white screen issues
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
