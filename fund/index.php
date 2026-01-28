@@ -22,8 +22,8 @@ require_once '../scripts/connection.php';
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="https://fairlifeadmin.com/" rel="icon">
-  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
+  <link href="https://fairlife.grinpath.com/" rel="icon">
+  <link href="https://fairlife.grinpath.com/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -224,7 +224,7 @@ $(document).ready(function() {
 </html>
 <?php
 }else{
-    header('Location: https://fairlifeadmin.com/index.php');
+    header('Location: https://fairlife.grinpath.com/index.php');
 }
 
 ?>

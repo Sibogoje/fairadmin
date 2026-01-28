@@ -19,8 +19,8 @@ require_once 'scripts/connection.php';
 
 
   <!-- Favicons -->
-  <link href="https://fairlifeadmin.com/" rel="icon">
-  <link href="https://fairlifeadmin.com/" rel="apple-touch-icon">
+  <link href="https://fairlife.grinpath.com/" rel="icon">
+  <link href="https://fairlife.grinpath.com/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -196,7 +196,7 @@ require_once 'scripts/connection.php';
 					if(dataResult.statusCode==200){
 					    var success = (dataResult.success);
 					   // alert(success);
-					   window.location.href = "https://fairlifeadmin.com/dash.php";
+					   window.location.href = "https://fairlife.grinpath.com/dash.php";
 					    
 					}else if(dataResult.statusCode==201){
 					    var exception = (dataResult.exception);

@@ -118,7 +118,7 @@ if (isset($_POST['login22'])) {
         <div class="login-body">
             <div class="top d-flex justify-content-between align-items-center">
                 <div class="logo">
-                    <img src="https://fairlifeadmin.com/mobile/NewAssets/header2.png" alt="Logo">
+                    <img src="https://fairlife.grinpath.com/mobile/NewAssets/header2.png" alt="Logo">
                 </div>
                 
             </div>

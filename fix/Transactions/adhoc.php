@@ -102,8 +102,8 @@ $isAdmin = ($userRole === 'admin');
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="https://fairlifeadmin.com/fix/" rel="icon">
-  <link href="https://fairlifeadmin.com/fix/" rel="apple-touch-icon">
+  <link href="https://fairlife.grinpath.com/fix/" rel="icon">
+  <link href="https://fairlife.grinpath.com/fix/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -492,7 +492,7 @@ $(function(){
 </html>
 <?php
 }else{
-    header('Location: https://fairlifeadmin.com/fix/index.php');
+    header('Location: https://fairlife.grinpath.com/fix/index.php');
 }
 
 ?>

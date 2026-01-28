@@ -232,7 +232,7 @@ $(document).on("click",".edit",function(e){
 </html>
 <?php
 }else{
-    header('Location: https://fairlifeadmin.com/index.php');
+    header('Location: https://fairlife.grinpath.com/index.php');
 }
 
 ?>
