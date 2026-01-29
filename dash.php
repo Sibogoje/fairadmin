@@ -13,7 +13,7 @@ if (!isset($_SESSION['zid'])) {
 }
 
 // Get user from session
-$$gg = $_SESSION['user'] ?? '';
+$gg = $_SESSION['user'] ?? '';
 require_once 'scripts/connection.php';
 
 // Fetch dashboard data
