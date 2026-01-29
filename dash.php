@@ -90,9 +90,16 @@ include 'scripts/connection.php';
                 </div>
 <?php
 
+// Total funds and average balance insight
 $ttfundsresult = mysqli_query($conn, 'SELECT ttfunds FROM tt_funds'); 
 $ttfundsrow = mysqli_fetch_assoc($ttfundsresult); 
-$ttfunds = $ttfundsrow['ttfunds'];
+$ttfunds = isset($ttfundsrow['ttfunds']) ? $ttfundsrow['ttfunds'] : 0;
+
+$bal_summary = mysqli_query($conn, "SELECT SUM(`NewBalance`) as newb, COUNT(`MemberNo`) as accs FROM balances WHERE `Term` = '0'");
+$bal_row = mysqli_fetch_assoc($bal_summary);
+$balance_sum_all = isset($bal_row['newb']) ? $bal_row['newb'] : 0;
+$accounts_count = isset($bal_row['accs']) ? (int)$bal_row['accs'] : 0;
+$avg_balance = $accounts_count ? ($balance_sum_all / $accounts_count) : 0;
 
 
 ?>
@@ -100,13 +107,12 @@ $ttfunds = $ttfundsrow['ttfunds'];
                   <h5 class="card-title">Funds <span>| Today</span></h5>
 
                   <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-warning text-white">
                       <i class="ri ri-coins-fill"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "Total ". $ttfunds; ?></h6>
-                     
-
+                      <h6 class="mb-0"><?php echo "Total E ".number_format($ttfunds,2); ?></h6>
+                      <small class="text-muted">Avg balance per member: E <?php echo number_format($avg_balance,2); ?></small>
                     </div>
                   </div>
                 </div>
@@ -132,27 +138,27 @@ $ttfunds = $ttfundsrow['ttfunds'];
                 </div>
 <?php
 
-$activeresult = mysqli_query($conn, "SELECT COUNT(`MemberNo`) as 'ttactive' FROM tblmembers where `Terminated` = '0'"); 
+$activeresult = mysqli_query($conn, "SELECT COUNT(`MemberNo`) as ttactive FROM tblmembers WHERE `Terminated` = '0'"); 
 $activerow = mysqli_fetch_assoc($activeresult); 
-$active = $activerow['ttactive'];
+$active = isset($activerow['ttactive']) ? (int)$activerow['ttactive'] : 0;
 
-
-$terminatedresult = mysqli_query($conn, "SELECT COUNT(`MemberNo`) as 'ttterminated' FROM tblmembers where `Terminated` = '1' "); 
+$terminatedresult = mysqli_query($conn, "SELECT COUNT(`MemberNo`) as ttterminated FROM tblmembers WHERE `Terminated` = '1'"); 
 $terminatedrow = mysqli_fetch_assoc($terminatedresult); 
-$terminated = $terminatedrow['ttterminated'];
+$terminated = isset($terminatedrow['ttterminated']) ? (int)$terminatedrow['ttterminated'] : 0;
+$total_bens = $active + $terminated;
+$active_pct = $total_bens ? round(($active / $total_bens) * 100, 1) : 0;
+$terminated_pct = $total_bens ? round(($terminated / $total_bens) * 100, 1) : 0;
 ?>
                 <div class="card-body">
                   <h5 class="card-title">Beneficiaries <span>| This Month</span></h5>
 
                   <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success text-white">
                       <i class="ri ri-group-fill"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "Total ". $active + $terminated; ?></h6>
-                      <span class="text-success small pt-1 fw-bold"><?php echo $active; ?></span> <span class="text-muted small pt-2 ps-1">Active</span><br>
-					   <span class="text-danger small pt-1 fw-bold"><?php echo $terminated; ?></span> <span class="text-muted small pt-2 ps-1">Terminated</span>
-
+                      <h6 class="mb-0"><?php echo "Total ". number_format($total_bens); ?></h6>
+                      <small class="text-muted">Active: <span class="fw-bold text-success"><?php echo $active; ?></span> (<?php echo $active_pct; ?>%) &nbsp; Terminated: <span class="fw-bold text-danger"><?php echo $terminated; ?></span> (<?php echo $terminated_pct; ?>%)</small>
                     </div>
                   </div>
                 </div>
@@ -170,19 +176,23 @@ $terminated = $terminatedrow['ttterminated'];
                   <h5 class="card-title">Total Balances <span>| Today</span></h5>
 <?php
 
-$balanceresult = mysqli_query($conn, "SELECT SUM(`NewBalance`) as 'newb' FROM balances where `Term` = '0'"); 
+// Total balances and low-balance insight
+$balanceresult = mysqli_query($conn, "SELECT SUM(`NewBalance`) as newb FROM balances WHERE `Term` = '0'"); 
 $balancerow = mysqli_fetch_assoc($balanceresult); 
-$balance = $balancerow['newb'];
+$balance = isset($balancerow['newb']) ? $balancerow['newb'] : 0;
+
+$lowcount_res = mysqli_query($conn, "SELECT COUNT(DISTINCT `memberID`) AS lowcount FROM balances WHERE NewBalance < '5000.00' AND Term = 0");
+$lowrow = mysqli_fetch_assoc($lowcount_res);
+$low_count = isset($lowrow['lowcount']) ? (int)$lowrow['lowcount'] : 0;
 
 ?>
                   <div class="d-flex align-items-center">
-                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-primary text-white">
                       <i class="ri ri-file-shred-line"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "E ".number_format($balance, 2); ?></h6>
-                       <span class="text-muted small pt-2 ps-1">Total Running Balances</span>
-
+                      <h6 class="mb-0"><?php echo "E ".number_format($balance, 2); ?></h6>
+                      <small class="text-muted"><?php echo number_format($low_count); ?> accounts below E 5,000</small>
                     </div>
                   </div>
 
