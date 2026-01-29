@@ -1,10 +1,15 @@
 
 <?php
+// Enable errors temporarily to diagnose missing content
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 if(isset($_SESSION['zid']))
 {
-$gg = $_SESSION['user'];
-include 'scripts/connection.php';
+  $gg = isset($_SESSION['user']) ? $_SESSION['user'] : '';
+  include 'scripts/connection.php';
 
 ?>
 <!DOCTYPE html>
