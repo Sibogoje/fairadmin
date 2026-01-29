@@ -74,12 +74,12 @@ if(isset($_SESSION['zid']))
     <section class="section dashboard">
       <div class="row">
 
-        <!-- Left side columns -->
-        <div class="col-lg-8">
+        <!-- Stat Cards Row -->
+        <div class="col-12">
           <div class="row">
 
             <!-- Sales Card -->
-            <div class="col-xxl-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
               <div class="card info-card sales-card h-100">
 
                 <div class="filter">
@@ -127,7 +127,7 @@ $avg_balance = $accounts_count ? ($balance_sum_all / $accounts_count) : 0;
             </div><!-- End Sales Card -->
 
             <!-- Revenue Card -->
-            <div class="col-xxl-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
               <div class="card info-card revenue-card h-100">
 
                 <div class="filter">
@@ -173,7 +173,7 @@ $terminated_pct = $total_bens ? round(($terminated / $total_bens) * 100, 1) : 0;
             </div><!-- End Revenue Card -->
 
             <!-- BALANCES Card -->
-            <div class="col-xxl-4 col-md-6">
+            <div class="col-lg-3 col-md-6">
 
               <div class="card info-card customers-card h-100">
 
@@ -209,7 +209,7 @@ $low_count = isset($lowrow['lowcount']) ? (int)$lowrow['lowcount'] : 0;
             
             
     <!-- Capital Intro Card -->         
- <div class="col-xxl-4 col-md-6">
+ <div class="col-lg-3 col-md-6">
 
               <div class="card info-card customers-card h-100">
 
@@ -247,14 +247,14 @@ $balance = $balancerow['Adhoc'];
            
 
           </div>
-        </div><!-- End Left side columns -->
+        </div><!-- End Stat Cards Row -->
 
-        <!-- Right side columns -->
-        <div class="col-lg-4">
+        <!-- Charts Row -->
+        <div class="row mt-4">
 
           <!-- Recent Activity -->
-          <div class="card">
-            <div class="filter">
+          <div class="col-lg-6">
+            <div class="card">
               <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
               <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                 <li class="dropdown-header text-start">
@@ -295,7 +295,8 @@ $balance = $balancerow['Adhoc'];
           </div><!-- End Recent Activity -->
 
           <!-- Budget Report -->
-          <div class="card">
+          <div class="col-lg-6">
+            <div class="card">
             <div class="filter">
               <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
               <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
@@ -362,15 +363,10 @@ $balance = $balancerow['Adhoc'];
               </script>
 
             </div>
+            </div>
           </div><!-- End Budget Report -->
 
-          <!-- Website Traffic -->
-        
-
-          <!-- News & Updates Traffic -->
-        
-
-        </div><!-- End Right side columns -->
+        </div><!-- End Charts Row -->
 
       </div>
     </section>
