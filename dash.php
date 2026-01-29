@@ -42,6 +42,7 @@ if(isset($_SESSION['zid']))
 
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
+  <link href="assets/css/dashboard.css" rel="stylesheet">
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   <!-- =======================================================
   * Template Name: NiceAdmin - v2.2.2
@@ -79,7 +80,7 @@ if(isset($_SESSION['zid']))
 
             <!-- Sales Card -->
             <div class="col-xxl-4 col-md-6">
-              <div class="card info-card sales-card">
+              <div class="card info-card sales-card h-100">
 
                 <div class="filter">
                   <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -127,7 +128,7 @@ $avg_balance = $accounts_count ? ($balance_sum_all / $accounts_count) : 0;
 
             <!-- Revenue Card -->
             <div class="col-xxl-4 col-md-6">
-              <div class="card info-card revenue-card">
+              <div class="card info-card revenue-card h-100">
 
                 <div class="filter">
                   <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -172,9 +173,9 @@ $terminated_pct = $total_bens ? round(($terminated / $total_bens) * 100, 1) : 0;
             </div><!-- End Revenue Card -->
 
             <!-- BALANCES Card -->
-            <div class="col-xxl-4 col-xl-12">
+            <div class="col-xxl-4 col-md-6">
 
-              <div class="card info-card customers-card">
+              <div class="card info-card customers-card h-100">
 
 
                 <div class="card-body">
@@ -208,9 +209,9 @@ $low_count = isset($lowrow['lowcount']) ? (int)$lowrow['lowcount'] : 0;
             
             
     <!-- Capital Intro Card -->         
- <div class="col-xxl-4 col-xl-12">
+ <div class="col-xxl-4 col-md-6">
 
-              <div class="card info-card customers-card">
+              <div class="card info-card customers-card h-100">
 
 
                 <div class="card-body">
