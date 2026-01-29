@@ -26,3 +26,12 @@
   .info-card .card-header{ padding:10px 12px; }
 }
 
+/* Skeleton loader styles */
+.skeleton{ display:none; }
+.loading-dashboard .skeleton{ display:block; }
+.loading-dashboard .real{ display:none; }
+.skeleton-amount{ width:120px; height:22px; border-radius:6px; background:linear-gradient(90deg,#eceff4,#f6f7fb,#eceff4); background-size:200% 100%; animation: shimmer 1.2s linear infinite; margin-bottom:8px; }
+.skeleton-line{ width:160px; height:12px; border-radius:6px; background:linear-gradient(90deg,#eceff4,#f6f7fb,#eceff4); background-size:200% 100%; animation: shimmer 1.2s linear infinite; }
+.skeleton .skeleton-amount,.skeleton .skeleton-line{ opacity:0.95; }
+@keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+

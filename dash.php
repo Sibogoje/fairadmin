@@ -142,7 +142,7 @@ function formatNumber($number) {
     -->
 </head>
 
-<body>
+<body class="loading-dashboard">
     <!-- Header -->
     <?php include 'header.php'; ?>
     
@@ -237,6 +237,8 @@ function formatNumber($number) {
     <script src="assets/vendor/tinymce/tinymce.min.js"></script>
     <script src="assets/vendor/php-email-form/validate.js"></script>
     
+    <!-- Dashboard JS (skeleton loaders, small UI helpers) -->
+    <script src="assets/js/dashboard.js"></script>
     <!-- Template Main JS File -->
     <script src="assets/js/main.js"></script>
 </body>
@@ -273,8 +275,14 @@ function renderCard($title, $subtitle, $iconBgClass, $iconClass, $mainValue, $su
                     <i class="ri <?php echo $iconClass; ?>"></i>
                 </div>
                 <div class="ps-3">
-                    <h6 class="mb-0"><?php echo $mainValue; ?></h6>
-                    <small class="text-muted"><?php echo $subValue; ?></small>
+                    <div class="real">
+                        <h6 class="mb-0"><?php echo $mainValue; ?></h6>
+                        <small class="text-muted"><?php echo $subValue; ?></small>
+                    </div>
+                    <div class="skeleton" aria-hidden="true">
+                        <div class="skeleton-amount"></div>
+                        <div class="skeleton-line"></div>
+                    </div>
                 </div>
             </div>
         </div>
