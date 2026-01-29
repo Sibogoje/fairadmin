@@ -82,18 +82,6 @@ if(isset($_SESSION['zid']))
             <div class="col-lg-3 col-md-6">
               <div class="card info-card sales-card h-100">
 
-                <div class="filter">
-                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <li class="dropdown-header text-start">
-                      <h6>Filter</h6>
-                    </li>
-
-                    <li><a class="dropdown-item" href="#">Today</a></li>
-                    <li><a class="dropdown-item" href="#">This Month</a></li>
-                    <li><a class="dropdown-item" href="#">This Year</a></li>
-                  </ul>
-                </div>
 <?php
 
 // Total funds and average balance insight
@@ -109,8 +97,23 @@ $avg_balance = $accounts_count ? ($balance_sum_all / $accounts_count) : 0;
 
 
 ?>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">Funds <span>| Today</span></h5>
+                  <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                      <li class="dropdown-header text-start">
+                        <h6>Filter</h6>
+                      </li>
+
+                      <li><a class="dropdown-item" href="#">Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div class="card-body">
-                  <h5 class="card-title">Funds <span>| Today</span></h5>
 
                   <div class="d-flex align-items-center">
                     <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-warning text-white">
@@ -130,18 +133,6 @@ $avg_balance = $accounts_count ? ($balance_sum_all / $accounts_count) : 0;
             <div class="col-lg-3 col-md-6">
               <div class="card info-card revenue-card h-100">
 
-                <div class="filter">
-                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <li class="dropdown-header text-start">
-                      <h6>Filter</h6>
-                    </li>
-
-                    <li><a class="dropdown-item" href="#">Today</a></li>
-                    <li><a class="dropdown-item" href="#">This Month</a></li>
-                    <li><a class="dropdown-item" href="#">This Year</a></li>
-                  </ul>
-                </div>
 <?php
 
 $activeresult = mysqli_query($conn, "SELECT COUNT(`MemberNo`) as ttactive FROM tblmembers WHERE `Terminated` = '0'"); 
@@ -155,8 +146,23 @@ $total_bens = $active + $terminated;
 $active_pct = $total_bens ? round(($active / $total_bens) * 100, 1) : 0;
 $terminated_pct = $total_bens ? round(($terminated / $total_bens) * 100, 1) : 0;
 ?>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">Beneficiaries <span>| This Month</span></h5>
+                  <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                      <li class="dropdown-header text-start">
+                        <h6>Filter</h6>
+                      </li>
+
+                      <li><a class="dropdown-item" href="#">Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div class="card-body">
-                  <h5 class="card-title">Beneficiaries <span>| This Month</span></h5>
 
                   <div class="d-flex align-items-center">
                     <div class="card-icon rounded-circle d-flex align-items-center justify-content-center bg-success text-white">
@@ -178,8 +184,23 @@ $terminated_pct = $total_bens ? round(($terminated / $total_bens) * 100, 1) : 0;
               <div class="card info-card customers-card h-100">
 
 
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">Total Balances <span>| Today</span></h5>
+                  <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                      <li class="dropdown-header text-start">
+                        <h6>Filter</h6>
+                      </li>
+
+                      <li><a class="dropdown-item" href="#">Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div class="card-body">
-                  <h5 class="card-title">Total Balances <span>| Today</span></h5>
 <?php
 
 // Total balances and low-balance insight
@@ -214,8 +235,23 @@ $low_count = isset($lowrow['lowcount']) ? (int)$lowrow['lowcount'] : 0;
               <div class="card info-card customers-card h-100">
 
 
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">Total Adhoc Fees <span>| Today</span></h5>
+                  <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                      <li class="dropdown-header text-start">
+                        <h6>Filter</h6>
+                      </li>
+
+                      <li><a class="dropdown-item" href="#">Today</a></li>
+                      <li><a class="dropdown-item" href="#">This Month</a></li>
+                      <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                  </div>
+                </div>
+
                 <div class="card-body">
-                  <h5 class="card-title">Total Adhoc Fees <span>| Today</span></h5>
 <?php
 
 $balanceresult = mysqli_query($conn, "SELECT SUM(`Amount`) AS 'Adhoc' FROM tblmemberaccounts WHERE `TransactionTypeID` = '5' AND MONTH(TransactionDate) = '2' AND YEAR(TransactionDate) = '2023'    "); 
@@ -255,20 +291,23 @@ $balance = $balancerow['Adhoc'];
           <!-- Recent Activity -->
           <div class="col-lg-6">
             <div class="card">
-              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <li class="dropdown-header text-start">
-                  <h6>Filter</h6>
-                </li>
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Activity <span>| Today</span></h5>
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
 
-                <li><a class="dropdown-item" href="#">Today</a></li>
-                <li><a class="dropdown-item" href="#">This Month</a></li>
-                <li><a class="dropdown-item" href="#">This Year</a></li>
-              </ul>
-            </div>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+              </div>
 
             <div class="card-body">
-              <h5 class="card-title">Recent Activity <span>| Today</span></h5>
 
               <div class="activity">
 
@@ -297,22 +336,23 @@ $balance = $balancerow['Adhoc'];
           <!-- Budget Report -->
           <div class="col-lg-6">
             <div class="card">
-            <div class="filter">
-              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <li class="dropdown-header text-start">
-                  <h6>Filter</h6>
-                </li>
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Expenditure <span>| This Month</span></h5>
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
 
-                <li><a class="dropdown-item" href="#">Today</a></li>
-                <li><a class="dropdown-item" href="#">This Month</a></li>
-                <li><a class="dropdown-item" href="#">This Year</a></li>
-              </ul>
-            </div>
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+              </div>
 
             <div class="card-body pb-0">
-              <h5 class="card-title">Expenditure <span>| This Month</span></h5>
-
               <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
 
               <script>
