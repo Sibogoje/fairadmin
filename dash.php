@@ -100,7 +100,7 @@ $ttfundsresult = mysqli_query($conn, 'SELECT ttfunds FROM tt_funds');
 $ttfundsrow = mysqli_fetch_assoc($ttfundsresult); 
 $ttfunds = isset($ttfundsrow['ttfunds']) ? $ttfundsrow['ttfunds'] : 0;
 
-$bal_summary = mysqli_query($conn, "SELECT SUM(`NewBalance`) as newb, COUNT(`MemberNo`) as accs FROM balances WHERE `Term` = '0'");
+$bal_summary = mysqli_query($conn, "SELECT SUM(`NewBalance`) as newb, COUNT(DISTINCT `memberID`) as accs FROM balances WHERE `Term` = '0'");
 $bal_row = mysqli_fetch_assoc($bal_summary);
 $balance_sum_all = isset($bal_row['newb']) ? $bal_row['newb'] : 0;
 $accounts_count = isset($bal_row['accs']) ? (int)$bal_row['accs'] : 0;
