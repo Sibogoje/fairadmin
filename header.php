@@ -497,7 +497,7 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
         </a>
       </li>
       <?php } ?>
-<?php if ($role == 'admin'){ ?>          
+<?php if ($role == 'admin' || $role == 'accountant'){ ?>          
       <li>
         <a href="https://fairlife.grinpath.com/fund/fundfeesreport.php">
           <i class="bi bi-circle"></i><span>Fees Report</span>
@@ -524,14 +524,14 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
         </a>
       </li>
 <?php } ?>
-<?php if ($role == 'admin' || $role=='Operations'){ ?>          
+<?php if ($role == 'admin' || $role=='Operations' || $role == 'accountant'){ ?>          
    <li>
         <a href="https://fairlife.grinpath.com/reports/termination.php">
           <i class="bi bi-circle"></i><span>Termination Report</span>
         </a>
       </li>
 <?php } ?>
-<?php if ($role == 'admin' || $role=='Operations' ){ ?>         
+<?php if ($role == 'admin' || $role=='Operations' || $role == 'accountant'){ ?>         
        <li>
         <a href="https://fairlife.grinpath.com/reports/capitalintroductionreport.php">
           <i class="bi bi-circle"></i><span>Capital Transfer In Report </span>
@@ -547,17 +547,24 @@ if ($role == 'admin' || $role=='Accounts' ){ ?>
       </li>
       <?php } ?>
 
-<?php if ($role == 'admin' || $role=='Operations'){ ?>		  
+<?php if ($role == 'admin' || $role=='Operations' || $role == 'accountant'){ ?>		  
        <li>
         <a href="https://fairlife.grinpath.com/reports/adhocreport.php">
           <i class="bi bi-circle"></i><span>Adhoc Report</span>
         </a>
       </li>
       <?php } ?>
-<?php if ($role == 'admin'){ ?>          
+<?php if ($role == 'admin' || $role == 'accountant'){ ?>          
        <li>
         <a href="https://fairlife.grinpath.com/reports/scheduledreport.php">
           <i class="bi bi-circle"></i><span>Scheduled Report</span>
+        </a>
+      </li>
+      <?php } ?>
+<?php if ($role == 'admin' || $role == 'accountant'){ ?>          
+       <li>
+        <a href="https://fairlife.grinpath.com/reports/transactionreport.php">
+          <i class="bi bi-circle"></i><span>Transaction Report</span>
         </a>
       </li>
       <?php } ?>
