@@ -189,10 +189,10 @@ html.loading body {
 
 	
 				     <div class="text-center" >
-                  <button type="submit"  class="btn btn-warning add"  formaction="transactioncsv.php"   style="width: 100%;"><b>Download Transaction Report as CSV</b></button>
+                  <button type="submit"  class="btn btn-warning add"  formaction="transactionreportcsv.php"   style="width: 100%;"><b>Download Transaction Report as CSV</b></button>
                </div>
                 <div class="text-center" >
-                  <button type="submit"  class="btn btn-warning add" formaction="transactionprint.php"   style="width: 100%;"><b>Download Transaction Report as PDF</b></button>
+                  <button type="submit"  class="btn btn-warning add" formaction="transactionreportprint.php" target="_blank"   style="width: 100%;"><b>Download Transaction Report as PDF</b></button>
                </div>
 			   
 			   
