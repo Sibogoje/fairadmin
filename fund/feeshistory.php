@@ -1,5 +1,20 @@
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 require_once '../scripts/connection.php';
 
 $from = $_POST['from'];
@@ -27,19 +42,83 @@ $stmt12 = $conn->prepare("SELECT SUM(`Amount`) AS `TT` from `tblmemberaccounts` 
                    
                     </tr>
                    	<tr style="text-align: center; background: black; color: white;">
-                    <th scope="col" colspan="2">FEES STATEMENT From <?php echo $from."  To  ".$to; ?></th>
+                    <th scope="col" colspan="2">FEES STATEMENT From <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $from."  To  ".$to; ?></th>
                    
                     </tr>
                     <tr>
                     <th scope="col" style="vertical-align: top;">Transfer In Fees</th>
-                    <td scope="col" style="text-align: right;"><?php echo "E ". $row12['TT']; ?></td>
+                    <td scope="col" style="text-align: right;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". $row12['TT']; ?></td>
                     </tr>
 </thead>
- <?php	}
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 	?>
 </table>
 </div>
-<?php	} else {
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
 echo "0 results";	}
 
 
@@ -59,14 +138,62 @@ $stmt12 = $conn->prepare("SELECT SUM(`Amount`) AS `TT2` from `tblmemberaccounts`
                    
                     <tr>
                     <th scope="col" style="vertical-align: top;">Transaction Fees</th>
-                    <td scope="col" style="text-align: right;"><?php echo "E ". $row12['TT2']; ?></td>
+                    <td scope="col" style="text-align: right;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". $row12['TT2']; ?></td>
                     </tr>
 </thead>
- <?php	}
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 	?>
 </table>
 </div>
-<?php	} else {
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
 echo "0 results";	}
 
 
@@ -89,14 +216,62 @@ $stmt12 = $conn->prepare("SELECT SUM(`Amount`) AS `TT3` from `tblmemberaccounts`
                    
                     <tr>
                     <th scope="col" style="vertical-align: top;">Monthly Fees</th>
-                    <td scope="col" style="text-align: right;"><?php echo "E ". $row12['TT3']; ?></td>
+                    <td scope="col" style="text-align: right;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". $row12['TT3']; ?></td>
                     </tr>
 </thead>
- <?php	}
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 	?>
 </table>
 </div>
-<?php	} else {
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
 echo "0 results";	}
 
 
@@ -115,14 +290,62 @@ $stmt12 = $conn->prepare("SELECT SUM(`Amount`) AS `TT4` from `tblmemberaccounts`
                    
                     <tr>
                     <th scope="col" style="vertical-align: top;">Admin Fees</th>
-                    <td scope="col" style="text-align: right;"><?php echo "E ". $row12['TT4']; ?></td>
+                    <td scope="col" style="text-align: right;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". $row12['TT4']; ?></td>
                     </tr>
 </thead>
- <?php	}
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 	?>
 </table>
 </div>
-<?php	} else {
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
 echo "0 results";	}
 
 
@@ -145,14 +368,62 @@ $stmt12 = $conn->prepare("SELECT SUM(`Amount`) AS `TT5` from `tblmemberaccounts`
                    
                     <tr>
                     <th scope="col" style="vertical-align: top;">Termination Fees</th>
-                    <td scope="col" style="text-align: right;"><?php echo "E ". $row12['TT5']; ?></td>
+                    <td scope="col" style="text-align: right;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". $row12['TT5']; ?></td>
                     </tr>
 </thead>
- <?php	}
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 	?>
 </table>
 </div>
-<?php	} else {
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
 echo "No Terminated Acccounts";	}
 
 
@@ -167,7 +438,23 @@ echo "No Terminated Acccounts";	}
                    
                     <tr>
                     <th scope="col" style="vertical-align: top;">TOTAL</th>
-                    <td scope="col" style="text-align: right;"><?php echo "E ". $sum; ?></td>
+                    <td scope="col" style="text-align: right;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". $sum; ?></td>
                     </tr>
 </thead>
 </table>
@@ -175,8 +462,22 @@ echo "No Terminated Acccounts";	}
 
   <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
 
-<?php						
-						
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 } else {
   header('location: ./');
 }

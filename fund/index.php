@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 // Enable error reporting temporarily for debugging white screen issues
 ini_set('display_errors', 1);
@@ -22,8 +37,8 @@ require_once '../scripts/connection.php';
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="https://fairlife.grinpath.com/" rel="icon">
-  <link href="https://fairlife.grinpath.com/" rel="apple-touch-icon">
+  <link href="<?php echo APP_URL; ?>" rel="icon">
+  <link href="<?php echo APP_URL; ?>" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -59,7 +74,23 @@ require_once '../scripts/connection.php';
 <body>
 
   <!-- ======= Header ======= -->
-<?php include '../header.php'; ?>
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include '../header.php'; ?>
 
   <main id="main" class="main">
 
@@ -96,7 +127,22 @@ require_once '../scripts/connection.php';
                   </tr>
                 </thead>
                 <tbody>
-				<?php 
+				<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $stmt = $conn->prepare("SELECT * FROM `tblretirementfunds`");
 
 $stmt->execute();
@@ -109,23 +155,183 @@ while($row = $result->fetch_assoc()) {
 ?>
 
                   <tr>
-                    <th scope="row"><?php echo $row['RetirementFundID']; ?></th>
+                    <th scope="row"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
 
-                    <td><?php echo $row['FundName']; ?></td>
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RetirementFundID']; ?></th>
+
+                    <td><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['FundName']; ?></td>
 					
-					<td><?php echo $row['FundContact']; ?></td>
-                    <td><?php echo $row['FundEmail']; ?></td>
-                    <td><?php echo $row['FundCellNo']; ?></td>
+					<td><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['FundContact']; ?></td>
+                    <td><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['FundEmail']; ?></td>
+                    <td><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['FundCellNo']; ?></td>
 
 
 					<td class="no-wrap">
 			
-			<button type="button" data-link="fedit.php?id=<?php echo $row['RetirementFundID']; ?>" class="btn btn-outline-primary fedit"  title="Edit" data-id="<?php echo $row['RetirementFundID']; ?>"><i class="bi bi-eye"></i></button>
-			 <button type="button" data-link="fees.php?id=<?php echo $row['RetirementFundID']; ?>" class="btn btn-outline-warning fees"  title="Fees" data-id="<?php echo $row['RetirementFundID']; ?>"><i class="bi bi-receipt"></i></button>
+			<button type="button" data-link="fedit.php?id=<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RetirementFundID']; ?>" class="btn btn-outline-primary fedit"  title="Edit" data-id="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RetirementFundID']; ?>"><i class="bi bi-eye"></i></button>
+			 <button type="button" data-link="fees.php?id=<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RetirementFundID']; ?>" class="btn btn-outline-warning fees"  title="Fees" data-id="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RetirementFundID']; ?>"><i class="bi bi-receipt"></i></button>
 			
 					</td>
                   </tr>
-<?php   }
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 } else {
 //  echo "0 results";
 } ?>                 
@@ -223,8 +429,23 @@ $(document).ready(function() {
 
 </html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 }else{
-    header('Location: https://fairlife.grinpath.com/index.php');
+    header('Location: APP_URLindex.php');
 }
 
 ?>

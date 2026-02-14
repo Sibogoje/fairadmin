@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start(); // Start the session on the index page.
 include('config.php');
 
@@ -65,9 +80,39 @@ if (isset($_SESSION['memberno'])) {
     </div>
     <!-- preloader end -->
     <?php
-    include 'header.php';
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php';
     ?>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 try {
     // Establish a database connection and execute a query to calculate the total benefit.
     $stmt = $pdo->prepare("SELECT ApprovedBenefit AS TotalBenefit, `Terminated`, DateAccountOpened FROM tblmembers where MemberNo = :memberno");
@@ -87,7 +132,23 @@ try {
     <!-- main content start -->
     <div class="main-content">
         <div class="dashboard-breadcrumb mb-25">
-            <h2><?php echo $memberno. " - Beneficiary Dashboard"; ?></h2>
+            <h2><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $memberno. " - Beneficiary Dashboard"; ?></h2>
             
         </div>
         <div class="row mb-25">
@@ -100,7 +161,23 @@ try {
                             </div>
                         </div>
                         <div class="left">
-                            <h3 class="fw-normal"><?php echo "E ". number_format($totalBenefit, 2, '.', ','); ?></h3>
+                            <h3 class="fw-normal"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". number_format($totalBenefit, 2, '.', ','); ?></h3>
                         </div>
                     </div>
                     <div class="progress-box">
@@ -120,8 +197,23 @@ try {
                             </div>
                         </div>
                         <div class="left">
-                            <h3 class="fw-normal"><?php 
-                        if ($terminated == 0) {
+                            <h3 class="fw-normal"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+if ($terminated == 0) {
                             echo "Active";
                         } else {
                             echo "Terminated";
@@ -149,7 +241,23 @@ try {
                             </div>
                         </div>
                         <div class="left">
-                            <h3 class="fw-normal"><?php echo $result['DateAccountOpened']; ?> </h3>
+                            <h3 class="fw-normal"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $result['DateAccountOpened']; ?> </h3>
                         </div>
                     </div>
                     <div class="progress-box">
@@ -162,8 +270,22 @@ try {
             </div>
 
 <?php
-          
-        } else {
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
             // Handle the case where there is no data or an error occurred.
             echo "Total benefit not available.";
         }
@@ -192,21 +314,101 @@ try {
                             </div>
                         </div>
                         <div class="left">
-                            <h3 class="fw-normal"><?php echo "E ". number_format($balance, 2, '.', ','); ?> </h3>
+                            <h3 class="fw-normal"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ". number_format($balance, 2, '.', ','); ?> </h3>
                         </div>
                     </div>
-                    <?php $perc = $balance/$totalBenefit * 100; ?>
+                    <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+$perc = $balance/$totalBenefit * 100; ?>
                     <div class="progress-box">
-                        <p class="d-flex justify-content-between mb-1">Percentage Balance <small><?php echo number_format($perc, 0)."%"; ?></small></p>
+                        <p class="d-flex justify-content-between mb-1">Percentage Balance <small><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo number_format($perc, 0)."%"; ?></small></p>
                         <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
 
                         
-                            <div class="progress-bar bg-danger" style="width: <?php echo $perc."%"; ?> "></div>
+                            <div class="progress-bar bg-danger" style="width: <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $perc."%"; ?> "></div>
                         </div>
                     </div>
                 </div>
             </div>
-<?php        } catch (PDOException $e) {
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} catch (PDOException $e) {
         echo "Error: " . $e->getMessage();
     }
 
@@ -233,21 +435,101 @@ try {
                             </div>
                         </div>
                         <div class="left">
-                            <h3 class="fw-normal"><?php echo number_format($regtotal, 2); ?></h3>
+                            <h3 class="fw-normal"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo number_format($regtotal, 2); ?></h3>
                         </div>
                     </div>
-                    <?php $percreg = $regtotal/$totalBenefit * 100; ?>
+                    <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+$percreg = $regtotal/$totalBenefit * 100; ?>
                     <div class="progress-box">
                         <p class="d-flex justify-content-between mb-1">Total Regular Payments % <small>
-                        <?php echo number_format($percreg, 2)."%"; ?>
+                        <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo number_format($percreg, 2)."%"; ?>
                         </small></p>
                         <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
-                            <div class="progress-bar bg-danger" style="width: <?php echo $percreg."%"; ?>"></div>
+                            <div class="progress-bar bg-danger" style="width: <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $percreg."%"; ?>"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <?php        } catch (PDOException $e) {
+            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} catch (PDOException $e) {
         echo "Error: " . $e->getMessage();
     }
 
@@ -275,21 +557,101 @@ try {
                                 </div>
                             </div>
                             <div class="left">
-                                <h3 class="fw-normal"><?php echo number_format($adhoctotal, 2); ?></h3>
+                                <h3 class="fw-normal"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo number_format($adhoctotal, 2); ?></h3>
                             </div>
                         </div>
-                        <?php $percadhoc = $adhoctotal/$totalBenefit * 100; ?>
+                        <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+$percadhoc = $adhoctotal/$totalBenefit * 100; ?>
                         <div class="progress-box">
                             <p class="d-flex justify-content-between mb-1">Total Adhoc Payments % <small>
-                            <?php echo number_format($percadhoc, 2)."%"; ?>
+                            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo number_format($percadhoc, 2)."%"; ?>
                             </small></p>
                             <div class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-danger" style="width: <?php echo $percadhoc."%"; ?>"></div>
+                                <div class="progress-bar bg-danger" style="width: <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $percadhoc."%"; ?>"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <?php        } catch (PDOException $e) {
+                <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} catch (PDOException $e) {
             echo "Error: " . $e->getMessage();
         }
 

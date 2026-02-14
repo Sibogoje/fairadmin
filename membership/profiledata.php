@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 include "../database/conn.php";
 
@@ -54,7 +69,23 @@ echo	"<script>alert('There was an error!!'); window.location='../reports.php'";
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title><?php echo $tnt." ".$month; ?></title>
+    <title><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $tnt." ".$month; ?></title>
  
 	 <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
 
@@ -189,13 +220,45 @@ td {
 			 <tr>
 				    
                     <td colspan="3" style="font-weight: bold; border: 0px; font-size: 20px;">
-					Regional Code: <?php echo $station; ?>
+					Regional Code: <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $station; ?>
 					</td>
 					 <td colspan="3" style="font-weight: bold; border: 0px; font-size: 20px;">
 					Statement
 					</td>
 					<td colspan="3" style="font-weight: bold; text-align: right; border: 0px; font-size: 20px;">
-					<?php echo "Date: ". date("d/m/Y"); ?>
+					<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "Date: ". date("d/m/Y"); ?>
 					</td>
                     
                 </tr>
@@ -212,7 +275,22 @@ td {
                     <th style="border: 1;">Cumulative Total</th>
                 </tr>
                 
-                <?php 
+                <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $result1 = mysqli_query($conn,"SELECT * FROM `invoices`  $clientquery $inyanga $sterr ORDER BY `tenant`");
               // echo $clientquery.$inyanga.$sterr;
 if ($result1->num_rows > 0) {
@@ -378,28 +456,204 @@ while($row4 = $result4->fetch_assoc()) {
                 
                 <tr>
 				    
-                    <td style="border: 1;"><?php echo  $housec; ?></td>
-                    <td style="border: 1;"><?php echo  $row4['tcode']; ?></td>
-                    <td style="border: 1;"><?php echo  $invoicenumber; ?></td>
-                    <td style="border: 1;"><?php echo  $monthz; ?></td>
-                    <td style="border: 1;"><?php echo  $w; ?></td>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $housec; ?></td>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $row4['tcode']; ?></td>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $invoicenumber; ?></td>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $monthz; ?></td>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $w; ?></td>
                    
-                    <?php $tt1 = $w; ?>
-                    <td style="border: 1;"><?php echo  $tt1; ?></td>
-                     <?php $tt2 = $tt2 + $tt1; ?>
-                    <td style="border: 1;"><?php echo  $tt2; ?></td>
+                    <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+$tt1 = $w; ?>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $tt1; ?></td>
+                     <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+$tt2 = $tt2 + $tt1; ?>
+                    <td style="border: 1;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $tt2; ?></td>
                
                 </tr>
                
                 
                 
-                <?php } }} ?>
+                <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} }} ?>
                 <tr>
 				    
                     <td style="border: 1; font-weight: bold; text-align: right;" colspan="6">Grand Total</td>
                   
                  
-                    <td style="border: 1; font-weight: bold;"><?php echo  $tt2; ?></td>
+                    <td style="border: 1; font-weight: bold;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo  $tt2; ?></td>
                
                 </tr>
             </tbody>
@@ -434,7 +688,22 @@ while($row4 = $result4->fetch_assoc()) {
 
 </html>
 
- <?php 
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 } else {
     
     echo("No Results: " . $mysqli -> error);

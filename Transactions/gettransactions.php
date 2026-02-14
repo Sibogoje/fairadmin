@@ -1,5 +1,20 @@
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 require_once '../scripts/connection.php';
 $ii = $_POST['c_id'];
 if(count($_POST)>0){
@@ -11,12 +26,56 @@ $stmt12 = $conn->prepare("SELECT * FROM `tblmemberaccounts` WHERE `memberID` ='$
 						  echo "<option value=''>Select for Member ".$ii."</option>";
 						while($row12 = $result12->fetch_assoc()) {
 						?>
-					<option value="<?php echo $row12['accountsID']; ?>"><?php echo "Date:   ".$row12['TransactionDate']. "        Amount:   ". $row12['Amount']. "         Type: ".$row12['Details']; ?></option>
-						<?php   
-						
-						
-						
-						}
+					<option value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['accountsID']; ?>"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "Date:   ".$row12['TransactionDate']. "        Amount:   ". $row12['Amount']. "         Type: ".$row12['Details']; ?></option>
+						<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 						} else {
 						//  echo "0 results";
 						} 

@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 if(isset($_SESSION['zid']))
 {
@@ -77,8 +92,8 @@ echo "There was an error";
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="https://fairlife.grinpath.com/" rel="icon">
-  <link href="https://fairlife.grinpath.com/" rel="apple-touch-icon">
+  <link href="<?php echo APP_URL; ?>" rel="icon">
+  <link href="<?php echo APP_URL; ?>" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -110,7 +125,23 @@ echo "There was an error";
 
   <!-- ======= Header ======= -->
 
-<?php include '../header.php'; ?>
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include '../header.php'; ?>
   <!-- ======= Sidebar ======= -->
 
 	<div class='modal' tabindex='-1' role='dialog' id="iddd">
@@ -152,7 +183,23 @@ echo "There was an error";
 
  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="FundName" value="<?php echo $ids; ?>"  name="RetirementFundID" required>
+                    <input type="text" class="form-control" id="ff" placeholder="FundName" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $ids; ?>"  name="RetirementFundID" required>
                     <label for="floatingName">Retirement FundID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -277,8 +324,23 @@ $(document).on("click",".dnew",function(e){
 
 </html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 }else{
-    header('Location: https://fairlife.grinpath.com/index.php');
+    header('Location: APP_URLindex.php');
 }
 
 ?>

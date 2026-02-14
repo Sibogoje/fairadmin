@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start(); // Start the session on the index page.
 include('config.php');
 $memberno = $_SESSION['memberno'];
@@ -74,7 +89,22 @@ $memberid = $member['MemberID'];
     </div>
     <!-- preloader end -->
     <?php
-    include 'header.php';
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php';
     ?>
     <!-- main content start -->
     <div class="main-content">
@@ -84,7 +114,22 @@ $memberid = $member['MemberID'];
 
     <div class="card-body">
 <?php
-                   // Fetch data from tbltempadhocpayments
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+// Fetch data from tbltempadhocpayments
 $stmt = $pdo->prepare("SELECT * FROM tbltempadhocpayments where MemberID = :memberno");
 $stmt->bindParam(':memberno', $memberid, PDO::PARAM_STR);
 $stmt->execute();
@@ -103,7 +148,23 @@ $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($payments as $payment): ?>
+        <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+foreach ($payments as $payment): ?>
             <tr data-payment-id="<?= $payment['adhocPaymentID'] ?>">
 
                 <td><?= $payment['PaymentDate'] ?></td>
@@ -116,7 +177,23 @@ $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </button>
                 </td>
             </tr>
-        <?php endforeach; ?>
+        <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+endforeach; ?>
     </tbody>
 </table>
 

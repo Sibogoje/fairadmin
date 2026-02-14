@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start(); // Start the session on the index page.
 include('config.php');
 $memberno = $_SESSION['memberno'];
@@ -233,7 +248,7 @@ if (isset($_POST['request'])) {
 
         if (move_uploaded_file($tempFile, $fileURL)) {
             // Request letter uploaded successfully, now insert data into the database
-            $fileURL1 = 'https://fairlife.grinpath.com/mobile/' . $fileURL;
+            $fileURL1 = 'APP_URLmobile/' . $fileURL;
 
             $stmt = $pdo->prepare("INSERT INTO clientr (memberid, name, amount, reason, file, reqdate, fnumber) VALUES (:memberid, :name, :amount, :reason, :file, :reqdate, :fnumber)");
             $stmt->bindParam(':memberid', $memberid, PDO::PARAM_INT);
@@ -391,7 +406,22 @@ if (isset($_POST['request'])) {
     </div>
     <!-- preloader end -->
     <?php
-    include 'header.php';
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php';
     ?>
     <!-- main content start -->
     <div class="main-content">

@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 if(isset($_SESSION['zid']))
 {
@@ -139,8 +154,8 @@ $stmt->close();
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="https://fairlife.grinpath.com/" rel="icon">
-  <link href="https://fairlife.grinpath.com/" rel="apple-touch-icon">
+  <link href="<?php echo APP_URL; ?>" rel="icon">
+  <link href="<?php echo APP_URL; ?>" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -171,7 +186,23 @@ $stmt->close();
 <body>
 
   <!-- ======= Header ======= -->
-  <?php include '../header.php'; ?>
+  <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include '../header.php'; ?>
 
   <main id="main" class="main">
 
@@ -218,7 +249,22 @@ $stmt->close();
   `Terminated`
               <!-- Floating Labels Form -->
               <form class="row g-3 needs-validation" method="post" action="" enctype="multipart/form-data" novalidate>
-	<?php 
+	<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $stmt = $conn->prepare("SELECT * FROM `tblmembers` where `MemberNo`=?");
 $stmt->bind_param("s", $ids);
 $stmt->execute();
@@ -232,7 +278,39 @@ while($row = $result->fetch_assoc()) {
 
 			  <div class="col-md-3">
                   <div class="form-floating">
-				  <img src="<?php echo $imgs; ?>" alt="<?php echo $imgs; ?>" width="160" height="120"> 
+				  <img src="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $imgs; ?>" alt="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $imgs; ?>" width="160" height="120"> 
                   </div>
 				  </div>
 				  <div class="col-3">
@@ -243,7 +321,23 @@ while($row = $result->fetch_assoc()) {
                 </div>
                 <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Member No" name="MemberNo" value="<?php echo $row['MemberNo']; ?>" readonly>
+                    <input type="text" class="form-control" id="ff" placeholder="Member No" name="MemberNo" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberNo']; ?>" readonly>
                     <label for="floatingName">Member No:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -253,7 +347,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Member Surname" name="MemberSurname" value="<?php echo $row['MemberSurname']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Member Surname" name="MemberSurname" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberSurname']; ?>" required>
                     <label for="floatingName">Member Surname:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -263,7 +373,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Member Firstname" name="MemberFirstname" value="<?php echo $row['MemberFirstname']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Member Firstname" name="MemberFirstname" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberFirstname']; ?>" required>
                     <label for="floatingName">Member Firstname:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -273,7 +399,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Member ID Number" name="MemberIDnumber" value="<?php echo $row['MemberIDnumber']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Member ID Number" name="MemberIDnumber" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberIDnumber']; ?>" required>
                     <label for="floatingName">Member ID Number:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -283,7 +425,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Deceased ID" name="DeceasedID" value="<?php echo $row['DeceasedID']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Deceased ID" name="DeceasedID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['DeceasedID']; ?>" required>
                     <label for="floatingName">Deceased ID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -293,7 +451,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Relationship With Deceased" name="RelationshipDeceased" value="<?php echo $row['RelationshipDeceased']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Relationship With Deceased" name="RelationshipDeceased" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RelationshipDeceased']; ?>" required>
                     <label for="floatingName">Relationship-Deceased:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -303,7 +477,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="GuardianID" name="GuardianID" value="<?php echo $row['GuardianID']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="GuardianID" name="GuardianID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['GuardianID']; ?>" >
                     <label for="floatingName">Guardian ID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -313,7 +503,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Relationship Guardian" name="RelationshipGuardian" value="<?php echo $row['RelationshipGuardian']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Relationship Guardian" name="RelationshipGuardian" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RelationshipGuardian']; ?>" >
                     <label for="floatingName">Relationship Guardian:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -323,7 +529,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Next Of Kin ID" name="NextOfKinID" value="<?php echo $row['NextOfKinID']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Next Of Kin ID" name="NextOfKinID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['NextOfKinID']; ?>" >
                     <label for="floatingName">Next Of Kin ID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -333,7 +555,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				   <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Relationship Next Of Kin" name="RelationshipNextOfKin"  value="<?php echo $row['RelationshipNextOfKin']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Relationship Next Of Kin" name="RelationshipNextOfKin"  value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RelationshipNextOfKin']; ?>" >
                     <label for="floatingName">Relationship Next Of Kin:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -343,7 +581,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				   <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Member Postal Address" name="MemberPostalAddress" value="<?php echo $row['MemberPostalAddress']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Member Postal Address" name="MemberPostalAddress" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberPostalAddress']; ?>" >
                     <label for="floatingName">Member Postal Address:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -353,7 +607,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Member Post Office ID" name="MemberPostOfficeID" value="<?php echo $row['MemberPostOfficeID']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Member Post Office ID" name="MemberPostOfficeID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberPostOfficeID']; ?>" >
                     <label for="floatingName">Member Post Office ID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -364,7 +634,39 @@ while($row = $result->fetch_assoc()) {
 				  <div class="col-md-3">
                   <div class="form-floating">
                     <select type="text" class="form-control" id="ff" placeholder="Gender" name="Gender" required>
-					<option value="<?php echo $row['Gender']; ?>" selected><?php echo $row['Gender']; ?><option>
+					<option value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['Gender']; ?>" selected><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['Gender']; ?><option>
 					<option value="Male">Male</option>
 					<option value="Female">Female</option>
 					</select>
@@ -377,7 +679,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Date Of Birth" name="DateOfBirth" value="<?php echo $row['DateOfBirth']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Date Of Birth" name="DateOfBirth" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['DateOfBirth']; ?>" required>
                     <label for="floatingName">Date Of Birth:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -387,7 +705,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Approved Benefit" name="ApprovedBenefit" value="<?php echo $row['ApprovedBenefit']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Approved Benefit" name="ApprovedBenefit" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['ApprovedBenefit']; ?>" required>
                     <label for="floatingName">Approved Benefit:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -397,7 +731,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Date Account Opened" name="DateAccountOpened" value="<?php echo $row['DateAccountOpened']; ?>" required>
+                    <input type="text" class="form-control" id="ff" placeholder="Date Account Opened" name="DateAccountOpened" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['DateAccountOpened']; ?>" required>
                     <label for="floatingName">Date Account Opened:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -408,7 +758,39 @@ while($row = $result->fetch_assoc()) {
 				  <div class="col-md-3">
                   <div class="form-floating">
 					 <select type="text" class="form-control" id="ff" placeholder="Regular Payment Frequency" name="RegularPaymentFrequencyID" >
-					<option value="<?php echo $row['RegularPaymentFrequencyID']; ?>" selected><?php echo $row['RegularPaymentFrequencyID']; ?><option>
+					<option value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RegularPaymentFrequencyID']; ?>" selected><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RegularPaymentFrequencyID']; ?><option>
 					<option value="1">Monthly</option>
 					<option value="2">Quarterly</option>
 					<option value="3">Bi-annual</option>
@@ -425,7 +807,39 @@ while($row = $result->fetch_assoc()) {
                   <div class="form-floating">
                     
 					 <select type="text" class="form-control" id="ff" placeholder="Gender" name="RegularPaymentTypeID"  >
-					<option value="<?php echo $row['RegularPaymentTypeID']; ?>" selected><?php echo $row['RegularPaymentTypeID']; ?><option>
+					<option value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RegularPaymentTypeID']; ?>" selected><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['RegularPaymentTypeID']; ?><option>
 					<option value="1">Regular discretionary payment</option>
 					<option value="2">Regular fixed payment</option>
 					<option value="3">Regular maximum payment</option>
@@ -440,7 +854,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Fixed Payment Amount" name="FixedPaymentAmount" value="<?php echo $row['FixedPaymentAmount']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Fixed Payment Amount" name="FixedPaymentAmount" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['FixedPaymentAmount']; ?>" >
                     <label for="floatingName">Fixed Payment Amount:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -450,7 +880,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  	  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="date" class="form-control" id="ff" placeholder="Fixed Payment End Date" name="FixedPaymentEndDate" value="<?php echo $row['FixedPaymentEndDate']; ?>" >
+                    <input type="date" class="form-control" id="ff" placeholder="Fixed Payment End Date" name="FixedPaymentEndDate" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['FixedPaymentEndDate']; ?>" >
                     <label for="floatingName">Fixed EndDate:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -460,7 +906,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				   <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Max Payment Amount" name="MaxPaymentAmount" value="<?php echo $row['MaxPaymentAmount']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Max Payment Amount" name="MaxPaymentAmount" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MaxPaymentAmount']; ?>" >
                     <label for="floatingName">Max Payment Amount:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -470,7 +932,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				   <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Bank ID" name="BankID" value="<?php echo $row['BankID']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Bank ID" name="BankID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['BankID']; ?>" >
                     <label for="floatingName">Bank ID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -480,7 +958,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Bank AccountNo" name="BankAccountNo" value="<?php echo $row['BankAccountNo']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Bank AccountNo" name="BankAccountNo" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['BankAccountNo']; ?>" >
                     <label for="floatingName">Bank AccountNo:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -490,7 +984,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Account TypeID" name="AccountTypeID" value="<?php echo $row['AccountTypeID']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Account TypeID" name="AccountTypeID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['AccountTypeID']; ?>" >
                     <label for="floatingName">Account TypeID:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -501,7 +1011,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="ff" placeholder="Account Holder Name" name="AccountHolderName" value="<?php echo $row['AccountHolderName']; ?>" >
+                    <input type="text" class="form-control" id="ff" placeholder="Account Holder Name" name="AccountHolderName" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['AccountHolderName']; ?>" >
                     <label for="floatingName">Account Holder Name:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -510,7 +1036,23 @@ while($row = $result->fetch_assoc()) {
 				  </div>
 				   <div class="col-md-3">
                   <div class="form-floating">
-                    <input type="number" class="form-control" id="ff" placeholder="Account Holder Name" name="terminated" value="<?php echo $row['Terminated']; ?>" required>
+                    <input type="number" class="form-control" id="ff" placeholder="Account Holder Name" name="terminated" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['Terminated']; ?>" required>
                     <label for="floatingName">Terminated:</label>
 				  <div class="valid-feedback">
                     Looks good!
@@ -520,7 +1062,23 @@ while($row = $result->fetch_assoc()) {
 				  
 				  <div class="col-12">
                   <div class="form-floating">
-                    <textarea class="form-control" placeholder="Address" id="floatingTextarea" name="Comments" style="height: 50px;" value="<?php echo $row['Comments']; ?>"></textarea>
+                    <textarea class="form-control" placeholder="Address" id="floatingTextarea" name="Comments" style="height: 50px;" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['Comments']; ?>"></textarea>
                     <label for="floatingTextarea">Comments</label>
                   </div>
                 </div>
@@ -533,7 +1091,23 @@ while($row = $result->fetch_assoc()) {
                   <button type="reset" class="btn btn-danger">Delete</button>
                 </div>
 				
-				<?php   }
+				<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 } else {
  // echo "0 results";
 } ?> 
@@ -580,8 +1154,23 @@ while($row = $result->fetch_assoc()) {
 
 </html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 }else{
-    header('Location: https://fairlife.grinpath.com/index.php');
+    header('Location: APP_URLindex.php');
 }
 
 ?>

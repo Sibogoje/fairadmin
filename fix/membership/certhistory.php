@@ -1,5 +1,20 @@
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 require_once '../scripts/connection.php';
 $ii = $_POST['c_id'];
 
@@ -27,11 +42,59 @@ $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
                     </tr>
                     <tr>
                     <th scope="col" style="vertical-align: top;">Member Name</th>
-                    <td scope="col"><?php echo $row12['MemberNo']."  ".$row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
+                    <td scope="col"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['MemberNo']."  ".$row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
                     <th scope="col" style="vertical-align: top;">ID No</th>
-					<td scope="col"><?php echo $row12['MemberIDnumber']; ?></td>
+					<td scope="col"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['MemberIDnumber']; ?></td>
 					<th scope="col" style="vertical-align: top;">date of Birth</th>
-					<td scope="col"><?php echo $row12['DateOfBirth']; ?></td>
+					<td scope="col"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['DateOfBirth']; ?></td>
 					</tr>
 					
 					
@@ -49,14 +112,62 @@ $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
                    
 					<tr>
                     <th scope="col" colspan="2" style="vertical-align: top;">ID NO</th>
-                    <td scope="col" colspan="2"><?php echo $row12['MemberIDnumber']; ?></td>
+                    <td scope="col" colspan="2"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['MemberIDnumber']; ?></td>
                     <th scope="col" colspan="1" style="vertical-align: top;" >Date of Birth</th>
-					<td scope="col" colspan="2"><?php echo $row12['DateOfBirth']; ?></td>
+					<td scope="col" colspan="2"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['DateOfBirth']; ?></td>
 				
 					</tr>
 					<tr>
                     <th scope="col" colspan="3" style="vertical-align: top;">________________________________________</th>
-                    <td scope="col" colspan="3" style="font-weight: bold;"><?php echo $row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
+                    <td scope="col" colspan="3" style="font-weight: bold;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
                     
 				
 					</tr>
@@ -89,14 +200,62 @@ $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
                    
 					<tr>
                     <th scope="col" colspan="2" style="vertical-align: top;">ID NO</th>
-                    <td scope="col" colspan="2"><?php echo $row12['MemberIDnumber']; ?></td>
+                    <td scope="col" colspan="2"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['MemberIDnumber']; ?></td>
                     <th scope="col" colspan="1" style="vertical-align: top;" >Date of Birth</th>
-					<td scope="col" colspan="1"><?php echo $row12['DateOfBirth']; ?></td>
+					<td scope="col" colspan="1"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['DateOfBirth']; ?></td>
 				
 					</tr>
 					<tr>
                     <th scope="col" colspan="3" style="vertical-align: top;">________________________________________</th>
-                    <td scope="col" colspan="3" style="font-weight: bold;"><?php echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
+                    <td scope="col" colspan="3" style="font-weight: bold;"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
                     
 				
 					</tr>
@@ -195,11 +354,59 @@ $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
 					
 					<tr>
                     <th scope="col" style="vertical-align: top;">Who else can we contact if you are not avaialble such as family member or neighbour</th>
-                    <td scope="col" ><?php echo $row12['FundName']; ?></td>
+                    <td scope="col" ><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['FundName']; ?></td>
                     <th scope="col" style="vertical-align: top;">Fund Contact Person</th>
-					<td scope="col"><?php echo $row12['FundContact']; ?></td>
+					<td scope="col"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['FundContact']; ?></td>
 					<th scope="col" style="vertical-align: top;">Contact</th>
-					<td scope="col"><?php echo $row12['FundTelNo']; ?></td>
+					<td scope="col"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row12['FundTelNo']; ?></td>
 					</tr>
 					
 					
@@ -208,19 +415,65 @@ $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
             
 				
           
-		   <?php	}
+		   <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+}
 						?>
 				
 						 </table>
 						 </div>
-						<?php	} else {
+						<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} else {
 						  echo "0 results";	} 
 ?>
 
   <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
 
-<?php						
-						
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 } else {
   header('location: ./');
 }

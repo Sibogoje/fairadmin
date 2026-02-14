@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start(); // Start the session on the index page.
 include('config.php');
 $memberno = $_SESSION['memberno'];
@@ -65,7 +80,22 @@ if (isset($_SESSION['memberno'])) {
     </div>
     <!-- preloader end -->
     <?php
-    include 'header.php';
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php';
     ?>
     <!-- main content start -->
     <!-- main content start -->
@@ -124,7 +154,23 @@ if (isset($_SESSION['memberno'])) {
    <script>
     document.addEventListener("DOMContentLoaded", function () {
         const downloadButton = document.getElementById("downloadButton");
-        const memberNo = <?php echo json_encode($_SESSION['memberno']); ?>; // Retrieve the memberno from PHP
+        const memberNo = <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo json_encode($_SESSION['memberno']); ?>; // Retrieve the memberno from PHP
         
         downloadButton.addEventListener("click", function () {
             const fromValue = document.getElementById("from").value;

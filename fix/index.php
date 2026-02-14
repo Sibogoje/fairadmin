@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 require_once 'scripts/connection.php';
 
@@ -19,8 +34,8 @@ require_once 'scripts/connection.php';
 
 
   <!-- Favicons -->
-  <link href="https://fairlife.grinpath.com/fix/" rel="icon">
-  <link href="https://fairlife.grinpath.com/fix/" rel="apple-touch-icon">
+  <link href="<?php echo APP_URL; ?>fix/" rel="icon">
+  <link href="<?php echo APP_URL; ?>fix/" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">

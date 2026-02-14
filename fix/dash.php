@@ -1,5 +1,20 @@
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 if(isset($_SESSION['zid']))
 {
@@ -49,8 +64,23 @@ require_once 'scripts/connection.php';
 <body>
 
   <!-- ======= Header ======= -->
-  <?php 
-  include 'header.php';
+  <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php';
   ?>
 
   <main id="main" class="main">
@@ -89,7 +119,21 @@ require_once 'scripts/connection.php';
                   </ul>
                 </div>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
 
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $ttfundsresult = mysqli_query($conn, 'SELECT ttfunds FROM tt_funds'); 
 $ttfundsrow = mysqli_fetch_assoc($ttfundsresult); 
 $ttfunds = $ttfundsrow['ttfunds'];
@@ -104,7 +148,23 @@ $ttfunds = $ttfundsrow['ttfunds'];
                       <i class="ri ri-coins-fill"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "Total ". $ttfunds; ?></h6>
+                      <h6><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "Total ". $ttfunds; ?></h6>
                      
 
                     </div>
@@ -131,7 +191,21 @@ $ttfunds = $ttfundsrow['ttfunds'];
                   </ul>
                 </div>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
 
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $activeresult = mysqli_query($conn, "SELECT COUNT(`MemberNo`) as 'ttactive' FROM tblmembers where `Terminated` = '0'"); 
 $activerow = mysqli_fetch_assoc($activeresult); 
 $active = $activerow['ttactive'];
@@ -149,9 +223,57 @@ $terminated = $terminatedrow['ttterminated'];
                       <i class="ri ri-group-fill"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "Total ". $active + $terminated; ?></h6>
-                      <span class="text-success small pt-1 fw-bold"><?php echo $active; ?></span> <span class="text-muted small pt-2 ps-1">Active</span><br>
-					   <span class="text-danger small pt-1 fw-bold"><?php echo $terminated; ?></span> <span class="text-muted small pt-2 ps-1">Terminated</span>
+                      <h6><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "Total ". $active + $terminated; ?></h6>
+                      <span class="text-success small pt-1 fw-bold"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $active; ?></span> <span class="text-muted small pt-2 ps-1">Active</span><br>
+					   <span class="text-danger small pt-1 fw-bold"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $terminated; ?></span> <span class="text-muted small pt-2 ps-1">Terminated</span>
 
                     </div>
                   </div>
@@ -169,7 +291,21 @@ $terminated = $terminatedrow['ttterminated'];
                 <div class="card-body">
                   <h5 class="card-title">Total Balances <span>| Today</span></h5>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
 
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $balanceresult = mysqli_query($conn, "SELECT SUM(`NewBalance`) as 'newb' FROM balances where `Term` = '0'"); 
 $balancerow = mysqli_fetch_assoc($balanceresult); 
 $balance = $balancerow['newb'];
@@ -180,7 +316,23 @@ $balance = $balancerow['newb'];
                       <i class="ri ri-file-shred-line"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "E ".number_format($balance, 2); ?></h6>
+                      <h6><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ".number_format($balance, 2); ?></h6>
                        <span class="text-muted small pt-2 ps-1">Total Running Balances</span>
 
                     </div>
@@ -201,7 +353,21 @@ $balance = $balancerow['newb'];
                 <div class="card-body">
                   <h5 class="card-title">Total Adhoc Fees <span>| Today</span></h5>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
 
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 $balanceresult = mysqli_query($conn, "SELECT SUM(`Amount`) AS 'Adhoc' FROM tblmemberaccounts WHERE `TransactionTypeID` = '5' AND MONTH(TransactionDate) = '2' AND YEAR(TransactionDate) = '2023'    "); 
 $balancerow = mysqli_fetch_assoc($balanceresult); 
 $balance = $balancerow['Adhoc'];
@@ -212,7 +378,23 @@ $balance = $balancerow['Adhoc'];
                       <i class="ri ri-file-shred-line"></i>
                     </div>
                     <div class="ps-3">
-                      <h6><?php echo "E ".number_format($balance, 2); ?></h6>
+                      <h6><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo "E ".number_format($balance, 2); ?></h6>
                       <span class="text-muted small pt-2 ps-1">Current Month</span>
 
                     </div>
@@ -474,6 +656,21 @@ $balance = $balancerow['Adhoc'];
 
 </html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 }else{
     header('Location: index.php');
 }

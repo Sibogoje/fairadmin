@@ -1,5 +1,20 @@
 <!DOCTYPE html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start();
 if(isset($_SESSION['zid']))
 {
@@ -48,7 +63,7 @@ $file = $_FILES['myfile']['tmp_name'];
 $size = $_FILES['myfile']['size'];
 $new_filename = $dates . '_' . $owner . '.' . $extension;
 $file_path = 'adhocfile/uploads/' . $owner;
-$url = "https://fairlife.grinpath.com/" . $file_path . $new_filename;
+$url = "APP_URL" . $file_path . $new_filename;
 
 if (!in_array($extension, ['zip', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'doc'])) {
     echo "You file extension must be .zip, .pdf or .docx";
@@ -130,7 +145,23 @@ if (!in_array($extension, ['zip', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'doc'])) 
 <body>
 
   <!-- ======= Header ======= -->
- <?php include 'header.php'; ?>
+ <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php'; ?>
 
   <main id="main" class="main">
 
@@ -156,9 +187,41 @@ if (!in_array($extension, ['zip', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'doc'])) 
 <div class="card shadow-lg">
   <div class="card-body">
     <!-- Add the Delete File button with Bootstrap classes for positioning -->
-   <?php if ($isAdmin): ?>
+   <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+if ($isAdmin): ?>
     <button type="button" class="btn btn-danger position-absolute top-0 end-0 mt-3 mr-3 me-3" id="deleteFileBtn" name="deleteFileBtn">Delete File</button>
-<?php endif; ?>
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+endif; ?>
 
     <h5 class="card-title">View All Files</h5>
 
@@ -170,13 +233,92 @@ if (!in_array($extension, ['zip', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'doc'])) 
         <select name="member" class="form-select" id="member" aria-label="Member" required>
             <option selected>Select Member</option>
             <?php
-            $select = $conn->prepare("SELECT * FROM `tblmembers`");
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+$select = $conn->prepare("SELECT * FROM `tblmembers`");
             $select->execute();
             $result = $select->get_result();
             while ($row = $result->fetch_assoc()) {
                 ?>
-                <option value="<?php echo $row['MemberNo']; ?>"><?php echo $row['MemberNo']." - ".$row['MemberSurname']; ?> <?php echo $row['MemberFirstname']; ?></option>
-            <?php } ?>
+                <option value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberNo']; ?>"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberNo']." - ".$row['MemberSurname']; ?> <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $row['MemberFirstname']; ?></option>
+            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+} ?>
         </select>
     </div>
 </div>
@@ -404,8 +546,23 @@ $(document).on("click",".edit",function(e){
 
 </html>
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 }else{
-    header('Location: https://fairlife.grinpath.com/logout.php');
+    header('Location: APP_URLlogout.php');
 }
 
 ?>

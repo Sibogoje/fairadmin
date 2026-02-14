@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 // Error reporting for development only
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -144,7 +159,23 @@ function formatNumber($number) {
 
 <body class="loading-dashboard">
     <!-- Header -->
-    <?php include 'header.php'; ?>
+    <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php'; ?>
     
     <main id="main" class="main">
         <div class="pagetitle">
@@ -164,7 +195,23 @@ function formatNumber($number) {
                         
                         <!-- Funds Card -->
                         <div class="col-lg-3 col-md-6">
-                            <?php echo renderCard(
+                            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo renderCard(
                                 'Funds',
                                 'Today',
                                 'bg-warning',
@@ -176,7 +223,23 @@ function formatNumber($number) {
                         
                         <!-- Beneficiaries Card -->
                         <div class="col-lg-3 col-md-6">
-                            <?php echo renderCard(
+                            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo renderCard(
                                 'Beneficiaries',
                                 'This Month',
                                 'bg-success',
@@ -194,7 +257,23 @@ function formatNumber($number) {
                         
                         <!-- Total Balances Card -->
                         <div class="col-lg-3 col-md-6">
-                            <?php echo renderCard(
+                            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo renderCard(
                                 'Total Balances',
                                 'Today',
                                 'bg-primary',
@@ -206,7 +285,23 @@ function formatNumber($number) {
                         
                         <!-- Adhoc Fees Card -->
                         <div class="col-lg-3 col-md-6">
-                            <?php echo renderCard(
+                            <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo renderCard(
                                 'Total Adhoc Fees',
                                 'Today',
                                 'bg-info',
@@ -245,6 +340,21 @@ function formatNumber($number) {
 </html>
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 /**
  * Render a dashboard card component
  */
@@ -253,7 +363,39 @@ function renderCard($title, $subtitle, $iconBgClass, $iconClass, $mainValue, $su
     ?>
     <div class="card info-card sales-card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0"><?php echo htmlspecialchars($title); ?> <span>| <?php echo htmlspecialchars($subtitle); ?></span></h5>
+            <h5 class="card-title mb-0"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo htmlspecialchars($title); ?> <span>| <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo htmlspecialchars($subtitle); ?></span></h5>
             <div class="filter">
                 <a class="icon" href="#" data-bs-toggle="dropdown">
                     <i class="bi bi-three-dots"></i>
@@ -271,13 +413,77 @@ function renderCard($title, $subtitle, $iconBgClass, $iconClass, $mainValue, $su
         
         <div class="card-body">
             <div class="d-flex align-items-center">
-                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center <?php echo $iconBgClass; ?> text-white">
-                    <i class="ri <?php echo $iconClass; ?>"></i>
+                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $iconBgClass; ?> text-white">
+                    <i class="ri <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $iconClass; ?>"></i>
                 </div>
                 <div class="ps-3">
                     <div class="real">
-                        <h6 class="mb-0"><?php echo $mainValue; ?></h6>
-                        <small class="text-muted"><?php echo $subValue; ?></small>
+                        <h6 class="mb-0"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $mainValue; ?></h6>
+                        <small class="text-muted"><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $subValue; ?></small>
                     </div>
                     <div class="skeleton" aria-hidden="true">
                         <div class="skeleton-amount"></div>
@@ -288,7 +494,22 @@ function renderCard($title, $subtitle, $iconBgClass, $iconClass, $mainValue, $su
         </div>
     </div>
     <?php
-    return ob_get_clean();
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+return ob_get_clean();
 }
 
 // Close database connection

@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 session_start(); // Start the session on the index page.
 include('config.php');
 
@@ -35,6 +50,21 @@ if (isset($_POST['updateguardiantbn'])) {
 
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 // Assuming you have a valid $user_id and $pdo (database connection).
 
 if (isset($_POST['updatepwd'])) {
@@ -111,7 +141,23 @@ if (isset($_POST['updatepwd'])) {
         </div>
     </div>
     <!-- preloader end -->
-<?php include 'header.php';?>
+<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+include 'header.php';?>
 
 
 
@@ -138,6 +184,21 @@ if (isset($_POST['updatepwd'])) {
                             <div class="tab-pane fade show active" id="nav-edit-profile" role="tabpanel" aria-labelledby="nav-edit-profile-tab" tabindex="0">
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 try {
     // Establish a database connection and execute a query to get the member's information.
     $stmt = $pdo->prepare("SELECT GuardianID FROM tblmembers WHERE MemberNo = :memberno");
@@ -162,7 +223,23 @@ try {
                                         <div class="col-md-4 col-sm-6">
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light"></i></span>
-                                                    <input type="ematextil" name="id" class="form-control" placeholder="GuardianID" value="<?php echo $guardian['GuardianID']; ?>" hidden>
+                                                    <input type="ematextil" name="id" class="form-control" placeholder="GuardianID" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $guardian['GuardianID']; ?>" hidden>
                                                 </div>
                                             </div>
 
@@ -170,25 +247,89 @@ try {
                                             <div class="col-md-4 col-sm-6">
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-envelope"></i></span>
-                                                    <input type="email" name="email" class="form-control" placeholder="Email" value="<?php echo $guardian['GuardianEmail']; ?>">
+                                                    <input type="email" name="email" class="form-control" placeholder="Email" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $guardian['GuardianEmail']; ?>">
                                                 </div>
                                             </div>
                                             <div class="col-md-4 col-sm-6">
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-mobile"></i></span>
-                                                    <input type="tel" name="phone" class="form-control" placeholder="Primary Phone" value="<?php echo $guardian['GuardianCell']; ?>" >
+                                                    <input type="tel" name="phone" class="form-control" placeholder="Primary Phone" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $guardian['GuardianCell']; ?>" >
                                                 </div>
                                             </div>
                                             <div class="col-md-4 col-sm-6">
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-phone"></i></span>
-                                                    <input type="tel" name="home_phone" class="form-control" placeholder="Home Telephone" value="<?php echo $guardian['GuardianTelHome']; ?>" >
+                                                    <input type="tel" name="home_phone" class="form-control" placeholder="Home Telephone" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $guardian['GuardianTelHome']; ?>" >
                                                 </div>
                                             </div>
                                             <div class="col-md-4 col-sm-6">
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-address-card"></i></span>
-                                                    <input type="text" name="postal" class="form-control" placeholder="Postal Address" value="<?php echo $guardian['GuardianPostalAddress']; ?>">
+                                                    <input type="text" name="postal" class="form-control" placeholder="Postal Address" value="<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $guardian['GuardianPostalAddress']; ?>">
                                                 </div>
                                             </div>
 
@@ -196,7 +337,23 @@ try {
                                             <div class="col-md-4 col-sm-6">
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-location-arrow"></i></span>
-                                                    <textarea name="residential" class="form-control" placeholder="Residential Address" value=""><?php echo $guardian['GuardianPhysicalAddress']; ?></textarea>
+                                                    <textarea name="residential" class="form-control" placeholder="Residential Address" value=""><?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+echo $guardian['GuardianPhysicalAddress']; ?></textarea>
                                                 </div>
                                             </div>
 
@@ -212,6 +369,21 @@ try {
                                 </form>
 
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }

@@ -1,4 +1,19 @@
 <?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
 /*******************************************************************************
 * Utility to generate font definition files                                    *
 *                                                                              *
@@ -350,7 +365,23 @@ function SaveToFile($file, $s, $mode)
 
 function MakeDefinitionFile($file, $type, $enc, $embed, $subset, $map, $info)
 {
-	$s = "<?php\n";
+	$s = "<?php
+if (!defined('APP_URL')) {
+    $appConfigCandidates = array(
+        __DIR__ . '/scripts/app_config.php',
+        dirname(__DIR__) . '/scripts/app_config.php',
+        dirname(__DIR__, 2) . '/scripts/app_config.php',
+        dirname(__DIR__, 3) . '/scripts/app_config.php'
+    );
+
+    foreach ($appConfigCandidates as $appConfigPath) {
+        if (file_exists($appConfigPath)) {
+            require_once $appConfigPath;
+            break;
+        }
+    }
+}
+\n";
 	$s .= '$type = \''.$type."';\n";
 	$s .= '$name = \''.$info['FontName']."';\n";
 	$s .= '$desc = '.MakeFontDescriptor($info).";\n";
