@@ -46,9 +46,11 @@ $sum1 = "";
             $notification = '';
 $balanceresult = mysqli_query($conn, "SELECT COUNT(DISTINCT `memberID`) AS value_sum FROM balances where NewBalance<'5000.00' AND Term = 0 "); 
 $balancerow = mysqli_fetch_assoc($balanceresult); 
-$notification = $balancerow['value_sum'];
+$notification = (int)($balancerow['value_sum'] ?? 0);
             
   ?>          
+
+  <li class="nav-item dropdown">
 
           <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
             <i class="bi bi-bell"></i>
@@ -111,16 +113,6 @@ echo "E ". $row['balance'] ?></p>
           </ul><!-- End Notification Dropdown Items -->
 
         </li><!-- End Notification Nav -->
-
-        <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-chat-left-text"></i>
-            <span class="badge bg-success badge-number"><?php
-echo "0" ?></span>
-          </a><!-- End Messages Icon -->
-
-        </li><!-- End Messages Nav -->
 
         <li class="nav-item dropdown pe-3">
 
