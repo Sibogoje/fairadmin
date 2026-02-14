@@ -1,20 +1,6 @@
 
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
 $ii = $_POST['single'];
 	 $d1=$_POST['date1'];
@@ -82,21 +68,7 @@ $stmt12 = $conn->prepare("SELECT * FROM ".$choose);
 				
           
  <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 while($row12 = $result12->fetch_assoc()) {
 						    
 						    
@@ -116,106 +88,22 @@ while($row12 = $result12->fetch_assoc()) {
 ?>							
 <tr>
                     <td><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $mmno; ?></td>
                     <th scope="row"><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $name; ?></th>
                     <th><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $surname;  ?></th>
                     <td><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row12['period']; ?></td>
                     <td><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo  number_format($row12['OpeningBalance'], 2); ?></td>
                     <td><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo  number_format($row12['ClosingBalance'], 2);  ?></td>
 
 					<td>
@@ -224,21 +112,7 @@ echo  number_format($row12['ClosingBalance'], 2);  ?></td>
                   </tr>
 				   
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 }
 						
 						?>
@@ -246,21 +120,7 @@ if (!defined('APP_URL')) {
 						 </table>
 						 </div>
 						<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 } else {
 						  echo "No Data Found";
 
@@ -273,21 +133,7 @@ if (!defined('APP_URL')) {
   <script src="../assets/vendor/simple-datatables/simple-datatables.js"></script>
 
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 } else {
   header('location: ./');
 }

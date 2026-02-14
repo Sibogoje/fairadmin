@@ -15,8 +15,12 @@
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="<?php echo APP_URL; ?>" rel="icon">
-  <link href="<?php echo APP_URL; ?>" rel="apple-touch-icon">
+  <link href="<?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo APP_URL; ?>" rel="icon">
+  <link href="<?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo APP_URL; ?>" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -40,21 +44,7 @@
 
 <body>
   <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 include '../header.php'; ?>
   <main id="main" class="main">
 

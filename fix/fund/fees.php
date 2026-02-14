@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 session_start();
 if(isset($_SESSION['zid']))
 {
@@ -89,8 +75,12 @@ $stmt->close();
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="<?php echo APP_URL; ?>" rel="icon">
-  <link href="<?php echo APP_URL; ?>" rel="apple-touch-icon">
+  <link href="<?php
+require_once __DIR__ . '/../../scripts/bootstrap.php';
+echo APP_URL; ?>" rel="icon">
+  <link href="<?php
+require_once __DIR__ . '/../../scripts/bootstrap.php';
+echo APP_URL; ?>" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -123,21 +113,7 @@ $stmt->close();
   <!-- ======= Header ======= -->
 
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 include '../header.php'; ?>
   <!-- ======= Sidebar ======= -->
 
@@ -160,21 +136,7 @@ include '../header.php'; ?>
 
               <form class="row g-3 needs-validation" method="post" action="" enctype="multipart/form-data" novalidate>
 	<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 $stmt = $conn->prepare("SELECT * FROM `tblretirementfundfees` where `RetirementFundID`=?");
 $stmt->bind_param("s", $ids);
 $stmt->execute();
@@ -189,21 +151,7 @@ while($row = $result->fetch_assoc()) {
  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="FundName" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['RetirementFundID']; ?>" name="RetirementFundID" required>
                     <label for="floatingName">Retirement FundID:</label>
 				  <div class="valid-feedback">
@@ -214,21 +162,7 @@ echo $row['RetirementFundID']; ?>" name="RetirementFundID" required>
 					 <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="FundFeeID" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['FundFeeID']; ?>" name="FundFeeID" required>
                     <label for="floatingName">Fund FeeID:</label>
 				  <div class="valid-feedback">
@@ -240,21 +174,7 @@ echo $row['FundFeeID']; ?>" name="FundFeeID" required>
 				  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="RegistrationNo" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['TransferInPercent']; ?>" name="TransferInPercent" >
                     <label for="floatingName">TransferInPercent:</label>
 				  <div class="valid-feedback">
@@ -266,21 +186,7 @@ echo $row['TransferInPercent']; ?>" name="TransferInPercent" >
 				  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="TransferInMinimum" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['TransferInMinimum']; ?>" name="TransferInMinimum" required>
                     <label for="floatingName">Transfer In Minimum:</label>
 				  <div class="valid-feedback">
@@ -292,21 +198,7 @@ echo $row['TransferInMinimum']; ?>" name="TransferInMinimum" required>
 				  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="FundCellNo" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['TransactionPercent']; ?>" name="TransactionPercent" required>
                     <label for="floatingName">Transaction Percent:</label>
 				  <div class="valid-feedback">
@@ -319,21 +211,7 @@ echo $row['TransactionPercent']; ?>" name="TransactionPercent" required>
 		  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="AdminPercent" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['AdminPercent']; ?>" name="AdminPercent">
                     <label for="floatingName">Admin Percent:</label>
 				  <div class="valid-feedback">
@@ -345,21 +223,7 @@ echo $row['AdminPercent']; ?>" name="AdminPercent">
 				  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="FixedMonthlyFee" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['FixedMonthlyFee']; ?>" name="FixedMonthlyFee" required>
                     <label for="floatingName">Fixed Monthly Fee:</label>
 				  <div class="valid-feedback">
@@ -370,21 +234,7 @@ echo $row['FixedMonthlyFee']; ?>" name="FixedMonthlyFee" required>
 				  <div class="col-md-3">
                   <div class="form-floating">
                     <input type="text" class="form-control" id="ff" placeholder="Fund Tel No" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['TerminationFeePercent']; ?>" name="TerminationFeePercent" >
                     <label for="floatingName">Termination FeePercent:</label>
 				  <div class="valid-feedback">
@@ -401,75 +251,19 @@ echo $row['TerminationFeePercent']; ?>" name="TerminationFeePercent" >
                   
                 </div>
 								<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 }
 } else {
 ?> 
   <div class="text-center">
                   <button type="button" class="btn btn-warning dnew" data-link="feenew.php?id=<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $ids; ?>" data-id="rr"  style="width: 100%;"><b>Add Fees for Fund <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $ids; ?></b></button>
                </div>
   <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 } ?> 
               </form><!-- End floating Labels Form -->
 
@@ -520,21 +314,7 @@ $(document).on("click",".dnew",function(e){
 
 </html>
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 }else{
     header('Location: ' . APP_URL . '');
 }

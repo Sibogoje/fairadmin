@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 session_start();
 if(isset($_SESSION['zid']))
 {
@@ -105,8 +91,12 @@ $conn->close();
         <link href='select2/dist/css/select2.min.css' rel='stylesheet' type='text/css'>
 
   <!-- Favicons -->
-  <link href="<?php echo APP_URL; ?>" rel="icon">
-  <link href="<?php echo APP_URL; ?>" rel="apple-touch-icon">
+  <link href="<?php
+require_once __DIR__ . '/../../scripts/bootstrap.php';
+echo APP_URL; ?>" rel="icon">
+  <link href="<?php
+require_once __DIR__ . '/../../scripts/bootstrap.php';
+echo APP_URL; ?>" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -139,21 +129,7 @@ $conn->close();
 
   <!-- ======= Header ======= -->
   <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 include '../header.php'; ?>
 
   <main id="main" class="main">
@@ -190,21 +166,7 @@ include '../header.php'; ?>
     </thead>
     <tbody>
         <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 $stmt = $conn->prepare("SELECT * FROM `clientr`" );
         $stmt->execute();
         $result = $stmt->get_result();
@@ -214,284 +176,60 @@ $stmt = $conn->prepare("SELECT * FROM `clientr`" );
                 ?>
                 <tr>
                     <td hidden scope="row"><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['memberid']; ?> </td>
                     <td scope="row"><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['name']; ?></td>
                     <td><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['amount']; ?></td>
                     <td><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['reason']; ?></td>
                     <td>
                         <a href="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['file']; ?>" class="btn btn-warning" download target="_blank">Download</a>
                     </td>
                     <td>
                         <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 // Loop through and display buttons for available supporting documents
                         for ($i = 1; $i <= 3; $i++) {
                             $supportDocKey = 'support' . $i;
                             if (!empty($row[$supportDocKey])) {
                                 ?>
                                 <a href="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo "https://liquag.com/dev/fairlife/mobile/".$row[$supportDocKey]; ?>" class="btn btn-warning" download target="_blank"><?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $i; ?></a>
                                 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 }
                         }
                         ?>
                     </td>
                     <td class="no-wrap">
                         <button type="button" data-link="fees.php?id=<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['id']; ?>" class="btn btn-outline-warning fees" name="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['id']; ?>" title="Process" data-id="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['id']; ?>"><i class="bi bi-check-all"></i></button>
                         <button type="button" data-link="fees.php?id=<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['id']; ?>" class="btn btn-outline-danger del" name="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['id']; ?>" title="Delete" data-id="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 echo $row['id']; ?>"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
                 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 }
         } else {
             // Handle the case where there are no rows
@@ -630,21 +368,7 @@ $(document).on("click",".dnew",function(e){
 
 </html>
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../../scripts/bootstrap.php';
 }else{
     header('Location: ' . APP_URL . '');
 }

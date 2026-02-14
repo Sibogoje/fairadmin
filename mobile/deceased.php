@@ -1,19 +1,5 @@
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 session_start(); // Start the session on the index page.
 include('config.php');
 
@@ -79,21 +65,7 @@ if (isset($_SESSION['memberno'])) {
     </div>
     <!-- preloader end -->
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 include 'header.php';?>
 
 
@@ -120,21 +92,7 @@ include 'header.php';?>
                             <div class="tab-pane fade show active" id="nav-edit-profile" role="tabpanel" aria-labelledby="nav-edit-profile-tab" tabindex="0">
 
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 try {
     // Establish a database connection and execute a query to get the member's information.
     $stmt = $pdo->prepare("SELECT DeceasedID FROM tblmembers WHERE MemberNo = :memberno");
@@ -162,21 +120,7 @@ try {
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-user"></i></span>
                                                     <input type="email" name="" class="form-control" placeholder="text" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $deceased['DeceasedSurname']; ?>" readonly>
                                                 </div>
                                             </div>
@@ -184,21 +128,7 @@ echo $deceased['DeceasedSurname']; ?>" readonly>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-user"></i></span>
                                                     <input type="text" name="" class="form-control" placeholder="Primary Phone" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $deceased['DeceasedFirstnames']; ?>" readonly>
                                                 </div>
                                             </div>
@@ -206,21 +136,7 @@ echo $deceased['DeceasedFirstnames']; ?>" readonly>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-fingerprint"></i></span>
                                                     <input type="text" name="" class="form-control" placeholder="Home Telephone" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $deceased['DeceasedIDnumber']; ?>" readonly>
                                                 </div>
                                             </div>
@@ -228,21 +144,7 @@ echo $deceased['DeceasedIDnumber']; ?>" readonly>
                                                 <div class="input-group">
                                                     <span class="input-group-text"><i class="fa-light fa-address-card"></i></span>
                                                     <input type="text" name="" class="form-control" placeholder="Postal Address" value="<?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $deceased['DateOfDeath']; ?>">
                                                 </div>
                                             </div>
@@ -260,21 +162,7 @@ echo $deceased['DateOfDeath']; ?>">
                                 </form>
 
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }

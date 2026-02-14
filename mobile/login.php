@@ -1,19 +1,5 @@
 <?php
-if (!defined('APP_URL')) {
-    $appConfigCandidates = array(
-        __DIR__ . '/scripts/app_config.php',
-        dirname(__DIR__) . '/scripts/app_config.php',
-        dirname(__DIR__, 2) . '/scripts/app_config.php',
-        dirname(__DIR__, 3) . '/scripts/app_config.php'
-    );
-
-    foreach ($appConfigCandidates as $appConfigPath) {
-        if (file_exists($appConfigPath)) {
-            require_once $appConfigPath;
-            break;
-        }
-    }
-}
+require_once __DIR__ . '/../scripts/bootstrap.php';
 session_start();
 include('config.php');
 
@@ -133,7 +119,9 @@ if (isset($_POST['login22'])) {
         <div class="login-body">
             <div class="top d-flex justify-content-between align-items-center">
                 <div class="logo">
-                    <img src="<?php echo APP_URL; ?>mobile/NewAssets/header2.png" alt="Logo">
+                    <img src="<?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo APP_URL; ?>mobile/NewAssets/header2.png" alt="Logo">
                 </div>
                 
             </div>
