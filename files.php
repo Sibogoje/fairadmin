@@ -51,7 +51,7 @@ $file = $_FILES['myfile']['tmp_name'];
 $size = $_FILES['myfile']['size'];
 $new_filename = $dates.' [' .$owner. '][' .$reason.' ]'.' ['.$randomNumber.'].'.$extension;
 $file_path = 'adhocfile/uploads/' . $owner;
-$url = "APP_URL" . $file_path ."/". $new_filename;
+$url = APP_URL . "" . $file_path ."/". $new_filename;
 
 if (!in_array($extension, ['zip', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'doc'])) {
     echo "You file extension must be .zip, .pdf or .docx";
@@ -471,7 +471,7 @@ if (!defined('APP_URL')) {
     }
 }
 }else{
-    header('Location: APP_URLlogout.php');
+    header('Location: ' . APP_URL . '');
 }
 
 ?>

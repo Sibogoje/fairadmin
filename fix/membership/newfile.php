@@ -407,7 +407,7 @@ if (!defined('APP_URL')) {
         }
     }
 }
-echo "APP_URLmembership/uploads/".$row['member']."/".$row['name']." "?>">
+echo APP_URL . "membership/uploads/" .$row['member']."/".$row['name']." "?>">
                        <i class="bi bi-folder-x" style='font-size: 25px; color: red;'></i></button>
                 
                     <?php
@@ -601,7 +601,7 @@ if (!defined('APP_URL')) {
     }
 }
 }else{
-    header('Location: APP_URLlogout.php');
+    header('Location: ' . APP_URL . '');
 }
 
 ?>

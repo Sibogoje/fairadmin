@@ -33,7 +33,7 @@ $updatesession->execute();
     unset($_SESSION);
     session_destroy();
 
-header('Location: APP_URLindex.php');
+header('Location: ' . APP_URL . 'index.php');
 }
 
 ?>

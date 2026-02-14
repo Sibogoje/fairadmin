@@ -824,7 +824,7 @@ if (!defined('APP_URL')) {
     }
 }
 }else{
-    header('Location: APP_URLfix/index.php');
+    header('Location: ' . APP_URL . '');
 }
 
 ?>

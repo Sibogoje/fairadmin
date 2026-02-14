@@ -448,7 +448,7 @@ if (!defined('APP_URL')) {
     }
 }
 }else{
-    header('Location: APP_URLindex.php');
+    header('Location: ' . APP_URL . '');
 }
 
 ?>

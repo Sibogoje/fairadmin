@@ -248,7 +248,7 @@ if (isset($_POST['request'])) {
 
         if (move_uploaded_file($tempFile, $fileURL)) {
             // Request letter uploaded successfully, now insert data into the database
-            $fileURL1 = 'APP_URLmobile/' . $fileURL;
+            $fileURL1 = APP_URL . '' . $fileURL;
 
             $stmt = $pdo->prepare("INSERT INTO clientr (memberid, name, amount, reason, file, reqdate, fnumber) VALUES (:memberid, :name, :amount, :reason, :file, :reqdate, :fnumber)");
             $stmt->bindParam(':memberid', $memberid, PDO::PARAM_INT);

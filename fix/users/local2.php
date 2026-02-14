@@ -107,7 +107,7 @@ if(isset($_SESSION['zid']) && $_SESSION['role'] == 'admin') {
     }
 } else {
     // Redirect to login page if user is not logged in
-    header('Location: APP_URLlogout.php');
+    header('Location: ' . APP_URL . '');
 }
 ?>
 

@@ -661,7 +661,7 @@ if (!defined('APP_URL')) {
     }
 }
 }else{
-    header('Location: APP_URLfix/');
+    header('Location: ' . APP_URL . '');
 }
 
 ?>
