@@ -210,54 +210,6 @@ include '../header.php'; ?>
         </ol>
       </nav>
     </div><!-- End Page Title -->
-<!-- New beneficiary form-->
-		  
-<!-- New User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add User</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form class="row g-3" method="post" action="" autocomplete="off">
-                   
-			    <div class="col-md-12">
-                  <input type="text" class="form-control" placeholder="id" name="addid" id="adduse" autocomplete="new-text" required readonly>
-                </div>
-                <div class="col-md-12">
-                  <input type="text" class="form-control" placeholder="Username" name="addusername" id="addusername" autocomplete="new-text" required>
-                </div>
-				<div class="col-md-12">
-                  <input type="password" class="form-control" placeholder="Password" autocomplete="new-password" id="addpassword" name="addpassword" required>
-                </div>
-			
-            
-                
-                <div class="col-md-12">
-                  <select id="inputState" class="form-select" name="addrole" id="addrole" >
-                   
-                    <option value="admin">System Admin</option>
-					<option value="clerk">Office Admin</option>
-					<option value="Operations">Operations Officer</option>
-						<option value="Accounts">Accountant</option>
-                  </select>
-                </div>
-             
-				
-                <div class="text-center">
-                  <button type="submit" class="btn btn-primary" name="savenew">Save</button>
-                  <button type="reset" class="btn btn-secondary">Clear</button>
-                  <button type="submit" class="btn btn-danger" name="delete" id="delete" >Delete</button>
-				  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                </div>
-              </form><!-- End No Labels Form -->
-
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1">
@@ -308,13 +260,6 @@ include '../header.php'; ?>
         </div>
     </div>
 </div>
-
-<button style="margin: 10px; " type="button" data-bs-toggle="modal" data-bs-target="#addUserModal" class="btn btn-outline-secondary col-md-3 dedit" title="Add New"><i class="bi bi-person-plus"></i>Add New Local User</button>
-
-		  
-
-
-
 
  <section class="section">
       <div class="row">
