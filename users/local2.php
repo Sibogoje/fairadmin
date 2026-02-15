@@ -284,9 +284,15 @@ include '../header.php'; ?>
                   </div>
                 </div>
 			<div class="col-md-12" id="passwordField" style="display:none;">
+                  <input type="password" class="form-control" placeholder="Password" autocomplete="new-password" id="password" name="password" >
+                </div>
+            
+                <div class="col-md-12">
+                  <select class="form-select" name="role" id="role">
+                    <option value="admin">System Admin</option>
 					<option value="clerk">Office Admin</option>
 					<option value="Operations">Operations Officer</option>
-						<option value="Accounts">Accountant</option>
+					<option value="Accounts">Accountant</option>
                   </select>
                 </div>
              
