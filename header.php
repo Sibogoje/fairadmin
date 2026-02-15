@@ -80,22 +80,6 @@ $showSettings =
 
 $showUsers = $canRoute('users/local2.php') || $canRoute('users/access_control_manager.php');
 
-// DEBUG: Menu visibility
-$_DEBUG_ROLE = $role;
-$_DEBUG_ROUTE = $currentRoutePath;
-$_DEBUG_SHOW = [
-  'beneficiary' => $showBeneficiary,
-  'funds' => $showFunds,
-  'transactions' => $showTransactions,
-  'files' => $showFiles,
-  'reports' => $showReports,
-  'settings' => $showSettings,
-  'users' => $showUsers,
-];
-error_log('DEBUG MENU [' . $_DEBUG_ROLE . '] route=' . $_DEBUG_ROUTE . ' show=' . json_encode($_DEBUG_SHOW));
-error_log('DEBUG RAW REQUEST_URI=' . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
-error_log('DEBUG $canRoute tests: membership/new.php=' . ($canRoute('membership/new.php') ? 'SHOW' : 'HIDE') . ' | reports/employers.php=' . ($canRoute('reports/employers.php') ? 'SHOW' : 'HIDE'));
-
 $notificationCount = 0;
 $lowBalanceRows = [];
 
@@ -122,8 +106,6 @@ try {
   $lowBalanceRows = [];
 }
 ?>
-<!-- DEBUG: Menu visibility per role -->
-<script>window.DEBUG_MENU={role:"<?=htmlspecialchars($_DEBUG_ROLE)?>",route:"<?=htmlspecialchars($_DEBUG_ROUTE)?>",show:<?=json_encode($_DEBUG_SHOW)?>}; console.log("DEBUG_MENU",window.DEBUG_MENU);</script>
 <header id="header" class="header fixed-top d-flex align-items-center">
 
   <div class="d-flex align-items-center justify-content-between">
@@ -132,9 +114,6 @@ try {
       <span class="d-none d-lg-block">Fairlife</span>
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
-  </div>
-  <div style="background:navy;color:yellow;padding:8px;font-size:11px;z-index:10000;margin-top:5px;">
-    ACL Role: <strong><?=$_DEBUG_ROLE?></strong> | Visible: <strong><?=implode(', ',array_keys(array_filter($_DEBUG_SHOW)))?></strong>
   </div>
 
   <div class="search-bar">
