@@ -54,6 +54,8 @@ $role = trim($row['role']);
 				'statusCode' => 200,
 				'success' => "Allowed"
 			);
+			// Ensure session is written to storage before responding
+			session_write_close();
 			echo json_encode($response);
 
 }	 
