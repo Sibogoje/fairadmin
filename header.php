@@ -25,23 +25,27 @@ $can = static function (array $allowed) use ($role): bool {
 $notificationCount = 0;
 $lowBalanceRows = [];
 
-$countResult = mysqli_query(
+try {
+  $countResult = mysqli_query(
     $conn,
-    "SELECT COUNT(DISTINCT memberID) AS value_sum FROM balances WHERE NewBalance < '5000.00' AND Term = 0"
-);
-if ($countResult) {
+    "SELECT COUNT(DISTINCT memberID) AS value_sum FROM balances WHERE NewBalance < 5000.00 AND Term = 0"
+  );
+  if ($countResult) {
     $countRow = mysqli_fetch_assoc($countResult);
     $notificationCount = (int)($countRow['value_sum'] ?? 0);
-}
+  }
 
-$stmt = $conn->prepare("SELECT balance, MemberNo FROM member_fees WHERE balance < '5000.00' AND Terminated = '0'");
-if ($stmt) {
-    $stmt->execute();
-    $result = $stmt->get_result();
-    while ($result && $row = $result->fetch_assoc()) {
-        $lowBalanceRows[] = $row;
-    }
-    $stmt->close();
+  $stmt = $conn->prepare("SELECT balance, MemberNo FROM member_fees WHERE balance < 5000.00 AND Terminated = 0");
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($result && $row = $result->fetch_assoc()) {
+    $lowBalanceRows[] = $row;
+  }
+  $stmt->close();
+} catch (mysqli_sql_exception $e) {
+  error_log('Header notification query error: ' . $e->getMessage());
+  $notificationCount = 0;
+  $lowBalanceRows = [];
 }
 ?>
 <header id="header" class="header fixed-top d-flex align-items-center">
