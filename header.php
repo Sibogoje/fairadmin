@@ -130,6 +130,7 @@ try {
       <span class="d-none d-lg-block">Fairlife</span>
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
+    <span style="position:absolute; right:10px; top:5px; font-size:10px; color:red; z-index:10000;">HEADER:<?=$_DEBUG_ROLE?>:<?=implode(',',array_keys(array_filter($_DEBUG_SHOW)))?></span>
   </div>
 
   <div class="search-bar">
