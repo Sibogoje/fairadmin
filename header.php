@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/scripts/bootstrap.php';
 require_once __DIR__ . '/scripts/connection.php';
+require_once __DIR__ . '/scripts/access_control.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
@@ -9,6 +10,11 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 $role = $_SESSION['role'] ?? '';
 $username = $gg ?? ($_SESSION['user'] ?? 'User');
+
+$currentRoutePath = access_control_route_path();
+if (!access_control_is_allowed($role, $currentRoutePath)) {
+  access_control_forbidden();
+}
 
 $roles = [
     'admin' => ['admin'],
