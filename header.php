@@ -93,6 +93,8 @@ $_DEBUG_SHOW = [
   'users' => $showUsers,
 ];
 error_log('DEBUG MENU [' . $_DEBUG_ROLE . '] route=' . $_DEBUG_ROUTE . ' show=' . json_encode($_DEBUG_SHOW));
+error_log('DEBUG RAW REQUEST_URI=' . ($_SERVER['REQUEST_URI'] ?? 'N/A'));
+error_log('DEBUG $canRoute tests: membership/new.php=' . ($canRoute('membership/new.php') ? 'SHOW' : 'HIDE') . ' | reports/employers.php=' . ($canRoute('reports/employers.php') ? 'SHOW' : 'HIDE'));
 
 $notificationCount = 0;
 $lowBalanceRows = [];
@@ -131,8 +133,8 @@ try {
     </a>
     <i class="bi bi-list toggle-sidebar-btn"></i>
   </div>
-  <div style="background:red;color:white;padding:10px;position:absolute;right:0;top:50px;z-index:10000;font-weight:bold;">
-    DYNAMIC MENU LOADED<br>Role: <?=$_DEBUG_ROLE?><br>Show: <?=implode(', ',array_keys(array_filter($_DEBUG_SHOW)))?>
+  <div style="background:navy;color:yellow;padding:8px;font-size:11px;z-index:10000;margin-top:5px;">
+    ACL Role: <strong><?=$_DEBUG_ROLE?></strong> | Visible: <strong><?=implode(', ',array_keys(array_filter($_DEBUG_SHOW)))?></strong>
   </div>
 
   <div class="search-bar">
