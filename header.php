@@ -16,16 +16,10 @@ if (!access_control_is_allowed($role, $currentRoutePath)) {
   access_control_forbidden();
 }
 
-$roles = [
-    'admin' => ['admin'],
-    'admin_ops' => ['admin', 'Operations'],
-    'admin_ops_clerk' => ['admin', 'Operations', 'clerk'],
-    'admin_accounts' => ['admin', 'Accounts'],
-    'admin_ops_accounts' => ['admin', 'Operations', 'Accounts'],
-];
-
-$can = static function (array $allowed) use ($role): bool {
-    return in_array($role, $allowed, true);
+$permissionRoles = access_control_effective_role_map();
+$canPermission = static function (string $permissionKey) use ($permissionRoles, $role): bool {
+  $allowed = $permissionRoles[$permissionKey] ?? [];
+  return in_array($role, $allowed, true);
 };
 
 $notificationCount = 0;
@@ -133,7 +127,7 @@ try {
 <aside id="sidebar" class="sidebar">
   <ul class="sidebar-nav" id="sidebar-nav">
 
-    <?php if ($can($roles['admin'])): ?>
+    <?php if (access_control_is_allowed($role, '/dash.php')): ?>
       <li class="nav-item">
         <a class="nav-link" href="<?= app_url('dash.php') ?>">
           <i class="bi bi-grid"></i>
@@ -147,7 +141,7 @@ try {
         <i class="bi bi-menu-button-wide"></i><span>Beneficiary</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <?php if ($can($roles['admin_ops_clerk'])): ?>
+        <?php if ($canPermission('beneficiary_core')): ?>
           <li><a href="<?= app_url('membership/new.php') ?>"><i class="bi bi-circle"></i><span>New Beneficiary</span></a></li>
           <li><a href="<?= app_url('membership/') ?>"><i class="bi bi-circle"></i><span>All Beneficiaries</span></a></li>
           <li><a href="<?= app_url('membership/benlist.php') ?>"><i class="bi bi-circle"></i><span>Employer Beneficiary Lists</span></a></li>
@@ -155,7 +149,7 @@ try {
           <li><a href="<?= app_url('membership/deceased.php') ?>"><i class="bi bi-circle"></i><span>Deceased Profiles</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin'])): ?>
+        <?php if ($canPermission('admin_only_core')): ?>
           <li><a href="<?= app_url('membership/pending.php') ?>"><i class="bi bi-circle"></i><span>Pending Approval</span></a></li>
         <?php endif; ?>
       </ul>
@@ -166,7 +160,7 @@ try {
         <i class="bi bi-journal-text"></i><span>Funds Report</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="forms-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <?php if ($can($roles['admin_ops_clerk'])): ?>
+        <?php if ($canPermission('fund_core')): ?>
           <li><a href="<?= app_url('fund/fnew.php') ?>"><i class="bi bi-circle"></i><span>New Fund</span></a></li>
           <li><a href="<?= app_url('fund/') ?>"><i class="bi bi-circle"></i><span>All Funds</span></a></li>
           <li><a href="<?= app_url('fund/assets.php') ?>"><i class="bi bi-circle"></i><span>Fund Assets</span></a></li>
@@ -181,37 +175,39 @@ try {
         <i class="bi bi-layout-text-window-reverse"></i><span>Transactions</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="tables-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <?php if ($can($roles['admin_ops_clerk'])): ?>
+        <?php if ($canPermission('transactions_client_requests')): ?>
           <li><a href="<?= app_url('Transactions/clientr.php') ?>"><i class="bi bi-circle"></i><span>Client Requests</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin_ops'])): ?>
+        <?php if ($canPermission('transactions_ops')): ?>
           <li><a href="<?= app_url('Transactions/adhoc.php') ?>"><i class="bi bi-circle"></i><span>Adhoc Payments</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin'])): ?>
+        <?php if ($canPermission('admin_only_core')): ?>
           <li><a href="<?= app_url('Transactions/scheduled.php') ?>"><i class="bi bi-circle"></i><span>Scheduled Payments</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin_accounts'])): ?>
+        <?php if ($canPermission('transactions_accounts')): ?>
           <li><a href="<?= app_url('Transactions/interest.php') ?>"><i class="bi bi-circle"></i><span>Interest Payment</span></a></li>
           <li><a href="<?= app_url('Transactions/monthlyfees.php') ?>"><i class="bi bi-circle"></i><span>Monthly Fees Payment</span></a></li>
         <?php endif; ?>
 
-        <li><a href="<?= app_url('Transactions/adjustment.php') ?>"><i class="bi bi-circle"></i><span>Adjustment</span></a></li>
+        <?php if ($canPermission('transactions_adjustment')): ?>
+          <li><a href="<?= app_url('Transactions/adjustment.php') ?>"><i class="bi bi-circle"></i><span>Adjustment</span></a></li>
+        <?php endif; ?>
 
-        <?php if ($can($roles['admin_ops'])): ?>
+        <?php if ($canPermission('transactions_ops')): ?>
           <li><a href="<?= app_url('Transactions/additionalcapital.php') ?>"><i class="bi bi-circle"></i><span>Additional Capital</span></a></li>
           <li><a href="<?= app_url('Transactions/terminate.php') ?>"><i class="bi bi-circle"></i><span>Terminate Member</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin'])): ?>
+        <?php if ($canPermission('admin_only_core')): ?>
           <li><a href="<?= app_url('Transactions/othertransactions.php') ?>"><i class="bi bi-circle"></i><span>Other Transactions</span></a></li>
         <?php endif; ?>
       </ul>
     </li>
 
-    <?php if ($can($roles['admin_ops_clerk'])): ?>
+    <?php if ($canPermission('beneficiary_core')): ?>
       <li class="nav-item">
         <a class="nav-link" href="<?= app_url('membership/newfile.php') ?>">
           <i class="bi bi-file-earmark-medical-fill"></i>
@@ -226,7 +222,7 @@ try {
         <i class="bi bi-files-alt"></i><span>Files</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="files-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <?php if ($can($roles['admin_ops_clerk'])): ?>
+        <?php if ($canPermission('files_module')): ?>
           <li><a href="<?= app_url('files.php') ?>"><i class="bi bi-upload"></i><span>Uplaod Files</span></a></li>
           <li><a href="<?= app_url('viewfiles.php') ?>"><i class="bi bi-eye"></i><span>View Files</span></a></li>
         <?php endif; ?>
@@ -239,7 +235,7 @@ try {
         <i class="ri ri-todo-fill"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="reports-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <?php if ($can($roles['admin_ops_clerk'])): ?>
+        <?php if ($canPermission('reports_core')): ?>
           <li><a href="<?= app_url('membership/profile.php') ?>"><i class="bi bi-circle"></i><span>Benefit Statement</span></a></li>
           <li><a href="<?= app_url('membership/membersummary.php') ?>"><i class="bi bi-circle"></i><span>Summary Statement</span></a></li>
           <li><a href="<?= app_url('membership/profileaccount.php') ?>"><i class="bi bi-circle"></i><span>Statement</span></a></li>
@@ -248,7 +244,7 @@ try {
           <li><a href="<?= app_url('membership/membermove.php') ?>"><i class="bi bi-circle"></i><span>New Entrant Statement</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin_ops'])): ?>
+        <?php if ($canPermission('reports_ops')): ?>
           <li><a href="<?= app_url('membership/consolsummary.php') ?>"><i class="bi bi-circle"></i><span>Beneficiary List</span></a></li>
           <li><a href="<?= app_url('reports/funds.php') ?>"><i class="bi bi-circle"></i><span>Funds</span></a></li>
           <li><a href="<?= app_url('reports/initialfees.php') ?>"><i class="bi bi-circle"></i><span>Individual Initial Fees Report</span></a></li>
@@ -257,19 +253,19 @@ try {
           <li><a href="<?= app_url('reports/deceased.php') ?>"><i class="bi bi-circle"></i><span>Deceased Member Report</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin_accounts'])): ?>
+        <?php if ($canPermission('reports_accounts')): ?>
           <li><a href="<?= app_url('fund/fundfeesreport.php') ?>"><i class="bi bi-circle"></i><span>Fees Report</span></a></li>
           <li><a href="<?= app_url('reports/scheduledreport.php') ?>"><i class="bi bi-circle"></i><span>Scheduled Report</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin_ops_accounts'])): ?>
+        <?php if ($canPermission('reports_cross_role')): ?>
           <li><a href="<?= app_url('reports/transfees.php') ?>"><i class="bi bi-circle"></i><span>Transaction Fees Report</span></a></li>
           <li><a href="<?= app_url('reports/termination.php') ?>"><i class="bi bi-circle"></i><span>Termination Report</span></a></li>
           <li><a href="<?= app_url('reports/capitalintroductionreport.php') ?>"><i class="bi bi-circle"></i><span>Capital Transfer In Report</span></a></li>
           <li><a href="<?= app_url('reports/adhocreport.php') ?>"><i class="bi bi-circle"></i><span>Adhoc Report</span></a></li>
         <?php endif; ?>
 
-        <?php if ($can($roles['admin'])): ?>
+        <?php if ($canPermission('admin_only_reports')): ?>
           <li><a href="<?= app_url('reports/employers.php') ?>"><i class="bi bi-circle"></i><span>Employer</span></a></li>
           <li><a href="<?= app_url('reports/otherreport.php') ?>"><i class="bi bi-circle"></i><span>Individual Other Transactions</span></a></li>
           <li><a href="<?= app_url('reports/interestreport.php') ?>"><i class="bi bi-circle"></i><span>Individual Interest Report</span></a></li>
@@ -284,7 +280,7 @@ try {
         <i class="ri ri-tools-fill"></i><span>Configure System Constants</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
       <ul id="settings-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-        <?php if ($can($roles['admin'])): ?>
+        <?php if ($canPermission('admin_only_settings')): ?>
           <li><a href="<?= app_url('settings/banks.php') ?>"><i class="bi bi-circle"></i><span>Banks</span></a></li>
           <li><a href="<?= app_url('settings/post.php') ?>"><i class="bi bi-circle"></i><span>Post Offices</span></a></li>
           <li><a href="<?= app_url('users/transaction.php') ?>"><i class="bi bi-circle"></i><span>Transaction Types</span></a></li>
@@ -293,7 +289,7 @@ try {
       </ul>
     </li>
 
-    <?php if ($can($roles['admin'])): ?>
+    <?php if ($canPermission('admin_only_settings')): ?>
       <li class="nav-heading">Users Management</li>
       <li class="nav-item">
         <a class="nav-link collapsed" data-bs-target="#users-nav" data-bs-toggle="collapse" href="#">

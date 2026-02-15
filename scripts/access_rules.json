@@ -1,0 +1,67 @@
+{
+  "updated_at": "2026-02-15T00:00:00+00:00",
+  "updated_by": "system",
+  "permissions": {
+    "beneficiary_core": [
+      "admin",
+      "Operations",
+      "clerk"
+    ],
+    "fund_core": [
+      "admin",
+      "Operations",
+      "clerk"
+    ],
+    "files_module": [
+      "admin",
+      "Operations",
+      "clerk"
+    ],
+    "reports_core": [
+      "admin",
+      "Operations",
+      "clerk"
+    ],
+    "transactions_client_requests": [
+      "admin",
+      "Operations",
+      "clerk"
+    ],
+    "transactions_ops": [
+      "admin",
+      "Operations"
+    ],
+    "reports_ops": [
+      "admin",
+      "Operations"
+    ],
+    "transactions_accounts": [
+      "admin",
+      "Accounts"
+    ],
+    "reports_accounts": [
+      "admin",
+      "Accounts"
+    ],
+    "reports_cross_role": [
+      "admin",
+      "Operations",
+      "Accounts"
+    ],
+    "admin_only_core": [
+      "admin"
+    ],
+    "admin_only_reports": [
+      "admin"
+    ],
+    "admin_only_settings": [
+      "admin"
+    ],
+    "transactions_adjustment": [
+      "admin",
+      "Operations",
+      "clerk",
+      "Accounts"
+    ]
+  }
+}

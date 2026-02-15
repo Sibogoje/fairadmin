@@ -1,10 +1,20 @@
 <!DOCTYPE html>
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
+require_once __DIR__ . '/../scripts/access_control.php';
 session_start();
 
-// Check if user is logged in
-if(isset($_SESSION['zid']) && $_SESSION['role'] == 'admin') {
+if (!isset($_SESSION['zid'])) {
+  header('Location: ' . app_url('index.php'));
+  exit();
+}
+
+$routePath = access_control_route_path();
+if (!access_control_is_allowed($_SESSION['role'] ?? '', $routePath)) {
+  access_control_forbidden();
+}
+
+if(isset($_SESSION['zid'])) {
     $gg = $_SESSION['user'];
     $role = $_SESSION['role'];
     require_once '../scripts/connection.php';
@@ -92,8 +102,8 @@ if(isset($_SESSION['zid']) && $_SESSION['role'] == 'admin') {
         }
     }
 } else {
-    // Redirect to login page if user is not logged in
-    header('Location: ' . APP_URL . '');
+  header('Location: ' . app_url('index.php'));
+  exit();
 }
 ?>
 
