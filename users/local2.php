@@ -276,15 +276,14 @@ include '../header.php'; ?>
                   <input type="text" class="form-control" placeholder="Username" name="username" id="username" autocomplete="new-text" required>
                 </div>
 				<div class="col-md-12">
-                  <input type="password" class="form-control" placeholder="Password" autocomplete="new-password" id="password" name="password" >
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="changePasswordCheckbox" name="change_password">
+                    <label class="form-check-label" for="changePasswordCheckbox">
+                      Change Password
+                    </label>
+                  </div>
                 </div>
-			
-            
-                
-                <div class="col-md-12">
-                  <select id="inputState" class="form-select" name="role" id="role" >
-                   
-                    <option value="admin">System Admin</option>
+			<div class="col-md-12" id="passwordField" style="display:none;">
 					<option value="clerk">Office Admin</option>
 					<option value="Operations">Operations Officer</option>
 						<option value="Accounts">Accountant</option>
@@ -450,14 +449,26 @@ $('.edit').click(function() {
     var password = $(this).data("password");
 
     $('#username').val(username);
-   // $('#password').val(password);
     $('#use').val(id);
 
     // Set the selected option based on the role value
-    $('#role').val(role);
+    $('#role').val(role).change();
 
-    // Trigger the 'change' event to update the dropdown visually
-    $('#role').trigger('change');
+    // Reset password checkbox and field
+    $('#changePasswordCheckbox').prop('checked', false);
+    $('#passwordField').hide();
+    $('#password').val('');
+});
+
+// Toggle password field visibility based on checkbox
+$('#changePasswordCheckbox').change(function() {
+    if ($(this).is(':checked')) {
+        $('#passwordField').show();
+        $('#password').focus();
+    } else {
+        $('#passwordField').hide();
+        $('#password').val('');
+    }
 });
 </script>  
   
