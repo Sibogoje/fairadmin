@@ -30,7 +30,7 @@ if (!function_exists('access_control_permission_definitions')) {
                 'label' => 'Beneficiary: Core Pages',
                 'patterns' => [
                     '#/membership/?$#',
-                    '#/membership/(?!pending\.php$)[a-z0-9_\-]+\.php$#',
+                    '#/membership/(new\.php|index\.php|benlist\.php|dnew\.php|deceased\.php|newfile\.php)$#',
                 ],
                 'default_roles' => ['admin', 'Operations', 'clerk'],
             ],
