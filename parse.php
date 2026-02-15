@@ -16,18 +16,17 @@ if(count($_POST) > 0){
 
 	 if ($result->num_rows > 0) {
 	 	while($row = $result->fetch_assoc()) {
-	 		$pazz = trim($row['password']);	
 	 		$id = trim($row['id']);
 	 		$role = trim($row['role']);
 
 	 		// Regenerate session id to prevent fixation
 	 		session_regenerate_id(true);
 
+	 		// Set session variables
 	 		$_SESSION['user'] = $user;
 	 		$_SESSION['role'] = $role;
 	 		$_SESSION['zid'] = session_id();
 	 		$_SESSION['xid'] = $id;
-	 		$sessionid = session_id();
 	 		$session = 1;
 
 	 		// Update server-side session marker
@@ -35,23 +34,18 @@ if(count($_POST) > 0){
 	 		$updatesession->bind_param("ss", $session, $id);
 	 		$updatesession->execute();
 
-	 		// Ensure session is written to storage before redirecting
+	 		// Write session to disk before redirect
 	 		session_write_close();
 	 		
-	 		// Server-side redirect to dashboard
+	 		// Redirect to dashboard
 	 		header('Location: ' . APP_URL . 'dash.php');
 	 		exit;
 	 	}	 
-	 } else {
-	 	// Authentication failed
-	 	session_write_close();
-	 	http_response_code(401);
-	 	echo 'Invalid credentials';
-	 	exit;
-	 }
-} else {
-	session_write_close();
-	header('Location: index.php');
-	exit;
+	 } 
 }
+
+// Invalid request or failed auth - redirect to login
+session_write_close();
+header('Location: ' . APP_URL . 'index.php');
+exit;
 ?>
