@@ -301,6 +301,7 @@ try {
         </a>
         <ul id="users-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
           <li><a href="<?= app_url('users/local2.php') ?>"><i class="bi bi-circle"></i><span>Local System Users</span></a></li>
+          <li><a href="<?= app_url('users/access_control_manager.php') ?>"><i class="bi bi-circle"></i><span>Access Control Manager</span></a></li>
         </ul>
       </li>
     <?php endif; ?>
