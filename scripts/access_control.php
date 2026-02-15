@@ -37,6 +37,10 @@ if (!function_exists('access_control_is_allowed')) {
     {
         $routePath = strtolower($routePath);
 
+        if (preg_match('#/dash\.php$#', $routePath)) {
+            return true;
+        }
+
         $rules = [
             [
                 'roles' => ['admin', 'Operations', 'clerk'],
@@ -71,7 +75,7 @@ if (!function_exists('access_control_is_allowed')) {
             [
                 'roles' => ['admin'],
                 'patterns' => [
-                    '#/(dash\.php|membership/pending\.php|transactions/scheduled\.php|transactions/othertransactions\.php)$#',
+                    '#/(membership/pending\.php|transactions/scheduled\.php|transactions/othertransactions\.php)$#',
                     '#/(reports/employers\.php|reports/otherreport\.php|reports/interestreport\.php|reports/monthlyfeesreport\.php)$#',
                     '#/(settings/banks\.php|settings/post\.php|users/transaction\.php|users/fees\.php|users/local2\.php)$#',
                 ],
