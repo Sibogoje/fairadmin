@@ -8,7 +8,7 @@ header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
-$role = $_SESSION['role'] ?? '';
+$role = access_control_normalize_role($_SESSION['role'] ?? '');
 $username = $gg ?? ($_SESSION['user'] ?? 'User');
 
 $currentRoutePath = access_control_route_path();
@@ -19,7 +19,7 @@ if (!access_control_is_allowed($role, $currentRoutePath)) {
 $permissionRoles = access_control_effective_role_map();
 $canPermission = static function (string $permissionKey) use ($permissionRoles, $role): bool {
   $allowed = $permissionRoles[$permissionKey] ?? [];
-  return in_array($role, $allowed, true);
+  return access_control_role_in($role, $allowed);
 };
 
 $notificationCount = 0;

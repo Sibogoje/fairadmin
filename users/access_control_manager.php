@@ -9,7 +9,7 @@ if (!isset($_SESSION['zid'])) {
     exit;
 }
 
-if (($_SESSION['role'] ?? '') !== 'admin') {
+if (access_control_normalize_role($_SESSION['role'] ?? '') !== 'admin') {
     access_control_forbidden();
 }
 

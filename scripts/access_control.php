@@ -29,7 +29,8 @@ if (!function_exists('access_control_permission_definitions')) {
             'beneficiary_core' => [
                 'label' => 'Beneficiary: Core Pages',
                 'patterns' => [
-                    '#/(membership/new\.php|membership/?|membership/benlist\.php|membership/dnew\.php|membership/deceased\.php|membership/newfile\.php)$#',
+                    '#/membership/?$#',
+                    '#/membership/(?!pending\.php$)[a-z0-9_\-]+\.php$#',
                 ],
                 'default_roles' => ['admin', 'Operations', 'clerk'],
             ],
