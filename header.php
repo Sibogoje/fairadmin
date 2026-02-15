@@ -80,6 +80,20 @@ $showSettings =
 
 $showUsers = $canRoute('users/local2.php') || $canRoute('users/access_control_manager.php');
 
+// DEBUG: Menu visibility
+$_DEBUG_ROLE = $role;
+$_DEBUG_ROUTE = $currentRoutePath;
+$_DEBUG_SHOW = [
+  'beneficiary' => $showBeneficiary,
+  'funds' => $showFunds,
+  'transactions' => $showTransactions,
+  'files' => $showFiles,
+  'reports' => $showReports,
+  'settings' => $showSettings,
+  'users' => $showUsers,
+];
+error_log('DEBUG MENU [' . $_DEBUG_ROLE . '] route=' . $_DEBUG_ROUTE . ' show=' . json_encode($_DEBUG_SHOW));
+
 $notificationCount = 0;
 $lowBalanceRows = [];
 
@@ -106,6 +120,8 @@ try {
   $lowBalanceRows = [];
 }
 ?>
+<!-- DEBUG: Menu visibility per role -->
+<script>window.DEBUG_MENU={role:"<?=htmlspecialchars($_DEBUG_ROLE)?>",route:"<?=htmlspecialchars($_DEBUG_ROUTE)?>",show:<?=json_encode($_DEBUG_SHOW)?>}; console.log("DEBUG_MENU",window.DEBUG_MENU);</script>
 <header id="header" class="header fixed-top d-flex align-items-center">
 
   <div class="d-flex align-items-center justify-content-between">
