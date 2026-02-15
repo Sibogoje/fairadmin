@@ -1,825 +1,328 @@
-  
-  <?php
+<?php
 require_once __DIR__ . '/scripts/bootstrap.php';
-require_once 'scripts/connection.php';
+require_once __DIR__ . '/scripts/connection.php';
 
-  // Prevent caching of authenticated pages so browser 'back' doesn't reveal content after logout
-  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-  header('Cache-Control: post-check=0, pre-check=0', false);
-  header('Pragma: no-cache');
-  header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
-  $role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
-  ?>
-  <header id="header" class="header fixed-top d-flex align-items-center">
+$role = $_SESSION['role'] ?? '';
+$username = $gg ?? ($_SESSION['user'] ?? 'User');
 
-    <div class="d-flex align-items-center justify-content-between">
-      <a href="<?php
-echo APP_URL; ?>dash.php" class="logo d-flex align-items-center">
-        <img src="<?php
-echo APP_URL; ?>logo.png" alt="">
-        <span class="d-none d-lg-block">Fairlife</span>
+$roles = [
+    'admin' => ['admin'],
+    'admin_ops' => ['admin', 'Operations'],
+    'admin_ops_clerk' => ['admin', 'Operations', 'clerk'],
+    'admin_accounts' => ['admin', 'Accounts'],
+    'admin_ops_accounts' => ['admin', 'Operations', 'Accounts'],
+];
+
+$can = static function (array $allowed) use ($role): bool {
+    return in_array($role, $allowed, true);
+};
+
+$notificationCount = 0;
+$lowBalanceRows = [];
+
+$countResult = mysqli_query(
+    $conn,
+    "SELECT COUNT(DISTINCT memberID) AS value_sum FROM balances WHERE NewBalance < '5000.00' AND Term = 0"
+);
+if ($countResult) {
+    $countRow = mysqli_fetch_assoc($countResult);
+    $notificationCount = (int)($countRow['value_sum'] ?? 0);
+}
+
+$stmt = $conn->prepare("SELECT balance, MemberNo FROM member_fees WHERE balance < '5000.00' AND Terminated = '0'");
+if ($stmt) {
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($result && $row = $result->fetch_assoc()) {
+        $lowBalanceRows[] = $row;
+    }
+    $stmt->close();
+}
+?>
+<header id="header" class="header fixed-top d-flex align-items-center">
+
+  <div class="d-flex align-items-center justify-content-between">
+    <a href="<?= app_url('dash.php') ?>" class="logo d-flex align-items-center">
+      <img src="<?= app_url('logo.png') ?>" alt="">
+      <span class="d-none d-lg-block">Fairlife</span>
+    </a>
+    <i class="bi bi-list toggle-sidebar-btn"></i>
+  </div>
+
+  <div class="search-bar">
+    <form class="search-form d-flex align-items-center" method="POST" action="#">
+      <input type="text" name="query" placeholder="Search" title="Enter search keyword">
+      <button type="submit" title="Search"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+
+  <nav class="header-nav ms-auto">
+    <ul class="d-flex align-items-center">
+
+      <li class="nav-item d-block d-lg-none">
+        <a class="nav-link nav-icon search-bar-toggle" href="#">
+          <i class="bi bi-search"></i>
+        </a>
+      </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
+          <i class="bi bi-bell"></i>
+          <span class="badge bg-danger badge-number"><?= $notificationCount ?></span>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
+          <li class="dropdown-header">
+            <b>Accounts With Less than E 5000, 00</b>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+
+          <div style="overflow-y: scroll; height:400px; margin: 10px;">
+            <?php if (!empty($lowBalanceRows)): ?>
+              <?php foreach ($lowBalanceRows as $row): ?>
+                <li class="notification-item" style="overflow: auto;">
+                  <i class="bi bi-exclamation-circle text-danger"></i>
+                  <div>
+                    <h4><?= htmlspecialchars($row['MemberNo']) ?></h4>
+                    <p style="color: red; font-weight: bold;"><?= 'E ' . htmlspecialchars($row['balance']) ?></p>
+                  </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
+        </ul>
+      </li>
+
+      <li class="nav-item dropdown pe-3">
+        <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+          <img src="<?= app_url('logo.png') ?>" alt="Profile" class="rounded-circle">
+          <span class="d-none d-md-block dropdown-toggle ps-2"><?= htmlspecialchars($username) ?></span>
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+          <li><hr class="dropdown-divider"></li>
+          <li id="logout">
+            <a class="dropdown-item d-flex align-items-center" href="<?= app_url('logout.php') ?>">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Sign Out</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+
+    </ul>
+  </nav>
+</header>
+
+<aside id="sidebar" class="sidebar">
+  <ul class="sidebar-nav" id="sidebar-nav">
+
+    <?php if ($can($roles['admin'])): ?>
+      <li class="nav-item">
+        <a class="nav-link" href="<?= app_url('dash.php') ?>">
+          <i class="bi bi-grid"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+    <?php endif; ?>
+
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="">
+        <i class="bi bi-menu-button-wide"></i><span>Beneficiary</span><i class="bi bi-chevron-down ms-auto"></i>
       </a>
-      <i class="bi bi-list toggle-sidebar-btn"></i>
-    </div><!-- End Logo -->
+      <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <?php if ($can($roles['admin_ops_clerk'])): ?>
+          <li><a href="<?= app_url('membership/new.php') ?>"><i class="bi bi-circle"></i><span>New Beneficiary</span></a></li>
+          <li><a href="<?= app_url('membership/') ?>"><i class="bi bi-circle"></i><span>All Beneficiaries</span></a></li>
+          <li><a href="<?= app_url('membership/benlist.php') ?>"><i class="bi bi-circle"></i><span>Employer Beneficiary Lists</span></a></li>
+          <li><a href="<?= app_url('membership/dnew.php') ?>"><i class="bi bi-circle"></i><span>New Deceased</span></a></li>
+          <li><a href="<?= app_url('membership/deceased.php') ?>"><i class="bi bi-circle"></i><span>Deceased Profiles</span></a></li>
+        <?php endif; ?>
 
-    <div class="search-bar">
-      <form class="search-form d-flex align-items-center" method="POST" action="#">
-        <input type="text" name="query" placeholder="Search" title="Enter search keyword">
-        <button type="submit" title="Search"><i class="bi bi-search"></i></button>
-      </form>
-    </div><!-- End Search Bar -->
-
-    <nav class="header-nav ms-auto">
-      <ul class="d-flex align-items-center">
-
-        <li class="nav-item d-block d-lg-none">
-          <a class="nav-link nav-icon search-bar-toggle " href="#">
-            <i class="bi bi-search"></i>
-          </a>
-        </li><!-- End Search Icon-->
-
-
-            
-            <?php
-$sum1 = "";
-            $notification = '';
-$balanceresult = mysqli_query($conn, "SELECT COUNT(DISTINCT `memberID`) AS value_sum FROM balances where NewBalance<'5000.00' AND Term = 0 "); 
-$balancerow = mysqli_fetch_assoc($balanceresult); 
-$notification = (int)($balancerow['value_sum'] ?? 0);
-            
-  ?>          
-
-  <li class="nav-item dropdown">
-
-          <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-            <i class="bi bi-bell"></i>
-            <span class="badge bg-danger badge-number"><?php
-echo $notification; ?></span>
-          </a><!-- End Notification Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications" >
-            <li class="dropdown-header">
-              <b>Accounts With Less than E 5000, 00</b>
-              <a href="#"><span class="badge rounded-pill bg-primary p-2 ms-2"></span></a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-<div style="overflow-y: scroll; height:400px; margin: 10px;">
-<?php
-$stmt = $conn->prepare("SELECT balance, MemberNo FROM `member_fees`  where `member_fees`.`balance`<'5000.00' AND `Terminated` = '0' ");
-
-$stmt->execute();
-$resultz = $stmt->get_result();
-if ($resultz->num_rows > 0) {
-  // output data of each row
-while($row = $resultz->fetch_assoc()) {
-
-?>
-
-            <li class="notification-item" style="overflow: auto;">
-              <i class="bi bi-exclamation-circle text-danger"></i>
-              <div>
-                <h4><?php
-echo $row['MemberNo']; ?> </h4>
-                <p style="color: red; font-weight: bold;"><?php
-echo "E ". $row['balance'] ?></p>
-                
-              </div>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            
-<?php
-}
-?>
-
-            <?php
-}else{
-    
-}
-?>
-
-
-
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-           
-</div>
-          </ul><!-- End Notification Dropdown Items -->
-
-        </li><!-- End Notification Nav -->
-
-        <li class="nav-item dropdown pe-3">
-
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="<?php
-echo APP_URL; ?>logo.png" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2"><?php
-echo $gg ?></span>
-          </a><!-- End Profile Iamge Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-
-            <li id="logout">
-              <a class="dropdown-item d-flex align-items-center" href="<?php
-echo APP_URL; ?>logout.php">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Sign Out</span>
-              </a>
-            </li>
-
-          </ul><!-- End Profile Dropdown Items -->
-        </li><!-- End Profile Nav -->
-
+        <?php if ($can($roles['admin'])): ?>
+          <li><a href="<?= app_url('membership/pending.php') ?>"><i class="bi bi-circle"></i><span>Pending Approval</span></a></li>
+        <?php endif; ?>
       </ul>
-    </nav><!-- End Icons Navigation -->
-
-  </header><!-- End Header -->
-  
-  <aside id="sidebar" class="sidebar">
-
-<ul class="sidebar-nav" id="sidebar-nav">
-<?php
-if ($role == 'admin'){ ?>
-  <li class="nav-item">
-    <a class="nav-link " href="<?php
-echo APP_URL; ?>dash.php">
-      <i class="bi bi-grid"></i>
-      <span>Dashboard</span>
-    </a>
-  </li><!-- End Dashboard Nav -->
-<?php
-} ?>
-
-
-        
-  <li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="">
-      <i class="bi bi-menu-button-wide"></i><span>Beneficiary</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
-      <li>
-        <a href="<?php
-echo APP_URL; ?>membership/new.php">
-          <i class="bi bi-circle"></i><span>New Beneficiary</span>
-        </a>
-      </li>
-      <?php
-} ?>
-
-
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>
-      <li>
-         <a href="<?php
-echo APP_URL; ?>membership/">
-          <i class="bi bi-circle"></i><span>All Beneficiaries</span>
-        </a>
-      </li>
-      <?php
-} ?>
-
-      <?php
-if ($role == 'admin' ){ ?>
-      <li>
-         <a href="<?php
-echo APP_URL; ?>membership/pending.php">
-          <i class="bi bi-circle"></i><span>Pending Approval</span>
-        </a>
-      </li>
-      <?php
-} ?>   
-      
-      <?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>
-      <li>
-         <a href="<?php
-echo APP_URL; ?>membership/benlist.php">
-          <i class="bi bi-circle"></i><span>Employer Beneficiary Lists</span>
-        </a>
-      </li>
-      <?php
-} ?>
-      
-    
-
-      
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-      <li>
-         <a href="<?php
-echo APP_URL; ?>membership/dnew.php">
-          <i class="bi bi-circle"></i><span>New Deceased</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-  <li>
-        <a href="<?php
-echo APP_URL; ?>membership/deceased.php">
-          <i class="bi bi-circle"></i><span>Deceased Profiles</span>
-        </a>
-      </li>
-      <?php
-} ?>
-      
-    
-   <!--
-      <li>
-        <a href="http://localhost/fair/membership/guardians.php">
-          <i class="bi bi-circle"></i><span>Guardians</span>
-        </a>
-      </li>
--->
-
-
-
-    </ul>
-  </li><!-- End Components Nav -->
-
-  <li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
-      <i class="bi bi-journal-text"></i><span>Funds Report</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
-      <li>
-         <a href="<?php
-echo APP_URL; ?>fund/fnew.php">
-          <i class="bi bi-circle"></i><span>New Fund</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-      <li>
-         <a href="<?php
-echo APP_URL; ?>fund/">
-          <i class="bi bi-circle"></i><span>All Funds</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-    <li>
-     <a href="<?php
-echo APP_URL; ?>fund/assets.php">
-      <i class="bi bi-circle"></i><span>Fund Assets</span>
-    </a>
     </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-      <li>
-         <a href="<?php
-echo APP_URL; ?>fund/enew.php">
-          <i class="bi bi-circle"></i><span>New Employer</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-      <li>
-         <a href="<?php
-echo APP_URL; ?>fund/employers.php">
-          <i class="bi bi-circle"></i><span>All Employers</span>
-        </a>
-      </li>
-      <?php
-} ?>
-    </ul>
-  </li><!-- End Forms Nav -->
 
-  <li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
-      <i class="bi bi-layout-text-window-reverse"></i><span>Transactions</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
-<li>
-<a href="<?php
-echo APP_URL; ?>Transactions/clientr.php">
-<i class="bi bi-circle"></i><span>Client Requests</span>
-</a>
-</li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>           
-      <li>
-        <a href="<?php
-echo APP_URL; ?>Transactions/adhoc.php">
-          <i class="bi bi-circle"></i><span>Adhoc Payments</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>          
-      <li>
-        <a href="<?php
-echo APP_URL; ?>Transactions/scheduled.php">
-          <i class="bi bi-circle"></i><span>Scheduled Payments</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-$date = ('m');
-$month = idate("m");
-$month = "03";
-//echo $month;
-       
-    
-if ($role == 'admin' || $role=='Accounts'){ ?>          
-<li>
-<a href="<?php
-echo APP_URL; ?>Transactions/interest.php">
-<i class="bi bi-circle"></i><span>Interest Payment</span>
-</a>
-</li>
-<?php
-} 
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#forms-nav" data-bs-toggle="collapse" href="#">
+        <i class="bi bi-journal-text"></i><span>Funds Report</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="forms-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <?php if ($can($roles['admin_ops_clerk'])): ?>
+          <li><a href="<?= app_url('fund/fnew.php') ?>"><i class="bi bi-circle"></i><span>New Fund</span></a></li>
+          <li><a href="<?= app_url('fund/') ?>"><i class="bi bi-circle"></i><span>All Funds</span></a></li>
+          <li><a href="<?= app_url('fund/assets.php') ?>"><i class="bi bi-circle"></i><span>Fund Assets</span></a></li>
+          <li><a href="<?= app_url('fund/enew.php') ?>"><i class="bi bi-circle"></i><span>New Employer</span></a></li>
+          <li><a href="<?= app_url('fund/employers.php') ?>"><i class="bi bi-circle"></i><span>All Employers</span></a></li>
+        <?php endif; ?>
+      </ul>
+    </li>
 
-?>
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#tables-nav" data-bs-toggle="collapse" href="#">
+        <i class="bi bi-layout-text-window-reverse"></i><span>Transactions</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="tables-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <?php if ($can($roles['admin_ops_clerk'])): ?>
+          <li><a href="<?= app_url('Transactions/clientr.php') ?>"><i class="bi bi-circle"></i><span>Client Requests</span></a></li>
+        <?php endif; ?>
 
+        <?php if ($can($roles['admin_ops'])): ?>
+          <li><a href="<?= app_url('Transactions/adhoc.php') ?>"><i class="bi bi-circle"></i><span>Adhoc Payments</span></a></li>
+        <?php endif; ?>
 
+        <?php if ($can($roles['admin'])): ?>
+          <li><a href="<?= app_url('Transactions/scheduled.php') ?>"><i class="bi bi-circle"></i><span>Scheduled Payments</span></a></li>
+        <?php endif; ?>
 
-<?php
-if ($role == 'admin' || $role=='Accounts' ){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>Transactions/monthlyfees.php">
-          <i class="bi bi-circle"></i><span>Monthly Fees Payment</span>
-        </a>
-      </li>
-      <?php
-}
-      
-      
-      ?>
+        <?php if ($can($roles['admin_accounts'])): ?>
+          <li><a href="<?= app_url('Transactions/interest.php') ?>"><i class="bi bi-circle"></i><span>Interest Payment</span></a></li>
+          <li><a href="<?= app_url('Transactions/monthlyfees.php') ?>"><i class="bi bi-circle"></i><span>Monthly Fees Payment</span></a></li>
+        <?php endif; ?>
 
+        <li><a href="<?= app_url('Transactions/adjustment.php') ?>"><i class="bi bi-circle"></i><span>Adjustment</span></a></li>
 
-        <li class="nav-item dropdown" >
-            <li>
-              <a href="<?php
-echo APP_URL; ?>Transactions/adjustment.php">
-                <i class="bi bi-circle"></i><span>Adjustment</span>
-              </a>
-            </li>
+        <?php if ($can($roles['admin_ops'])): ?>
+          <li><a href="<?= app_url('Transactions/additionalcapital.php') ?>"><i class="bi bi-circle"></i><span>Additional Capital</span></a></li>
+          <li><a href="<?= app_url('Transactions/terminate.php') ?>"><i class="bi bi-circle"></i><span>Terminate Member</span></a></li>
+        <?php endif; ?>
 
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>          
-      <li>
-        <a href="<?php
-echo APP_URL; ?>Transactions/additionalcapital.php">
-          <i class="bi bi-circle"></i><span>Additional Capital</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>Transactions/othertransactions.php">
-          <i class="bi bi-circle"></i><span>Other Transactions</span>
-        </a>
-      </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role == 'Operations' ){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>Transactions/terminate.php">
-          <i class="bi bi-circle"></i><span>Terminate Member</span>
-        </a>
-      </li>
-      <?php
-} ?>
-    </ul>
-  </li><!-- End Tables Nav -->
+        <?php if ($can($roles['admin'])): ?>
+          <li><a href="<?= app_url('Transactions/othertransactions.php') ?>"><i class="bi bi-circle"></i><span>Other Transactions</span></a></li>
+        <?php endif; ?>
+      </ul>
+    </li>
 
-
-    <?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-  <li class="nav-item">
-        
-            <a class="nav-link " href="<?php
-echo APP_URL; ?>membership/newfile.php">
+    <?php if ($can($roles['admin_ops_clerk'])): ?>
+      <li class="nav-item">
+        <a class="nav-link" href="<?= app_url('membership/newfile.php') ?>">
           <i class="bi bi-file-earmark-medical-fill"></i>
           <span>All Member Files</span>
         </a>
       </li>
-      <?php
-} ?>
-      
-       <li class="nav-heading">Files</li>
-  <li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#files-nav" data-bs-toggle="collapse" href="">
-      <i class="bi bi-files-alt"></i><span>Files</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="files-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-         <?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
-         <li>
-        <a href="<?php
-echo APP_URL; ?>files.php">
-          <i class="bi bi-upload"></i><span>Uplaod Files</span>
-        </a>
+    <?php endif; ?>
 
-      <?php
-} ?>
-       <?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
-         <li>
-        <a href="<?php
-echo APP_URL; ?>viewfiles.php">
-          <i class="bi bi-eye"></i><span>View Files</span>
-        </a>
+    <li class="nav-heading">Files</li>
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#files-nav" data-bs-toggle="collapse" href="">
+        <i class="bi bi-files-alt"></i><span>Files</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="files-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <?php if ($can($roles['admin_ops_clerk'])): ?>
+          <li><a href="<?= app_url('files.php') ?>"><i class="bi bi-upload"></i><span>Uplaod Files</span></a></li>
+          <li><a href="<?= app_url('viewfiles.php') ?>"><i class="bi bi-eye"></i><span>View Files</span></a></li>
+        <?php endif; ?>
+      </ul>
+    </li>
 
-      <?php
-} ?>
+    <li class="nav-heading">Reports</li>
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
+        <i class="ri ri-todo-fill"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="reports-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <?php if ($can($roles['admin_ops_clerk'])): ?>
+          <li><a href="<?= app_url('membership/profile.php') ?>"><i class="bi bi-circle"></i><span>Benefit Statement</span></a></li>
+          <li><a href="<?= app_url('membership/membersummary.php') ?>"><i class="bi bi-circle"></i><span>Summary Statement</span></a></li>
+          <li><a href="<?= app_url('membership/profileaccount.php') ?>"><i class="bi bi-circle"></i><span>Statement</span></a></li>
+          <li><a href="<?= app_url('reports/beneficiaries.php') ?>"><i class="bi bi-circle"></i><span>Beneficiary Report</span></a></li>
+          <li><a href="<?= app_url('membership/existence.php') ?>"><i class="bi bi-circle"></i><span>Existence Certificate</span></a></li>
+          <li><a href="<?= app_url('membership/membermove.php') ?>"><i class="bi bi-circle"></i><span>New Entrant Statement</span></a></li>
+        <?php endif; ?>
+
+        <?php if ($can($roles['admin_ops'])): ?>
+          <li><a href="<?= app_url('membership/consolsummary.php') ?>"><i class="bi bi-circle"></i><span>Beneficiary List</span></a></li>
+          <li><a href="<?= app_url('reports/funds.php') ?>"><i class="bi bi-circle"></i><span>Funds</span></a></li>
+          <li><a href="<?= app_url('reports/initialfees.php') ?>"><i class="bi bi-circle"></i><span>Individual Initial Fees Report</span></a></li>
+          <li><a href="<?= app_url('reports/payments.php') ?>"><i class="bi bi-circle"></i><span>Individual Payments Report</span></a></li>
+          <li><a href="<?= app_url('reports/balances.php') ?>"><i class="bi bi-circle"></i><span>Individual Balances</span></a></li>
+          <li><a href="<?= app_url('reports/deceased.php') ?>"><i class="bi bi-circle"></i><span>Deceased Member Report</span></a></li>
+        <?php endif; ?>
+
+        <?php if ($can($roles['admin_accounts'])): ?>
+          <li><a href="<?= app_url('fund/fundfeesreport.php') ?>"><i class="bi bi-circle"></i><span>Fees Report</span></a></li>
+          <li><a href="<?= app_url('reports/scheduledreport.php') ?>"><i class="bi bi-circle"></i><span>Scheduled Report</span></a></li>
+        <?php endif; ?>
+
+        <?php if ($can($roles['admin_ops_accounts'])): ?>
+          <li><a href="<?= app_url('reports/transfees.php') ?>"><i class="bi bi-circle"></i><span>Transaction Fees Report</span></a></li>
+          <li><a href="<?= app_url('reports/termination.php') ?>"><i class="bi bi-circle"></i><span>Termination Report</span></a></li>
+          <li><a href="<?= app_url('reports/capitalintroductionreport.php') ?>"><i class="bi bi-circle"></i><span>Capital Transfer In Report</span></a></li>
+          <li><a href="<?= app_url('reports/adhocreport.php') ?>"><i class="bi bi-circle"></i><span>Adhoc Report</span></a></li>
+        <?php endif; ?>
+
+        <?php if ($can($roles['admin'])): ?>
+          <li><a href="<?= app_url('reports/employers.php') ?>"><i class="bi bi-circle"></i><span>Employer</span></a></li>
+          <li><a href="<?= app_url('reports/otherreport.php') ?>"><i class="bi bi-circle"></i><span>Individual Other Transactions</span></a></li>
+          <li><a href="<?= app_url('reports/interestreport.php') ?>"><i class="bi bi-circle"></i><span>Individual Interest Report</span></a></li>
+          <li><a href="<?= app_url('reports/monthlyfeesreport.php') ?>"><i class="bi bi-circle"></i><span>Individual Admin & Monthly Fees</span></a></li>
+        <?php endif; ?>
+      </ul>
+    </li>
+
+    <li class="nav-heading">System Settings</li>
+    <li class="nav-item">
+      <a class="nav-link collapsed" data-bs-target="#settings-nav" data-bs-toggle="collapse" href="#">
+        <i class="ri ri-tools-fill"></i><span>Configure System Constants</span><i class="bi bi-chevron-down ms-auto"></i>
+      </a>
+      <ul id="settings-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+        <?php if ($can($roles['admin'])): ?>
+          <li><a href="<?= app_url('settings/banks.php') ?>"><i class="bi bi-circle"></i><span>Banks</span></a></li>
+          <li><a href="<?= app_url('settings/post.php') ?>"><i class="bi bi-circle"></i><span>Post Offices</span></a></li>
+          <li><a href="<?= app_url('users/transaction.php') ?>"><i class="bi bi-circle"></i><span>Transaction Types</span></a></li>
+          <li><a href="<?= app_url('users/fees.php') ?>"><i class="bi bi-circle"></i><span>Fees Types</span></a></li>
+        <?php endif; ?>
+      </ul>
+    </li>
+
+    <?php if ($can($roles['admin'])): ?>
+      <li class="nav-heading">Users Management</li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" data-bs-target="#users-nav" data-bs-toggle="collapse" href="#">
+          <i class="bi bi-person-lines-fill"></i><span>System Users</span><i class="bi bi-chevron-down ms-auto"></i>
+        </a>
+        <ul id="users-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+          <li><a href="<?= app_url('users/local2.php') ?>"><i class="bi bi-circle"></i><span>Local System Users</span></a></li>
+        </ul>
+      </li>
+    <?php endif; ?>
+
   </ul>
-  </li><!-- End Components Nav -->   
-<li class="nav-heading">Repots</li>
+</aside>
 
-<li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
-      <i class="ri ri-todo-fill"></i><span>Reports</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="reports-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>           
-         <li>
-        <a href="<?php
-echo APP_URL; ?>membership/profile.php">
-          <i class="bi bi-circle"></i><span>Benefit Statement</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-       <li>
-        <a href="<?php
-echo APP_URL; ?>membership/membersummary.php">
-          <i class="bi bi-circle"></i><span>Summary Statement</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-       <li>
-        <a href="<?php
-echo APP_URL; ?>membership/profileaccount.php">
-          <i class="bi bi-circle"></i><span>Statement</span>
-        </a>
-      </li>
-      <?php
-} ?>
-
-
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>          
-       <li>
-       <a href="<?php
-echo APP_URL; ?>reports/beneficiaries.php">
-          <i class="bi bi-circle"></i><span>Beneficiary Report</span>
-        </a>
-      </li>
-      <?php
-} ?>
-      
-      <?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>
-      <li>
-         <a href="<?php
-echo APP_URL; ?>membership/existence.php">
-          <i class="bi bi-circle"></i><span>Existence Certificate</span>
-        </a>
-      </li>
-      <?php
-} ?>
-      
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='clerk'){ ?>         
-        <li>
-        <a href="<?php
-echo APP_URL; ?>membership/membermove.php">
-          <i class="bi bi-circle"></i><span>New Entrant Statement</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>          
-       <li>
-        <a href="<?php
-echo APP_URL; ?>membership/consolsummary.php">
-          <i class="bi bi-circle"></i><span>Beneficiary List</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Accounts'){ ?>          
-      <li>
-        <a href="<?php
-echo APP_URL; ?>fund/fundfeesreport.php">
-          <i class="bi bi-circle"></i><span>Fees Report</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='Accounts'){ ?>          
-<li>
-<a href="<?php
-echo APP_URL; ?>reports/transfees.php">
-<i class="bi bi-circle"></i><span>Transaction Fees Report</span>
-</a>
-</li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>
-      <li>
-        <a href="<?php
-echo APP_URL; ?>reports/funds.php">
-          <i class="bi bi-circle"></i><span>Funds</span>
-        </a>
-      </li>
-      <?php
-} ?><?php
-if ($role == 'admin'){ ?>         
-   <li>
-        <a href="<?php
-echo APP_URL; ?>reports/employers.php">
-          <i class="bi bi-circle"></i><span>Employer</span>
-        </a>
-      </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='Accounts'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>reports/termination.php">
-          <i class="bi bi-circle"></i><span>Termination Report</span>
-        </a>
-      </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='Accounts' ){ ?>         
-       <li>
-        <a href="<?php
-echo APP_URL; ?>reports/capitalintroductionreport.php">
-          <i class="bi bi-circle"></i><span>Capital Transfer In Report </span>
-        </a>
-      </li>
-      <?php
-} ?>
-
-<?php
-if ($role == 'admin'){ ?>          
-                 <li>
-        <a href="<?php
-echo APP_URL; ?>reports/otherreport.php">
-          <i class="bi bi-circle"></i><span>Individual Other Transactions</span>
-        </a>
-      </li>
-      <?php
-} ?>
-
-<?php
-if ($role == 'admin' || $role=='Operations' || $role=='Accounts'){ ?>		  
-       <li>
-        <a href="<?php
-echo APP_URL; ?>reports/adhocreport.php">
-          <i class="bi bi-circle"></i><span>Adhoc Report</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Accounts'){ ?>          
-       <li>
-        <a href="<?php
-echo APP_URL; ?>reports/scheduledreport.php">
-          <i class="bi bi-circle"></i><span>Scheduled Report</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>          
-       <li>
-        <a href="<?php
-echo APP_URL; ?>reports/interestreport.php">
-          <i class="bi bi-circle"></i><span>Individual Interest Report</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>          
-       <li>
-        <a href="<?php
-echo APP_URL; ?>reports/monthlyfeesreport.php">
-          <i class="bi bi-circle"></i><span>Individual Admin & Monthly Fees</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>reports/initialfees.php">
-          <i class="bi bi-circle"></i><span>Individual Initial Fees Report</span>
-        </a>
-      </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>reports/payments.php">
-          <i class="bi bi-circle"></i><span>Individual Payments Report</span>
-        </a>
-      </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>reports/balances.php">
-          <i class="bi bi-circle"></i><span>Individual Balances</span>
-        </a>
-      </li>
-<?php
-} ?>
-<?php
-if ($role == 'admin' || $role=='Operations'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>reports/deceased.php">
-          <i class="bi bi-circle"></i><span>Deceased Member Report</span>
-        </a>
-      </li>
-<?php
-} ?>
-    </ul>
-  </li><!-- End Tables Nav -->
-
- <li class="nav-heading">System Settings</li>
-
-<li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#settings-nav" data-bs-toggle="collapse" href="#">
-      <i class="ri ri-tools-fill"></i><span>Configure System Constants</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="settings-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-<?php
-if ($role == 'admin'){ ?>
-      <li>
-        <a href="<?php
-echo APP_URL; ?>settings/banks.php">
-          <i class="bi bi-circle"></i><span>Banks</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>          
-   <li>
-       <a href="<?php
-echo APP_URL; ?>settings/post.php">
-          <i class="bi bi-circle"></i><span>Post Offices</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>         
-   <li>
-        <a href="<?php
-echo APP_URL; ?>users/transaction.php">
-          <i class="bi bi-circle"></i><span>Transaction Types</span>
-        </a>
-      </li>
-      <?php
-} ?>
-<?php
-if ($role == 'admin'){ ?>          
-   <li>
-        <a href="<?php
-echo APP_URL; ?>users/fees.php">
-          <i class="bi bi-circle"></i><span>Fees Types</span>
-        </a>
-      </li>
-<?php
-} ?>
-    </ul>
-  </li><!-- End Tables Nav -->
-<?php
-if ($role == 'admin'){ ?>
-  <li class="nav-heading">Users Management</li>
-  <li class="nav-item">
-    <a class="nav-link collapsed" data-bs-target="#users-nav" data-bs-toggle="collapse" href="#">
-      <i class="bi bi-person-lines-fill"></i><span>System Users</span><i class="bi bi-chevron-down ms-auto"></i>
-    </a>
-    <ul id="users-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-
-     
-   <li>
-        <a href="<?php
-echo APP_URL; ?>users/local2.php">
-          <i class="bi bi-circle"></i><span>Local System Users</span>
-        </a>
-      </li>
-
-    </ul>
-  </li><!-- End Tables Nav -->
- 
-<?php
-} ?>
-
-
-</ul>
-
-</aside><!-- End Sidebar-->
-  <script>
-      function activityWatcher(){
-
-    //The number of seconds that have passed
-    //since the user was active.
+<script>
+function activityWatcher() {
     var secondsSinceLastActivity = 0;
-
-   
     var maxInactivity = (60 * 25);
 
-    //Setup the setInterval method to run
-    //every second. 1000 milliseconds = 1 second.
-    setInterval(function(){
+    setInterval(function () {
         secondsSinceLastActivity++;
-       // console.log(secondsSinceLastActivity + ' seconds since the user was last active');
-        //if the user has been inactive or idle for longer
-        //then the seconds specified in maxInactivity
-        if(secondsSinceLastActivity > maxInactivity){
-           // console.log('User has been inactive for more than ' + maxInactivity + ' seconds');
-            //Redirect them to your logout.php page.
-            location.href = '<?php
-echo APP_URL; ?>logout.php';
+        if (secondsSinceLastActivity > maxInactivity) {
+            location.href = '<?= app_url('logout.php') ?>';
         }
     }, 1000);
 
-    //The function that will be called whenever a user is active
-    function activity(){
-        //reset the secondsSinceLastActivity variable
-        //back to 0
+    function activity() {
         secondsSinceLastActivity = 0;
     }
 
-    //An array of DOM events that should be interpreted as
-    //user activity.
     var activityEvents = [
         'mousedown', 'mousemove', 'keydown',
         'scroll', 'touchstart'
     ];
 
-    //add these events to the document.
-    //register the activity function as the listener parameter.
-    activityEvents.forEach(function(eventName) {
+    activityEvents.forEach(function (eventName) {
         document.addEventListener(eventName, activity, true);
     });
-
-
 }
 
 activityWatcher();
-  </script>
+</script>
