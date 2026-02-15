@@ -43,9 +43,10 @@ if(count($_POST) > 0){
 	 		exit;
 	 	}	 
 	 } else {
-	 	// Authentication failed - stay on login page with error
+	 	// Authentication failed
 	 	session_write_close();
-	 	header('Location: index.php?error=invalid');
+	 	http_response_code(401);
+	 	echo 'Invalid credentials';
 	 	exit;
 	 }
 } else {
