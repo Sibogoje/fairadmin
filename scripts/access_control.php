@@ -7,6 +7,21 @@ if (!function_exists('access_control_known_roles')) {
     }
 }
 
+if (!function_exists('access_control_normalize_role')) {
+    function access_control_normalize_role($role)
+    {
+        $role = strtolower(trim((string)$role));
+        $map = [
+            'admin' => 'admin',
+            'operations' => 'Operations',
+            'clerk' => 'clerk',
+            'accounts' => 'Accounts',
+        ];
+
+        return $map[$role] ?? trim((string)$role);
+    }
+}
+
 if (!function_exists('access_control_permission_definitions')) {
     function access_control_permission_definitions()
     {
@@ -123,7 +138,9 @@ if (!function_exists('access_control_rules_file')) {
 if (!function_exists('access_control_role_in')) {
     function access_control_role_in($role, array $allowedRoles)
     {
-        return in_array($role, $allowedRoles, true);
+        $normalizedRole = access_control_normalize_role($role);
+        $normalizedAllowed = array_map('access_control_normalize_role', $allowedRoles);
+        return in_array($normalizedRole, $normalizedAllowed, true);
     }
 }
 
@@ -159,6 +176,7 @@ if (!function_exists('access_control_normalize_route')) {
         $routePath = strtolower((string)$routePath);
         $routePath = preg_replace('#/+#', '/', $routePath);
         $routePath = preg_replace('#/fix/#', '/', $routePath, 1);
+        $routePath = preg_replace('#/index\.php$#', '/', $routePath);
         return $routePath;
     }
 }
@@ -192,8 +210,9 @@ if (!function_exists('access_control_load_overrides')) {
 
             $allowed = [];
             foreach ($roles as $role) {
-                if (in_array($role, $knownRoles, true) && !in_array($role, $allowed, true)) {
-                    $allowed[] = $role;
+                $normalizedRole = access_control_normalize_role($role);
+                if (in_array($normalizedRole, $knownRoles, true) && !in_array($normalizedRole, $allowed, true)) {
+                    $allowed[] = $normalizedRole;
                 }
             }
 
@@ -236,8 +255,9 @@ if (!function_exists('access_control_save_overrides')) {
 
             $roles = [];
             foreach ($submittedRoles as $role) {
-                if (in_array($role, $knownRoles, true) && !in_array($role, $roles, true)) {
-                    $roles[] = $role;
+                $normalizedRole = access_control_normalize_role($role);
+                if (in_array($normalizedRole, $knownRoles, true) && !in_array($normalizedRole, $roles, true)) {
+                    $roles[] = $normalizedRole;
                 }
             }
 

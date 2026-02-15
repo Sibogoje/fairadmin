@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-02-15T00:00:00+00:00",
-  "updated_by": "system",
+  "updated_at": "2026-02-15T12:00:00+00:00",
+  "updated_by": "system-normalized",
   "permissions": {
     "beneficiary_core": [
       "admin",
