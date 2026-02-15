@@ -308,6 +308,44 @@ if (!function_exists('access_control_is_allowed')) {
     }
 }
 
+if (!function_exists('access_control_matching_permission_key')) {
+    function access_control_matching_permission_key($routePath)
+    {
+        $routePath = access_control_normalize_route($routePath);
+        $definitions = access_control_permission_definitions();
+
+        foreach ($definitions as $key => $definition) {
+            if (access_control_matches($routePath, $definition['patterns'])) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('access_control_can_show_menu_item')) {
+    function access_control_can_show_menu_item($role, $routePath)
+    {
+        $routePath = access_control_normalize_route($routePath);
+
+        if (preg_match('#/dash\.php$#', $routePath)) {
+            return true;
+        }
+
+        $permissionKey = access_control_matching_permission_key($routePath);
+        if ($permissionKey === null) {
+            return false;
+        }
+
+        $definitions = access_control_permission_definitions();
+        $effectiveRoles = access_control_effective_role_map();
+        $allowedRoles = $effectiveRoles[$permissionKey] ?? ($definitions[$permissionKey]['default_roles'] ?? []);
+
+        return access_control_role_in($role, $allowedRoles);
+    }
+}
+
 if (!function_exists('access_control_forbidden')) {
     function access_control_forbidden()
     {

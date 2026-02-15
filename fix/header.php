@@ -17,7 +17,7 @@ if (!access_control_is_allowed($role, $currentRoutePath)) {
 }
 
 $canRoute = static function (string $relativePath) use ($role): bool {
-  return access_control_is_allowed($role, '/' . ltrim($relativePath, '/'));
+  return access_control_can_show_menu_item($role, '/' . ltrim($relativePath, '/'));
 };
 
 $showBeneficiary =
@@ -185,7 +185,7 @@ try {
 <aside id="sidebar" class="sidebar">
   <ul class="sidebar-nav" id="sidebar-nav">
 
-    <?php if (access_control_is_allowed($role, '/fix/dash.php')): ?>
+    <?php if (access_control_can_show_menu_item($role, '/fix/dash.php')): ?>
       <li class="nav-item">
         <a class="nav-link" href="<?= app_url('fix/dash.php') ?>">
           <i class="bi bi-grid"></i>
