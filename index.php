@@ -60,7 +60,7 @@ session_start();
     <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <!-- Main + Page JS -->
     <script src="assets/js/main.js"></script>
-    <script src="assets/js/login.js"></script>
+    <script src="assets/js/login.js?v=<?php echo time(); ?>"></script>
 
   </body>
 
