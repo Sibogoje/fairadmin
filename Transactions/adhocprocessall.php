@@ -8,7 +8,7 @@ if (!isset($_SESSION['zid'])) {
 }
 require_once '../scripts/connection.php';
 
-$stmt = $conn->prepare("SELECT * FROM tbltempadhocpayments");
+$stmt = $conn->prepare("SELECT * FROM tbltempadhocpayments order by adhocPaymentID ASC");
 $stmt->execute();
 $result = $stmt->get_result();
 
