@@ -231,7 +231,7 @@ include '../header.php'; ?>
             <div class="col-lg-6">
                 <div class="card">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="card-title mb-0"><i class="bi bi-person-fill-slash"></i> Deceased Information</h5>
+                        <h5 class="card-title mb-0 text-white"><i class="bi bi-person-fill-slash"></i> Deceased Information</h5>
                     </div>
                     <div class="card-body">
                         <?php if ($deceasedData): ?>
