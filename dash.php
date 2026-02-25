@@ -304,7 +304,7 @@ echo renderCard(
                                                         </span>
                                                     </td>
                                                     <td>
-                                                        <a href="membership/profile.php?id=<?php echo htmlspecialchars($member['MemberID']); ?>" 
+                                                        <a href="membership/balanceprofile.php?id=<?php echo htmlspecialchars($member['MemberID']); ?>" 
                                                            class="btn btn-sm btn-primary" 
                                                            title="View Member Profile">
                                                             <i class="bi bi-eye"></i> View
