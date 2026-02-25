@@ -20,6 +20,9 @@ require_once 'scripts/connection.php';
 // Fetch dashboard data
 $dashboardData = fetchDashboardData($conn);
 
+// Fetch low balance members
+$lowBalanceMembers = fetchLowBalanceMembers($conn, 50);
+
 /**
  * Fetch all dashboard data in a single function
  */
@@ -97,6 +100,38 @@ function formatCurrency($amount) {
  */
 function formatNumber($number) {
     return number_format($number);
+}
+
+/**
+ * Fetch members with balance less than 5000
+ */
+function fetchLowBalanceMembers($conn, $limit = 20) {
+    $query = "
+        SELECT 
+            m.MemberID,
+            m.MemberNo,
+            m.MemberSurname,
+            m.MemberFirstname,
+            b.NewBalance
+        FROM tblmembers m
+        INNER JOIN balances b ON m.MemberID = b.memberID
+        WHERE b.NewBalance < 5000 
+        AND b.Term = 0
+        AND m.Terminated = 0
+        ORDER BY b.NewBalance ASC
+        LIMIT $limit
+    ";
+    
+    $result = mysqli_query($conn, $query);
+    $members = [];
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $members[] = $row;
+        }
+    }
+    
+    return $members;
 }
 ?>
 
@@ -227,6 +262,70 @@ echo renderCard(
                             ); ?>
                         </div>
                         
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Low Balance Members Table -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="ri-alert-fill text-warning"></i> Members with Balance Below E 5,000
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <?php if (count($lowBalanceMembers) > 0): ?>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-sm">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Member No</th>
+                                                <th>Name</th>
+                                                <th>Balance</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($lowBalanceMembers as $member): ?>
+                                                <tr>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark">
+                                                            <?php echo htmlspecialchars($member['MemberNo']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo htmlspecialchars($member['MemberSurname'] . ', ' . $member['MemberFirstname']); ?>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-danger">
+                                                            E <?php echo number_format($member['NewBalance'], 2); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <a href="membership/profile.php?id=<?php echo htmlspecialchars($member['MemberID']); ?>" 
+                                                           class="btn btn-sm btn-primary" 
+                                                           title="View Member Profile">
+                                                            <i class="bi bi-eye"></i> View
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <small class="text-muted">
+                                    Showing <?php echo count($lowBalanceMembers); ?> members with balance below E 5,000 
+                                    (sorted by lowest balance first)
+                                </small>
+                            <?php else: ?>
+                                <div class="alert alert-success" role="alert">
+                                    <i class="bi bi-check-circle"></i>
+                                    Great news! No members with balance below E 5,000 found.
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
