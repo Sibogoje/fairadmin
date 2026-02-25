@@ -132,35 +132,6 @@ try {
         </a>
       </li>
 
-      <li class="nav-item dropdown">
-        <a class="nav-link nav-icon" href="#" data-bs-toggle="dropdown">
-          <i class="bi bi-bell"></i>
-          <span class="badge bg-danger badge-number"><?= $notificationCount ?></span>
-        </a>
-
-        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow notifications">
-          <li class="dropdown-header">
-            <b>Accounts With Less than E 5000, 00</b>
-          </li>
-          <li><hr class="dropdown-divider"></li>
-
-          <div style="overflow-y: scroll; height:400px; margin: 10px;">
-            <?php if (!empty($lowBalanceRows)): ?>
-              <?php foreach ($lowBalanceRows as $row): ?>
-                <li class="notification-item" style="overflow: auto;">
-                  <i class="bi bi-exclamation-circle text-danger"></i>
-                  <div>
-                    <h4><?= htmlspecialchars($row['MemberNo']) ?></h4>
-                    <p style="color: red; font-weight: bold;"><?= 'E ' . htmlspecialchars($row['balance']) ?></p>
-                  </div>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-              <?php endforeach; ?>
-            <?php endif; ?>
-          </div>
-        </ul>
-      </li>
-
       <li class="nav-item dropdown pe-3">
         <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
           <img src="<?= app_url('logo.png') ?>" alt="Profile" class="rounded-circle">
