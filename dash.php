@@ -67,7 +67,7 @@ function fetchDashboardData($conn) {
     // Low balance accounts
     $lowBalanceResult = mysqli_query($conn, 
         "SELECT COUNT(DISTINCT `memberID`) AS lowcount 
-         FROM balances WHERE NewBalance < '5000.00' AND Term = 0"
+         FROM balances WHERE NewBalance < '10000.00' AND Term = 0"
     );
     $lowBalanceRow = mysqli_fetch_assoc($lowBalanceResult);
     $data['low_balance_count'] = (int)($lowBalanceRow['lowcount'] ?? 0);
@@ -115,7 +115,7 @@ function fetchLowBalanceMembers($conn, $limit = 20) {
             b.NewBalance
         FROM tblmembers m
         INNER JOIN balances b ON m.MemberID = b.memberID
-        WHERE b.NewBalance < 5000 
+        WHERE b.NewBalance < 10000 
         AND b.Term = 0
         AND m.Terminated = 0
         ORDER BY b.NewBalance ASC
@@ -244,7 +244,7 @@ echo renderCard(
                                 'bg-primary',
                                 'ri-file-shred-line',
                                 formatCurrency($dashboardData['balance_sum_all']),
-                                formatNumber($dashboardData['low_balance_count']) . ' accounts below E 5,000'
+                                formatNumber($dashboardData['low_balance_count']) . ' accounts below E 10,000'
                             ); ?>
                         </div>
                         
@@ -272,7 +272,7 @@ echo renderCard(
                     <div class="card">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="ri-alert-fill text-warning"></i> Members with Balance Below E 5,000
+                                <i class="ri-alert-fill text-warning"></i> Members with Balance Below E 10,000
                             </h5>
                         </div>
                         <div class="card-body">
@@ -316,7 +316,7 @@ echo renderCard(
                                     </table>
                                 </div>
                                 <small class="text-muted">
-                                    Showing <?php echo count($lowBalanceMembers); ?> members with balance below E 5,000 
+                                    Showing <?php echo count($lowBalanceMembers); ?> members with balance below E 10,000 
                                     (sorted by lowest balance first)
                                 </small>
                             <?php else: ?>
