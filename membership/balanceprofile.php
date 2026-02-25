@@ -396,7 +396,7 @@ include '../header.php'; ?>
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header bg-success text-white">
-                            <h5 class="card-title mb-0"><i class="bi bi-diagram-3"></i> Other Members of <?php echo htmlspecialchars($deceasedData['DeceasedSurname'] ?? 'this Deceased'); ?></h5>
+                            <h5 class="card-title mb-0"><i class="bi bi-diagram-3"></i> Other Members of <?php echo htmlspecialchars(($deceasedData['DeceasedSurname'] ?? '') . ' ' . ($deceasedData['DeceasedFirstnames'] ?? '')); ?></h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
