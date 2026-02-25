@@ -6,10 +6,78 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
-//$ids=$_POST['id'];
-//$ids = $_REQUEST['id'];
 
-////////insert new 
+// Check if viewing a specific member profile
+$viewingProfile = false;
+$memberData = null;
+$deceasedData = null;
+$guardianData = null;
+$nextOfKinData = null;
+$relatedMembers = null;
+
+if (isset($_GET['id']) && !empty($_GET['id'])) {
+    $memberId = (int)$_GET['id'];
+    $viewingProfile = true;
+    
+    // Fetch member data
+    $memberQuery = "
+        SELECT m.*, b.NewBalance
+        FROM tblmembers m
+        LEFT JOIN balances b ON m.MemberID = b.memberID AND b.Term = 0
+        WHERE m.MemberID = $memberId
+    ";
+    $memberResult = mysqli_query($conn, $memberQuery);
+    if ($memberResult && mysqli_num_rows($memberResult) > 0) {
+        $memberData = mysqli_fetch_assoc($memberResult);
+        
+        // Fetch deceased data
+        if ($memberData['DeceasedID']) {
+            $deceasedQuery = "SELECT * FROM tbldeceased WHERE DeceasedID = " . (int)$memberData['DeceasedID'];
+            $deceasedResult = mysqli_query($conn, $deceasedQuery);
+            if ($deceasedResult) {
+                $deceasedData = mysqli_fetch_assoc($deceasedResult);
+            }
+        }
+        
+        // Fetch guardian data
+        if ($memberData['GuardianID']) {
+            $guardianQuery = "SELECT * FROM tblguardians WHERE GuardianID = " . (int)$memberData['GuardianID'];
+            $guardianResult = mysqli_query($conn, $guardianQuery);
+            if ($guardianResult) {
+                $guardianData = mysqli_fetch_assoc($guardianResult);
+            }
+        }
+        
+        // Fetch next of kin data
+        if ($memberData['NextOfKinID']) {
+            $kinQuery = "SELECT * FROM tblnextofkin WHERE NextOfKinID = " . (int)$memberData['NextOfKinID'];
+            $kinResult = mysqli_query($conn, $kinQuery);
+            if ($kinResult) {
+                $nextOfKinData = mysqli_fetch_assoc($kinResult);
+            }
+        }
+        
+        // Fetch related members (others linked to the same deceased)
+        if ($memberData['DeceasedID']) {
+            $relatedQuery = "
+                SELECT m.MemberID, m.MemberNo, m.MemberSurname, m.MemberFirstname, 
+                       b.NewBalance, m.Terminated
+                FROM tblmembers m
+                LEFT JOIN balances b ON m.MemberID = b.memberID AND b.Term = 0
+                WHERE m.DeceasedID = " . (int)$memberData['DeceasedID'] . "
+                AND m.MemberID != $memberId
+                ORDER BY m.MemberNo
+            ";
+            $relatedResult = mysqli_query($conn, $relatedQuery);
+            if ($relatedResult) {
+                $relatedMembers = [];
+                while ($row = mysqli_fetch_assoc($relatedResult)) {
+                    $relatedMembers[] = $row;
+                }
+            }
+        }
+    }
+} 
 
 
 
@@ -112,16 +180,321 @@ include '../header.php'; ?>
   <main id="main" class="main">
 
     <div class="pagetitle">
-      <h1>Beneficiary Profile</h1>
+      <h1><?php echo $viewingProfile ? 'Beneficiary Profile' : 'Beneficiary Management'; ?></h1>
       <nav>
         <ol class="breadcrumb">
           <li class="breadcrumb-item"><a href="../dash.php">Dashboard</a></li>
-          <li class="breadcrumb-item active">Profile</li>
+          <li class="breadcrumb-item active"><?php echo $viewingProfile ? 'Profile' : 'Management'; ?></li>
         </ol>
       </nav>
     </div><!-- End Page Title -->
-<!-- New beneficiary form-->
-<div class="card col-lg-12" style="">
+
+    <?php if ($viewingProfile && $memberData): ?>
+        <!-- PROFILE VIEW MODE -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><?php echo htmlspecialchars($memberData['MemberSurname'] . ' ' . $memberData['MemberFirstname']); ?></h2>
+                    <a href="profile.php" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Information Card -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-person"></i> Member Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Member Number</label>
+                                <p class="mb-3"><strong><?php echo htmlspecialchars($memberData['MemberNo']); ?></strong></p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">National ID</label>
+                                <p class="mb-3"><strong><?php echo htmlspecialchars($memberData['MemberIDnumber'] ?? 'N/A'); ?></strong></p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Full Name</label>
+                                <p class="mb-3"><strong><?php echo htmlspecialchars($memberData['MemberSurname'] . ' ' . $memberData['MemberFirstname']); ?></strong></p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Gender</label>
+                                <p class="mb-3"><strong><?php echo htmlspecialchars($memberData['Gender'] ?? 'N/A'); ?></strong></p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Date of Birth</label>
+                                <p class="mb-3">
+                                    <strong>
+                                        <?php 
+                                        if ($memberData['DateOfBirth']) {
+                                            echo date('d M Y', strtotime($memberData['DateOfBirth']));
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                        ?>
+                                    </strong>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Date Joined</label>
+                                <p class="mb-3">
+                                    <strong>
+                                        <?php 
+                                        if ($memberData['DateAccountOpened']) {
+                                            echo date('d M Y', strtotime($memberData['DateAccountOpened']));
+                                        } else {
+                                            echo 'N/A';
+                                        }
+                                        ?>
+                                    </strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <label class="text-muted small">Current Balance</label>
+                                <p>
+                                    <span class="badge bg-<?php echo ($memberData['NewBalance'] < 10000) ? 'danger' : 'success'; ?> fs-6">
+                                        E <?php echo number_format($memberData['NewBalance'] ?? 0, 2); ?>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deceased Information Card -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-person-fill-slash"></i> Deceased Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($deceasedData): ?>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small">Full Name</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($deceasedData['DeceasedSurname'] . ' ' . $deceasedData['DeceasedFirstnames']); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">ID Number</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($deceasedData['DeceasedIDnumber'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Date of Death</label>
+                                    <p class="mb-3">
+                                        <strong>
+                                            <?php 
+                                            if ($deceasedData['DateOfDeath']) {
+                                                echo date('d M Y', strtotime($deceasedData['DateOfDeath']));
+                                            } else {
+                                                echo 'N/A';
+                                            }
+                                            ?>
+                                        </strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label class="text-muted small">Total Funds</label>
+                                    <p><strong>E <?php echo number_format($deceasedData['TotalFunds'] ?? 0, 2); ?></strong></p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-info">No deceased information available</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardian & Next of Kin Cards -->
+        <div class="row mb-4">
+            <!-- Guardian Information -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0"><i class="bi bi-shield-check"></i> Guardian Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($guardianData): ?>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small">Full Name</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianSurname'] . ' ' . $guardianData['GuardianFirstNames']); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small">ID Number</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianIDno'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small">Postal Address</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianPostalAddress'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Work Phone</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianTelWork'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Home Phone</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianTelHome'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Cell Phone</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianCell'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Email</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($guardianData['GuardianEmail'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label class="text-muted small">Relationship</label>
+                                    <p><strong><?php echo htmlspecialchars($memberData['RelationshipGuardian'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-info">No guardian information available</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next of Kin Information -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="card-title mb-0"><i class="bi bi-people"></i> Next of Kin Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($nextOfKinData): ?>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small">Full Name</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($nextOfKinData['KinSurname'] . ' ' . $nextOfKinData['KinFirstNames']); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <label class="text-muted small">Postal Address</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($nextOfKinData['KinPostalAddress'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Work Phone</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($nextOfKinData['KinTelWork'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Home Phone</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($nextOfKinData['KinTelHome'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Cell Phone</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($nextOfKinData['KinCell'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="text-muted small">Email</label>
+                                    <p class="mb-3"><strong><?php echo htmlspecialchars($nextOfKinData['KinEmail'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <label class="text-muted small">Relationship</label>
+                                    <p><strong><?php echo htmlspecialchars($memberData['RelationshipNextOfKin'] ?? 'N/A'); ?></strong></p>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-info">No next of kin information available</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Members Card -->
+        <?php if ($relatedMembers && count($relatedMembers) > 0): ?>
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0"><i class="bi bi-diagram-3"></i> Other Members of <?php echo htmlspecialchars($deceasedData['DeceasedSurname'] ?? 'this Deceased'); ?></h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Member No</th>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                            <th>Balance</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($relatedMembers as $relMember): ?>
+                                            <tr>
+                                                <td>
+                                                    <span class="badge bg-light text-dark">
+                                                        <?php echo htmlspecialchars($relMember['MemberNo']); ?>
+                                                    </span>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($relMember['MemberSurname'] . ' ' . $relMember['MemberFirstname']); ?></td>
+                                                <td>
+                                                    <span class="badge <?php echo $relMember['Terminated'] == 0 ? 'bg-success' : 'bg-danger'; ?>">
+                                                        <?php echo $relMember['Terminated'] == 0 ? 'Active' : 'Terminated'; ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-<?php echo ($relMember['NewBalance'] < 10000) ? 'danger' : 'success'; ?>">
+                                                        E <?php echo number_format($relMember['NewBalance'] ?? 0, 2); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a href="profile.php?id=<?php echo $relMember['MemberID']; ?>" 
+                                                       class="btn btn-sm btn-primary" 
+                                                       title="View Member Profile">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+    <?php else: ?>
+        <!-- SELECTION MODE (Original Interface) -->
+        <div class="card col-lg-12" style="">
             <div class="card-body">
               <h5 class="card-title">Choose Beneficiary</h5>
 			  
@@ -217,6 +590,7 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 
 
 <!-- end of new beneficiary form -->
+    <?php endif; ?>
  
   </main><!-- End #main -->
 
