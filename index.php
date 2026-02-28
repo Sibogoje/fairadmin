@@ -31,7 +31,7 @@ session_start();
           <div class="text-center mb-3">
             <img src="logo.png" alt="FairLife" class="login-logo mb-2">
             <h4 class="mb-0">FairLife Benefit Services</h4>
-            <small class="text-muted">Sign in to Continue</small>
+            <small class="text-muted">Welcome & Sign in to Continue</small>
           </div>
 
           <div id="alert-placeholder"></div>
