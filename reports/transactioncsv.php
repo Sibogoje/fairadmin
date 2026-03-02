@@ -45,7 +45,7 @@ if (count($_POST) > 0) {
 
         // Output each row of the data, format line as CSV and write to file pointer
         while ($row = $query->fetch_assoc()) {
-            $lineData = array($row['MemberNo'], $row['MemberSurname'], $row['MemberFirstname'],  $row['TransactionDate'], $row['DOB'], $row['Gender'],  $row['Amount']);
+            $lineData = array($row['MemberNo'], $row['MemberSurname'], $row['MemberFirstname'], $row['DOB'], $row['Gender'], $row['TransactionDate'],   $row['Amount']);
             fputcsv($f, $lineData, $delimiter);
         }
 
