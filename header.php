@@ -32,6 +32,7 @@ $showFunds =
   $canRoute('fund/fnew.php') ||
   $canRoute('fund/') ||
   $canRoute('fund/assets.php') ||
+  $canRoute('fund/fundsummary.php') ||
   $canRoute('fund/enew.php') ||
   $canRoute('fund/employers.php');
 
@@ -208,6 +209,9 @@ try {
         <?php endif; ?>
         <?php if ($canRoute('fund/assets.php')): ?>
           <li><a href="<?= app_url('fund/assets.php') ?>"><i class="bi bi-circle"></i><span>Fund Assets</span></a></li>
+        <?php endif; ?>
+        <?php if ($canRoute('fund/fundsummary.php')): ?>
+          <li><a href="<?= app_url('fund/fundsummary.php') ?>"><i class="bi bi-circle"></i><span>Funds Summary</span></a></li>
         <?php endif; ?>
         <?php if ($canRoute('fund/enew.php')): ?>
           <li><a href="<?= app_url('fund/enew.php') ?>"><i class="bi bi-circle"></i><span>New Employer</span></a></li>

@@ -37,7 +37,7 @@ if (!function_exists('access_control_permission_definitions')) {
             'fund_core' => [
                 'label' => 'Fund: Core Pages',
                 'patterns' => [
-                    '#/(fund/fnew\.php|fund/?|fund/assets\.php|fund/enew\.php|fund/employers\.php)$#',
+                    '#/(fund/fnew\.php|fund/?|fund/assets\.php|fund/fundsummary\.php|fund/enew\.php|fund/employers\.php)$#',
                 ],
                 'default_roles' => ['admin', 'Operations', 'clerk'],
             ],
