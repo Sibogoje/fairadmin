@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <table class="table datatable" id="free">
                     <thead>
                         <tr style="text-align:center; background:black; color:white;">
-                            <th colspan="13"><?php
+                            <th colspan="12"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo htmlspecialchars($rowz['MemberFirstname'] . " " . $rowz['MemberSurname']); ?></th>
                         </tr>
@@ -54,7 +54,6 @@ echo htmlspecialchars($rowz['MemberFirstname'] . " " . $rowz['MemberSurname']); 
                             <th>Member No.</th>
                             <th>Name</th>
                             <th>Surname</th>
-                            <th>Employer ID</th>
                             <th>Employer</th>
                             <th>DOB</th>
                             <th>Gender</th>
@@ -86,9 +85,6 @@ echo htmlspecialchars($rowz['MemberFirstname']); ?></td>
                             <td><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo htmlspecialchars($rowz['MemberSurname']); ?></td>
-                            <td><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo htmlspecialchars($rowz['EmployerID'] ?? ''); ?></td>
                             <td><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo htmlspecialchars($rowz['EmployerName'] ?? ''); ?></td>
@@ -125,13 +121,13 @@ $expTotal = getAmount($conn, "SELECT SUM(Amount) AS TT3 FROM tblmemberaccounts W
                         $otherTotal = getAmount($conn, "SELECT SUM(Amount) AS TT3 FROM tblmemberaccounts WHERE TransactionTypeID = 10 AND TransactionDate BETWEEN ? AND ? AND memberID = ?", "ssi", [$d1, $d2, $ii], 'TT3');
                         ?>
                         <tr>
-                            <th colspan="8" style="text-align:right;">Payments Total:</th>
+                            <th colspan="7" style="text-align:right;">Payments Total:</th>
                             <td colspan="5"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo "- E " . number_format($expTotal, 2); ?></td>
                         </tr>
                         <tr>
-                            <th colspan="8" style="text-align:right;">Other Transactions:</th>
+                            <th colspan="7" style="text-align:right;">Other Transactions:</th>
                             <td colspan="5"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo "E " . number_format($otherTotal, 2); ?></td>
