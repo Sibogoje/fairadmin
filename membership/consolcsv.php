@@ -8,10 +8,12 @@ $d2 = $_POST['to'] ?? '';
 
 if (count($_POST) > 0) {
     $query = $conn->prepare("
-        SELECT m.MemberID, m.MemberNo, m.MemberSurname, m.MemberFirstname, 
-               m.Gender, m.DateOfBirth, m.ApprovedBenefit, m.DateAccountOpened
+     SELECT m.MemberID, m.MemberNo, m.MemberSurname, m.MemberFirstname, 
+         m.Gender, m.DateOfBirth, m.ApprovedBenefit, m.DateAccountOpened,
+         e.EmployerName
         FROM tblmembers AS m
         JOIN tbldeceased AS d ON m.DeceasedID = d.DeceasedID
+     LEFT JOIN tblemployers AS e ON d.EmployerID = e.employerID
         JOIN tblmemberaccounts AS ma ON m.MemberID = ma.memberID
         WHERE ma.TransactionDate BETWEEN ? AND ? AND d.RetirementFundID = ?
         GROUP BY m.MemberID
@@ -26,7 +28,7 @@ if (count($_POST) > 0) {
         $f = fopen('php://memory', 'w');
 
         // CSV column headers
-        $headers = ["Member No", "Surname", "Name", "Gender", "D.O.B", "Acc Opened", "Amount Appr.", "Income", "Expenses", "Payments", "Other Transactions", "Balance"];
+        $headers = ["Member No", "Surname", "Name", "Employer", "Gender", "D.O.B", "Acc Opened", "Amount Appr.", "Income", "Expenses", "Payments", "Other Transactions", "Balance"];
         fputcsv($f, $headers, $delimiter);
 
         while ($row = $result->fetch_assoc()) {
@@ -61,6 +63,7 @@ if (count($_POST) > 0) {
                 $row['MemberNo'],
                 $row['MemberSurname'],
                 $row['MemberFirstname'],
+                $row['EmployerName'] ?? '',
                 $row['Gender'],
                 $row['DateOfBirth'],
                 $row['DateAccountOpened'],
