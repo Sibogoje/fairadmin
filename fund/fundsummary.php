@@ -98,6 +98,7 @@ html.loading body {
           <div class="col-md-4">
             <div class="form-floating">
               <select class="form-control" id="fund_id" name="fund_id" required>
+                <option value=""></option>
                 <option value="all">All Funds</option>
                 <?php
 $stmtFunds = $conn->prepare("SELECT RetirementFundID, FundName FROM tblretirementfunds ORDER BY FundName ASC");
@@ -144,6 +145,24 @@ while ($rowFund = $resultFunds->fetch_assoc()) {
 $(document).ready(function () {
   $('html').removeClass('loading');
 
+  function validateFundSummaryForm() {
+    var from = $('#from').val();
+    var to = $('#to').val();
+    var fundId = $('#fund_id').val();
+
+    if (from === '' || to === '') {
+      $('#fund-summary-results').html('<div class="alert alert-warning mt-3">Please select both dates.</div>');
+      return false;
+    }
+
+    if (fundId === '') {
+      $('#fund-summary-results').html('<div class="alert alert-warning mt-3">Please select a fund.</div>');
+      return false;
+    }
+
+    return true;
+  }
+
   $('#fund_id').select2({
     width: '100%',
     allowClear: false,
@@ -153,11 +172,7 @@ $(document).ready(function () {
   $('#fund_summary_form').on('submit', function (event) {
     event.preventDefault();
 
-    var from = $('#from').val();
-    var to = $('#to').val();
-
-    if (from === '' || to === '') {
-      $('#fund-summary-results').html('<div class="alert alert-warning mt-3">Please select both dates.</div>');
+    if (!validateFundSummaryForm()) {
       return;
     }
 
@@ -172,11 +187,7 @@ $(document).ready(function () {
   });
 
   $('#export_excel').on('click', function () {
-    var from = $('#from').val();
-    var to = $('#to').val();
-
-    if (from === '' || to === '') {
-      $('#fund-summary-results').html('<div class="alert alert-warning mt-3">Please select both dates.</div>');
+    if (!validateFundSummaryForm()) {
       return;
     }
 

@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if ($request['from'] === '' || $request['to'] === '') {
+if ($request['from'] === '' || $request['to'] === '' || $request['fund_id'] === '') {
     echo '<div class="alert alert-warning mt-3">Please choose both dates.</div>';
     exit;
 }

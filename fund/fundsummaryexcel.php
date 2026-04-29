@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-if ($request['from'] === '' || $request['to'] === '' || $request['from'] > $request['to']) {
+if ($request['from'] === '' || $request['to'] === '' || $request['fund_id'] === '' || $request['from'] > $request['to']) {
     echo 'Invalid export request.';
     exit;
 }
