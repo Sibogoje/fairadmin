@@ -57,6 +57,7 @@ if (!function_exists('fund_summary_fetch')) {
             LEFT JOIN tbldeceased AS d ON d.RetirementFundID = f.RetirementFundID
             LEFT JOIN tblmembers AS m ON m.DeceasedID = d.DeceasedID
             WHERE m.MemberID IS NOT NULL
+                            AND COALESCE(m.Terminated, '0') <> '1'
               AND EXISTS (
                     SELECT 1
                     FROM tblmemberaccounts AS ma_exists
