@@ -1,100 +1,33 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/fundsummary_data.php';
 
-$from = $_POST['from'] ?? '';
-$to = $_POST['to'] ?? '';
-$fundId = $_POST['fund_id'] ?? 'all';
+$request = fund_summary_request_from_post();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ./');
     exit;
 }
 
-if ($from === '' || $to === '') {
+if ($request['from'] === '' || $request['to'] === '') {
     echo '<div class="alert alert-warning mt-3">Please choose both dates.</div>';
     exit;
 }
 
-if ($from > $to) {
+if ($request['from'] > $request['to']) {
     echo '<div class="alert alert-warning mt-3">The start date cannot be after the end date.</div>';
     exit;
 }
 
-$sql = "
-    SELECT
-        f.RetirementFundID,
-        f.FundName,
-        COUNT(DISTINCT m.MemberID) AS TotalMembers,
-        SUM(
-            COALESCE(
-                (
-                    SELECT ma_before.NewBalance
-                    FROM tblmemberaccounts AS ma_before
-                    WHERE ma_before.memberID = m.MemberID
-                      AND DATE(ma_before.TransactionDate) < ?
-                    ORDER BY DATE(ma_before.TransactionDate) DESC, ma_before.accountsID DESC
-                    LIMIT 1
-                ),
-                (
-                    SELECT ma_first.StartingBalance
-                    FROM tblmemberaccounts AS ma_first
-                    WHERE ma_first.memberID = m.MemberID
-                      AND DATE(ma_first.TransactionDate) BETWEEN ? AND ?
-                    ORDER BY DATE(ma_first.TransactionDate) ASC, ma_first.accountsID ASC
-                    LIMIT 1
-                ),
-                0
-            )
-        ) AS OpeningBalance,
-        SUM(
-            COALESCE(
-                (
-                    SELECT ma_close.NewBalance
-                    FROM tblmemberaccounts AS ma_close
-                    WHERE ma_close.memberID = m.MemberID
-                      AND DATE(ma_close.TransactionDate) <= ?
-                    ORDER BY DATE(ma_close.TransactionDate) DESC, ma_close.accountsID DESC
-                    LIMIT 1
-                ),
-                0
-            )
-        ) AS ClosingBalance
-    FROM tblretirementfunds AS f
-    LEFT JOIN tbldeceased AS d ON d.RetirementFundID = f.RetirementFundID
-    LEFT JOIN tblmembers AS m ON m.DeceasedID = d.DeceasedID
-    WHERE m.MemberID IS NOT NULL
-      AND EXISTS (
-            SELECT 1
-            FROM tblmemberaccounts AS ma_exists
-            WHERE ma_exists.memberID = m.MemberID
-              AND DATE(ma_exists.TransactionDate) <= ?
-      )
-";
+$resultData = fund_summary_fetch($conn, $request['from'], $request['to'], $request['fund_id']);
 
-$types = 'sssss';
-$params = [$from, $from, $to, $to, $to];
-
-if ($fundId !== 'all') {
-    $sql .= ' AND f.RetirementFundID = ?';
-    $types .= 's';
-    $params[] = $fundId;
-}
-
-$sql .= '
-    GROUP BY f.RetirementFundID, f.FundName
-    ORDER BY f.FundName ASC
-';
-
-$stmt = $conn->prepare($sql);
-if ($stmt === false) {
+if ($resultData['statement'] === false) {
     echo '<div class="alert alert-danger mt-3">Failed to prepare fund summary query.</div>';
     exit;
 }
 
-$stmt->bind_param($types, ...$params);
-$stmt->execute();
-$result = $stmt->get_result();
+$result = $resultData['result'];
 
 if ($result->num_rows === 0) {
     echo '<div class="alert alert-info mt-3">No fund summary found for the selected period.</div>';

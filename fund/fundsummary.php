@@ -113,8 +113,12 @@ while ($rowFund = $resultFunds->fetch_assoc()) {
             </div>
           </div>
 
-          <div class="col-md-12">
+          <div class="col-md-6">
             <button type="submit" class="btn btn-warning" style="width: 100%;"><b>Show Funds Summary</b></button>
+          </div>
+
+          <div class="col-md-6">
+            <button type="button" class="btn btn-success" id="export_excel" style="width: 100%;"><b>Export To Excel</b></button>
           </div>
         </form>
 
@@ -165,6 +169,34 @@ $(document).ready(function () {
         $('#fund-summary-results').html($.trim(response));
       }
     });
+  });
+
+  $('#export_excel').on('click', function () {
+    var from = $('#from').val();
+    var to = $('#to').val();
+
+    if (from === '' || to === '') {
+      $('#fund-summary-results').html('<div class="alert alert-warning mt-3">Please select both dates.</div>');
+      return;
+    }
+
+    var exportForm = $('<form>', {
+      method: 'POST',
+      action: 'fundsummaryexcel.php',
+      target: '_blank'
+    });
+
+    $.each($('#fund_summary_form').serializeArray(), function (_, field) {
+      exportForm.append($('<input>', {
+        type: 'hidden',
+        name: field.name,
+        value: field.value
+      }));
+    });
+
+    $('body').append(exportForm);
+    exportForm.trigger('submit');
+    exportForm.remove();
   });
 });
   </script>
