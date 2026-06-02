@@ -25,8 +25,8 @@ $AdminPercent = $_POST['AdminPercent'];
 $FixedMonthlyFee = $_POST['FixedMonthlyFee'];
 $TerminationFeePercent = $_POST['TerminationFeePercent'];
 
-
-$stmt = $conn->prepare("UPDATE `u747325399_fairlife`.`tblretirementfundfees` SET
+try {
+  $stmt = $conn->prepare("UPDATE `tblretirementfundfees` SET
   
   `FundFeeID`=?,
   `TransferInPercent`=?,
@@ -41,7 +41,7 @@ $stmt = $conn->prepare("UPDATE `u747325399_fairlife`.`tblretirementfundfees` SET
 );
 
 
-$stmt->bind_param("ssssssss", 
+  $stmt->bind_param("ssssssss", 
 
  
  
@@ -54,8 +54,12 @@ $FixedMonthlyFee,
 $TerminationFeePercent,
 $RetirementFundID
 );
-if (!$stmt->execute() ) 
-$stmt->close();
+  $stmt->execute();
+  $stmt->close();
+} catch (mysqli_sql_exception $e) {
+  error_log("fees.php update error for RetirementFundID " . $RetirementFundID . ": " . $e->getMessage());
+  http_response_code(500);
+}
 }else{
 	//
 }
