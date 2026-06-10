@@ -253,37 +253,14 @@ echo $row14['FundTelNo']; ?></span></th>
 require_once __DIR__ . '/../scripts/bootstrap.php';
 }}  }}	?>
 
-				<tr>
-          <th scope="col" colspan="2" style="vertical-align: top;">Signature of Beneficiary</th>
-          <td scope="col" colspan="4" style="font-weight: bold;">Name and Surname</td>
-          </tr>
-                    
-          <tr>
-          <th scope="col" colspan="2" style="vertical-align: top;"> </th>
-          <td scope="col" colspan="4" style="font-weight: normal;"><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
-          </tr>
-
-					<tr>
-          <th scope="col" colspan="2" style="vertical-align: top;">Date</th>
-          <td scope="col" colspan="4" style="font-weight: normal;">&nbsp;</td>
-          </tr>
-
-					<tr>
-          <td scope="col" colspan="6">By signing here you confirm that you are the beneficiary as listed on the form, and that all the information supplied is correct.
-          <br>
-          Supply original certified copy of your Identity Document or Passport</td>
-          </tr>
-
-					<tr style="text-align: center; background: grey; color: white;">
+				<tr style="text-align: center; background: grey; color: white;">
           <th scope="col" colspan="6">GUARDIAN DETAILS</th>
            </tr>
-                   
+
            <tr style="text-align: center; background: white; color: black;">
-          <th scope="col" colspan="6" >If beneficiary is younger than 18, the Guardian/Caregiver must complete this section</th>
+          <th scope="col" colspan="6" >If member is below 21 years, the Guardian/Caregiver must complete this section and sign.</th>
            </tr>
-                   
+
 					<tr>
           <th scope="col" colspan="2" style="vertical-align: top;">Guardian ID NO: <br> <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
@@ -294,15 +271,28 @@ echo $row12['DateOfBirth']; ?></span></th>
 					</tr>
 
 					<tr>
-          <th scope="col" colspan="2" style="vertical-align: top;">Signature of Guardian/Caregiver</th>
-          <td scope="col" colspan="4" style="font-weight: bold;">Full Name</td>
-          </tr>
-					
-					<tr>
-          <th scope="col" colspan="2" style="vertical-align: top;">  </th>
+          <th scope="col" colspan="2" style="vertical-align: top;">Guardian Full Name</th>
           <td scope="col" colspan="4" style="font-weight: bold;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
+          </tr>
+
+					<tr style="text-align: center; background: grey; color: white;">
+          <th scope="col" colspan="6">SIGNATURE</th>
+           </tr>
+
+					<tr>
+          <td scope="col" colspan="6">Tick one signatory: [ ] Member (21 years and above) &nbsp;&nbsp;&nbsp; [ ] Guardian/Caregiver (member below 21 years)</td>
+          </tr>
+
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Signatory Full Name</th>
+          <td scope="col" colspan="4" style="font-weight: normal;">&nbsp;</td>
+          </tr>
+
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Signature</th>
+          <td scope="col" colspan="4" style="font-weight: normal;">&nbsp;</td>
           </tr>
 
 					<tr>
@@ -311,8 +301,7 @@ echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
           </tr>
 
 					<tr>
-          <td scope="col" colspan="6">By signing here you confirm that you are the Guardian/Caregiver as listed on the form, and that all the information supplied is correct.
-          Supply original certified copy of your Identity Document or Passport</td>
+          <td scope="col" colspan="6">By signing here you confirm that all the information supplied is correct. Guardians/Caregivers must sign when the member is below 21 years. Supply original certified copy of your Identity Document or Passport.</td>
            </tr>
 					
                  
