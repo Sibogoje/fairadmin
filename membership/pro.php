@@ -39,71 +39,6 @@ footer {
 
 @media print {
     .hed{
-             background-color: black;
-         }
-
-  footer {
-    position: fixed;
-    bottom: 0;
-    display: flex;
-align-items: center;
-justify-content: center;
-
-  }
-
-  .content-block, p {
-    page-break-inside: avoid;
-  }
-
-  html, body {
-    width: 210mm;
-    height: 297mm;
-  }
-}
-
-@media print {
-@page {
-           margin-top: 0;
-           margin-bottom: 0;
-            margin-right: 15px;
-            margin-left: 15px;
-         }
-         body  {
-           padding-top: 72px;
-           padding-bottom: 72px ;
-         }
-         .hed{
-             background-color: black;
-         }
-         
-         thead {
-             background-color: black;
-         }
-         .table {
-	font-family:'Arial';
-	border: 1px;
-  
-}
-
-}
-.table {
-	font-family:'Arial';
-	border: 1px;
-  
-}
-#bottom {
-   
- display: flex;
-align-items: center;
-justify-content: center;
-}
-td {
-
-  
-}
-
-.hed {
-    
     padding: 10px;
 }
 
@@ -203,80 +138,14 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row12['DateOfBirth']; ?></span></th>
                     </tr>
 -->					
-					<tr>
-                    <th scope="col" colspan="2" style="vertical-align: top;">Signature of Beneficiary</th>
-                    <td scope="col" colspan="4" style="font-weight: bold;">Name and Surname</td>
-                    </tr>
-                    
-                    
-					<tr>
-                    <th scope="col" colspan="2" style="vertical-align: top;"> </th>
-                    <td scope="col" colspan="4" style="font-weight: normal;"><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
-                    </tr>
-					
-					
-					
-					<tr>
-                    
-                    <td scope="col" colspan="6">By signing here you confirm that you are the beneficiary as listed on the form, and that all the information supplied is correct.
-                    <br>
-                    Supply original certified copy of your Identity Document or Passport</td>
-                    
-				
-					</tr>
-					
-					<tr style="text-align: center; background: grey; color: white;">
-                    <th scope="col" colspan="6">GUARDIAN DETAILS</th>
-                   </tr>
-                   
-                   
-                   
-                   <tr style="text-align: center; background: white; color: black;">
-                    <th scope="col" colspan="6" >If beneficiary is younger than 18, the Guardian/Caregiver must complete this section</th>
-                   </tr>
-                   
-					<tr>
-                    <th scope="col" colspan="2" style="vertical-align: top;">Guardian ID NO: <br> <span style="font-weight: normal;"><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['MemberIDnumber']; ?></span></th>
-                    <th scope="col" colspan="4" style="vertical-align: top;" >Date of Birth: <br> <span style="font-weight: normal;"><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['DateOfBirth']; ?></span></th>
-					</tr>
-					
-					
-					<tr>
-                    <th scope="col" colspan="2" style="vertical-align: top;">Signature of Guardian/Caregiver</th>
-                    <td scope="col" colspan="4" style="font-weight: bold;">Full Name</td>
-                    </tr>
-					
-					<tr>
-                    <th scope="col" colspan="2" style="vertical-align: top;">  </th>
-                    <td scope="col" colspan="4" style="font-weight: bold;"><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
-                    </tr>
-					
-					
-					
-					<tr>
-                    
-                    <td scope="col" colspan="6">By signing here you confirm that you are the Guardian/Caregiver as listed on the form, and that all the information supplied is correct.
-                    Supply original certified copy of your Identity Document or Passport</td>
-                   </tr>
-					
-				    
-					
 				<tr style="text-align: center; background: grey; color: white;">
-                    <th scope="col" style="font-weight: bold;" colspan="6"> CONTACT DETAILS</th>
-                   </tr>
-                   
-                  <tr>
-                    <th scope="col" colspan="2" style="vertical-align: top;"></th>
+          <th scope="col" style="font-weight: bold;" colspan="6"> CONTACT DETAILS</th>
+           </tr>
+
+				  <tr>
+          <th scope="col" colspan="2" style="vertical-align: top;"></th>
                     
-                    <th scope="col" colspan="2" style="vertical-align: top;">Beneficiary</th>
+          <th scope="col" colspan="2" style="vertical-align: top;">Beneficiary</th>
 					
 					<th scope="col" colspan="2" style="vertical-align: top;">Guardian</th>
 					
@@ -383,6 +252,68 @@ echo $row14['FundTelNo']; ?></span></th>
 				<?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 }}  }}	?>
+
+				<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Signature of Beneficiary</th>
+          <td scope="col" colspan="4" style="font-weight: bold;">Name and Surname</td>
+          </tr>
+                    
+          <tr>
+          <th scope="col" colspan="2" style="vertical-align: top;"> </th>
+          <td scope="col" colspan="4" style="font-weight: normal;"><?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo $row12['MemberFirstname']." ".$row12['MemberSurname']; ?></td>
+          </tr>
+
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Date</th>
+          <td scope="col" colspan="4" style="font-weight: normal;">&nbsp;</td>
+          </tr>
+
+					<tr>
+          <td scope="col" colspan="6">By signing here you confirm that you are the beneficiary as listed on the form, and that all the information supplied is correct.
+          <br>
+          Supply original certified copy of your Identity Document or Passport</td>
+          </tr>
+
+					<tr style="text-align: center; background: grey; color: white;">
+          <th scope="col" colspan="6">GUARDIAN DETAILS</th>
+           </tr>
+                   
+           <tr style="text-align: center; background: white; color: black;">
+          <th scope="col" colspan="6" >If beneficiary is younger than 18, the Guardian/Caregiver must complete this section</th>
+           </tr>
+                   
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Guardian ID NO: <br> <span style="font-weight: normal;"><?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo $row12['MemberIDnumber']; ?></span></th>
+          <th scope="col" colspan="4" style="vertical-align: top;" >Date of Birth: <br> <span style="font-weight: normal;"><?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo $row12['DateOfBirth']; ?></span></th>
+					</tr>
+
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Signature of Guardian/Caregiver</th>
+          <td scope="col" colspan="4" style="font-weight: bold;">Full Name</td>
+          </tr>
+					
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">  </th>
+          <td scope="col" colspan="4" style="font-weight: bold;"><?php
+require_once __DIR__ . '/../scripts/bootstrap.php';
+echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
+          </tr>
+
+					<tr>
+          <th scope="col" colspan="2" style="vertical-align: top;">Date</th>
+          <td scope="col" colspan="4" style="font-weight: normal;">&nbsp;</td>
+          </tr>
+
+					<tr>
+          <td scope="col" colspan="6">By signing here you confirm that you are the Guardian/Caregiver as listed on the form, and that all the information supplied is correct.
+          Supply original certified copy of your Identity Document or Passport</td>
+           </tr>
 					
                  
                 </thead>
