@@ -134,7 +134,7 @@ echo $row12['MemberNo']."  ".$row12['MemberFirstname']." ".$row12['MemberSurname
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row12['MemberIDnumber']; ?></span></th>
 				
-					<th scope="col" style="vertical-align: top;" colspan="2">date of Birth: <br><span style="font-weight: normal;"> <?php
+          <th scope="col" style="vertical-align: top;" colspan="2">Date of Birth: <br><span style="font-weight: normal;"> <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row12['DateOfBirth']; ?> </span></th>
 					
