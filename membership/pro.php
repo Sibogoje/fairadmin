@@ -43,6 +43,15 @@ footer {
 }
 
 
+    .print-checkbox {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 1.5px solid #000;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
 
 
 @media print
@@ -81,6 +90,7 @@ footer {
 require_once __DIR__ . '/../scripts/bootstrap.php';
 $deceasedid = "";
 $fundid = "";
+$guardianData = null;
 
 if(count($_POST)>0){
 $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
@@ -88,6 +98,20 @@ $stmt12 = $conn->prepare("SELECT * from tblmembers where MemberID = '$ii' ");
 						$result12 = $stmt12->get_result();
 						if ($result12->num_rows > 0) {
 						    while($row12 = $result12->fetch_assoc()) {
+            $guardianData = null;
+
+            if (!empty($row12['GuardianID'])) {
+              $guardianId = (int)$row12['GuardianID'];
+              $stmtGuardian = $conn->prepare("SELECT GuardianSurname, GuardianFirstNames, GuardianIDno FROM tblguardians WHERE GuardianID = ?");
+              $stmtGuardian->bind_param("i", $guardianId);
+              $stmtGuardian->execute();
+              $resultGuardian = $stmtGuardian->get_result();
+              if ($resultGuardian->num_rows > 0) {
+                $guardianData = $resultGuardian->fetch_assoc();
+              }
+              $stmtGuardian->close();
+            }
+
 						  // output data of each row
 						 ?>
 						 <div class="table-responsive">
@@ -262,19 +286,19 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
            </tr>
 
 					<tr>
-          <th scope="col" colspan="2" style="vertical-align: top;">Guardian ID NO: <br> <span style="font-weight: normal;"><?php
+      <th scope="col" colspan="2" style="vertical-align: top;">Guardian ID NO: <br> <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['MemberIDnumber']; ?></span></th>
-          <th scope="col" colspan="4" style="vertical-align: top;" >Date of Birth: <br> <span style="font-weight: normal;"><?php
+echo !empty($guardianData['GuardianIDno']) ? $guardianData['GuardianIDno'] : ''; ?></span></th>
+      <th scope="col" colspan="4" style="vertical-align: top;" >Relationship to Member: <br> <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['DateOfBirth']; ?></span></th>
+echo !empty($row12['RelationshipGuardian']) ? $row12['RelationshipGuardian'] : ''; ?></span></th>
 					</tr>
 
 					<tr>
           <th scope="col" colspan="2" style="vertical-align: top;">Guardian Full Name</th>
           <td scope="col" colspan="4" style="font-weight: bold;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
+echo !empty($guardianData) ? trim(($guardianData['GuardianSurname'] ?? '')." ".($guardianData['GuardianFirstNames'] ?? '')) : ''; ?></td>
           </tr>
 
 					<tr style="text-align: center; background: grey; color: white;">
@@ -282,7 +306,7 @@ echo $row12['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
            </tr>
 
 					<tr>
-          <td scope="col" colspan="6">Tick one signatory: [ ] Member (21 years and above) &nbsp;&nbsp;&nbsp; [ ] Guardian/Caregiver (member below 21 years)</td>
+      <td scope="col" colspan="6">Tick one signatory: <span class="print-checkbox"></span>Member (21 years and above) &nbsp;&nbsp;&nbsp; <span class="print-checkbox"></span>Guardian/Caregiver (member below 21 years)</td>
           </tr>
 
 					<tr>
