@@ -44,17 +44,13 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: '#012970'
   image: assets/splash_logo.png
-  branding: assets/splash_branding.png
   color_dark: '#012970'
   image_dark: assets/splash_logo.png
-  branding_dark: assets/splash_branding.png
   android: true
   ios: false
   web: false
   android_12:
     color: '#012970'
     image: assets/splash_logo.png
-    branding: assets/splash_branding.png
     color_dark: '#012970'
     image_dark: assets/splash_logo.png
-    branding_dark: assets/splash_branding.png
