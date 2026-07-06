@@ -14,6 +14,9 @@ const apiBaseUrl = String.fromEnvironment(
   'FAIRLIFE_API_BASE_URL',
   defaultValue: 'https://fairlife.grinpath.com/mobile/api',
 );
+const logoIconAsset = 'assets/logo.png';
+const brandName = 'Fairlife';
+const brandTagline = 'Benefit Benefit Swaziland.';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,15 +50,19 @@ class FairlifeApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFFFC107),
             foregroundColor: const Color(0xFF1C2434),
             minimumSize: const Size.fromHeight(54),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
             textStyle: const TextStyle(fontWeight: FontWeight.w800),
           ),
         ),
@@ -107,7 +114,8 @@ class _AppRootState extends State<AppRoot> {
   @override
   Widget build(BuildContext context) {
     if (token != null) {
-      return HomeScreen(api: api, token: token!, name: name ?? 'Member', onLogout: logout);
+      return HomeScreen(
+          api: api, token: token!, name: name ?? 'Member', onLogout: logout);
     }
 
     return LoginScreen(api: api, onAuthenticated: saveSession);
@@ -115,7 +123,8 @@ class _AppRootState extends State<AppRoot> {
 }
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.api, required this.onAuthenticated});
+  const LoginScreen(
+      {super.key, required this.api, required this.onAuthenticated});
 
   final ApiClient api;
   final ValueChanged<Map<String, dynamic>> onAuthenticated;
@@ -132,12 +141,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> submit() async {
     setState(() => loading = true);
     try {
-      final data = await widget.api.login(memberNo: memberNo.text.trim(), password: password.text);
+      final data = await widget.api
+          .login(memberNo: memberNo.text.trim(), password: password.text);
       widget.onAuthenticated(data);
     } on ApiException catch (error) {
-      if ((error.code == 'FIRST_LOGIN_REQUIRED' || error.code == 'SECURITY_SETUP_REQUIRED') && mounted) {
+      if ((error.code == 'FIRST_LOGIN_REQUIRED' ||
+              error.code == 'SECURITY_SETUP_REQUIRED') &&
+          mounted) {
         await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => FirstLoginScreen(api: widget.api, initialMemberNo: memberNo.text.trim(), onAuthenticated: widget.onAuthenticated),
+          builder: (_) => FirstLoginScreen(
+              api: widget.api,
+              initialMemberNo: memberNo.text.trim(),
+              onAuthenticated: widget.onAuthenticated),
         ));
       } else if (mounted) {
         showMessage(context, error.message);
@@ -154,23 +169,34 @@ class _LoginScreenState extends State<LoginScreen> {
       subtitle: 'Request adhoc funds and track your submission securely.',
       child: Column(
         children: [
-          AppTextField(controller: memberNo, label: 'Member number', icon: Icons.badge_outlined),
+          AppTextField(
+              controller: memberNo,
+              label: 'Member number',
+              icon: Icons.badge_outlined),
           const SizedBox(height: 14),
-          AppTextField(controller: password, label: 'Password', icon: Icons.lock_outline, obscure: true),
+          AppTextField(
+              controller: password,
+              label: 'Password',
+              icon: Icons.lock_outline,
+              obscure: true),
           const SizedBox(height: 22),
-          ElevatedButton(onPressed: loading ? null : submit, child: Text(loading ? 'Signing in...' : 'Sign in')),
+          ElevatedButton(
+              onPressed: loading ? null : submit,
+              child: Text(loading ? 'Signing in...' : 'Sign in')),
           const SizedBox(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton(
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => FirstLoginScreen(api: widget.api, onAuthenticated: widget.onAuthenticated),
+                  builder: (_) => FirstLoginScreen(
+                      api: widget.api, onAuthenticated: widget.onAuthenticated),
                 )),
                 child: const Text('First login'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ForgotPasswordScreen(api: widget.api))),
+                onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => ForgotPasswordScreen(api: widget.api))),
                 child: const Text('Forgot password'),
               ),
             ],
@@ -182,7 +208,11 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 
 class FirstLoginScreen extends StatefulWidget {
-  const FirstLoginScreen({super.key, required this.api, required this.onAuthenticated, this.initialMemberNo});
+  const FirstLoginScreen(
+      {super.key,
+      required this.api,
+      required this.onAuthenticated,
+      this.initialMemberNo});
 
   final ApiClient api;
   final ValueChanged<Map<String, dynamic>> onAuthenticated;
@@ -220,7 +250,8 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
       lastDate: DateTime.now(),
       initialDate: DateTime.now(),
     );
-    if (picked != null) dateOpened.text = DateFormat('yyyy-MM-dd').format(picked);
+    if (picked != null)
+      dateOpened.text = DateFormat('yyyy-MM-dd').format(picked);
   }
 
   Future<void> submit() async {
@@ -236,10 +267,12 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
         'member_id_number': memberId.text.trim(),
         'date_account_opened': dateOpened.text.trim(),
         'password': password.text,
-        'security_questions': List.generate(3, (index) => {
-              'question': questions[index],
-              'answer': answers[index].text,
-            }),
+        'security_questions': List.generate(
+            3,
+            (index) => {
+                  'question': questions[index],
+                  'answer': answers[index].text,
+                }),
       });
       widget.onAuthenticated(data);
       if (mounted) Navigator.of(context).pop();
@@ -254,28 +287,58 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
   Widget build(BuildContext context) {
     return AuthScaffold(
       title: 'First login setup',
-      subtitle: 'Confirm your member record, create a new password, then secure recovery.',
+      subtitle:
+          'Confirm your member record, create a new password, then secure recovery.',
       showBack: true,
       child: Column(
         children: [
-          AppTextField(controller: memberNo, label: 'Member number', icon: Icons.badge_outlined),
+          AppTextField(
+              controller: memberNo,
+              label: 'Member number',
+              icon: Icons.badge_outlined),
           const SizedBox(height: 12),
-          AppTextField(controller: deceasedId, label: 'Deceased national ID', icon: Icons.fingerprint),
+          AppTextField(
+              controller: deceasedId,
+              label: 'Deceased national ID',
+              icon: Icons.fingerprint),
           const SizedBox(height: 12),
-          AppTextField(controller: memberId, label: 'Member national ID', icon: Icons.assignment_ind_outlined),
+          AppTextField(
+              controller: memberId,
+              label: 'Member national ID',
+              icon: Icons.assignment_ind_outlined),
           const SizedBox(height: 12),
-          AppTextField(controller: dateOpened, label: 'Date account opened', icon: Icons.event_outlined, readOnly: true, onTap: pickDate),
+          AppTextField(
+              controller: dateOpened,
+              label: 'Date account opened',
+              icon: Icons.event_outlined,
+              readOnly: true,
+              onTap: pickDate),
           const SizedBox(height: 12),
-          AppTextField(controller: password, label: 'New password', icon: Icons.lock_outline, obscure: true),
+          AppTextField(
+              controller: password,
+              label: 'New password',
+              icon: Icons.lock_outline,
+              obscure: true),
           const SizedBox(height: 12),
-          AppTextField(controller: confirmPassword, label: 'Confirm password', icon: Icons.verified_user_outlined, obscure: true),
+          AppTextField(
+              controller: confirmPassword,
+              label: 'Confirm password',
+              icon: Icons.verified_user_outlined,
+              obscure: true),
           const SizedBox(height: 18),
-          ...List.generate(3, (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: AppTextField(controller: answers[index], label: questions[index], icon: Icons.question_answer_outlined),
-              )),
+          ...List.generate(
+              3,
+              (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: AppTextField(
+                        controller: answers[index],
+                        label: questions[index],
+                        icon: Icons.question_answer_outlined),
+                  )),
           const SizedBox(height: 10),
-          ElevatedButton(onPressed: loading ? null : submit, child: Text(loading ? 'Setting up...' : 'Complete first login')),
+          ElevatedButton(
+              onPressed: loading ? null : submit,
+              child: Text(loading ? 'Setting up...' : 'Complete first login')),
         ],
       ),
     );
@@ -336,18 +399,35 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       showBack: true,
       child: Column(
         children: [
-          AppTextField(controller: memberNo, label: 'Member number', icon: Icons.badge_outlined),
+          AppTextField(
+              controller: memberNo,
+              label: 'Member number',
+              icon: Icons.badge_outlined),
           const SizedBox(height: 14),
-          ElevatedButton(onPressed: loading ? null : loadQuestions, child: Text(questions.isEmpty ? 'Load questions' : 'Reload questions')),
+          ElevatedButton(
+              onPressed: loading ? null : loadQuestions,
+              child: Text(
+                  questions.isEmpty ? 'Load questions' : 'Reload questions')),
           const SizedBox(height: 18),
-          ...List.generate(questions.length, (index) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: AppTextField(controller: answers[index], label: questions[index], icon: Icons.question_answer_outlined),
-              )),
+          ...List.generate(
+              questions.length,
+              (index) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: AppTextField(
+                        controller: answers[index],
+                        label: questions[index],
+                        icon: Icons.question_answer_outlined),
+                  )),
           if (questions.isNotEmpty) ...[
-            AppTextField(controller: password, label: 'New password', icon: Icons.lock_outline, obscure: true),
+            AppTextField(
+                controller: password,
+                label: 'New password',
+                icon: Icons.lock_outline,
+                obscure: true),
             const SizedBox(height: 18),
-            ElevatedButton(onPressed: loading ? null : reset, child: Text(loading ? 'Resetting...' : 'Reset password')),
+            ElevatedButton(
+                onPressed: loading ? null : reset,
+                child: Text(loading ? 'Resetting...' : 'Reset password')),
           ],
         ],
       ),
@@ -356,7 +436,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.api, required this.token, required this.name, required this.onLogout});
+  const HomeScreen(
+      {super.key,
+      required this.api,
+      required this.token,
+      required this.name,
+      required this.onLogout});
 
   final ApiClient api;
   final String token;
@@ -376,10 +461,12 @@ class _HomeScreenState extends State<HomeScreen> {
   final supportDocs = <RequestDocument>[];
   bool loading = false;
 
-  Future<void> addImage(List<RequestDocument> target, String labelPrefix, ImageSource source) async {
+  Future<void> addImage(List<RequestDocument> target, String labelPrefix,
+      ImageSource source) async {
     final image = await imagePicker.pickImage(source: source, imageQuality: 88);
     if (image == null) return;
-    setState(() => target.add(RequestDocument(path: image.path, label: '$labelPrefix ${target.length + 1}')));
+    setState(() => target.add(RequestDocument(
+        path: image.path, label: '$labelPrefix ${target.length + 1}')));
   }
 
   Future<void> addFile(List<RequestDocument> target, String labelPrefix) async {
@@ -391,7 +478,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result == null) return;
     setState(() {
       for (final file in result.files.where((file) => file.path != null)) {
-        target.add(RequestDocument(path: file.path!, label: '$labelPrefix ${target.length + 1}'));
+        target.add(RequestDocument(
+            path: file.path!, label: '$labelPrefix ${target.length + 1}'));
       }
     });
   }
@@ -401,8 +489,11 @@ class _HomeScreenState extends State<HomeScreen> {
       showMessage(context, 'Please add at least one request letter photo.');
       return;
     }
-    final parsedAmount = double.tryParse(amount.text.replaceAll(',', '').trim());
-    if (parsedAmount == null || parsedAmount <= 0 || details.text.trim().isEmpty) {
+    final parsedAmount =
+        double.tryParse(amount.text.replaceAll(',', '').trim());
+    if (parsedAmount == null ||
+        parsedAmount <= 0 ||
+        details.text.trim().isEmpty) {
       showMessage(context, 'Amount and usage details are required.');
       return;
     }
@@ -426,7 +517,8 @@ class _HomeScreenState extends State<HomeScreen> {
           requestLetters.clear();
           supportDocs.clear();
         });
-        showMessage(context, 'Request submitted. Reference: ${data['request']['reference']}');
+        showMessage(context,
+            'Request submitted. Reference: ${data['request']['reference']}');
       }
     } on ApiException catch (error) {
       if (mounted) showMessage(context, error.message);
@@ -444,16 +536,35 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16)),
+                  child: Image.asset(logoIconAsset, fit: BoxFit.contain),
+                ),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Fairlife', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF012970))),
-                      Text(widget.name, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black54)),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: const AppBrandText(
+                            color: Color(0xFF012970), compact: true),
+                      ),
+                      Text(widget.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium
+                              ?.copyWith(color: Colors.black54)),
                     ],
                   ),
                 ),
-                IconButton.filledTonal(onPressed: widget.onLogout, icon: const Icon(Icons.logout)),
+                IconButton.filledTonal(
+                    onPressed: widget.onLogout, icon: const Icon(Icons.logout)),
               ],
             ),
             const SizedBox(height: 24),
@@ -461,44 +572,75 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(28),
-                gradient: const LinearGradient(colors: [Color(0xFF012970), Color(0xFF4154F1)]),
-                boxShadow: const [BoxShadow(color: Color(0x26012970), blurRadius: 24, offset: Offset(0, 14))],
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF012970), Color(0xFF4154F1)]),
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x26012970),
+                      blurRadius: 24,
+                      offset: Offset(0, 14))
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.account_balance_wallet_outlined, color: Colors.white, size: 34),
+                  const Icon(Icons.account_balance_wallet_outlined,
+                      color: Colors.white, size: 34),
                   const SizedBox(height: 20),
-                  Text('Adhoc funds request', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                  Text('Adhoc funds request',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900)),
                   const SizedBox(height: 8),
-                  Text('Submit amount, details, and one combined PDF built from your request letter and supporting images.', style: TextStyle(color: Colors.white.withOpacity(.78), height: 1.4)),
+                  Text(
+                      'Submit amount, details, and one combined PDF built from your request letter and supporting images.',
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(.78), height: 1.4)),
                 ],
               ),
             ),
             const SizedBox(height: 22),
-            AppTextField(controller: amount, label: 'Amount requested', icon: Icons.payments_outlined, keyboardType: TextInputType.number),
+            AppTextField(
+                controller: amount,
+                label: 'Amount requested',
+                icon: Icons.payments_outlined,
+                keyboardType: TextInputType.number),
             const SizedBox(height: 14),
-            AppTextField(controller: details, label: 'Where the funds will be used', icon: Icons.notes_outlined, maxLines: 4),
+            AppTextField(
+                controller: details,
+                label: 'Where the funds will be used',
+                icon: Icons.notes_outlined,
+                maxLines: 4),
             const SizedBox(height: 20),
             DocumentPickerPanel(
               title: 'Request letter',
               documents: requestLetters,
-              onCamera: () => addImage(requestLetters, 'Request letter', ImageSource.camera),
-              onGallery: () => addImage(requestLetters, 'Request letter', ImageSource.gallery),
+              onCamera: () => addImage(
+                  requestLetters, 'Request letter', ImageSource.camera),
+              onGallery: () => addImage(
+                  requestLetters, 'Request letter', ImageSource.gallery),
               onFiles: () => addFile(requestLetters, 'Request letter'),
-              onRemove: (index) => setState(() => requestLetters.removeAt(index)),
+              onRemove: (index) =>
+                  setState(() => requestLetters.removeAt(index)),
             ),
             const SizedBox(height: 16),
             DocumentPickerPanel(
               title: 'Supporting documents',
               documents: supportDocs,
-              onCamera: () => addImage(supportDocs, 'Supporting document', ImageSource.camera),
-              onGallery: () => addImage(supportDocs, 'Supporting document', ImageSource.gallery),
+              onCamera: () => addImage(
+                  supportDocs, 'Supporting document', ImageSource.camera),
+              onGallery: () => addImage(
+                  supportDocs, 'Supporting document', ImageSource.gallery),
               onFiles: () => addFile(supportDocs, 'Supporting document'),
               onRemove: (index) => setState(() => supportDocs.removeAt(index)),
             ),
             const SizedBox(height: 22),
-            ElevatedButton(onPressed: loading ? null : submit, child: Text(loading ? 'Submitting...' : 'Submit request')),
+            ElevatedButton(
+                onPressed: loading ? null : submit,
+                child: Text(loading ? 'Submitting...' : 'Submit request')),
           ],
         ),
       ),
@@ -507,7 +649,14 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class DocumentPickerPanel extends StatelessWidget {
-  const DocumentPickerPanel({super.key, required this.title, required this.documents, required this.onCamera, required this.onGallery, required this.onFiles, required this.onRemove});
+  const DocumentPickerPanel(
+      {super.key,
+      required this.title,
+      required this.documents,
+      required this.onCamera,
+      required this.onGallery,
+      required this.onFiles,
+      required this.onRemove});
 
   final String title;
   final List<RequestDocument> documents;
@@ -520,29 +669,45 @@ class DocumentPickerPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: const [BoxShadow(color: Color(0x12012970), blurRadius: 18, offset: Offset(0, 10))]),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x12012970), blurRadius: 18, offset: Offset(0, 10))
+          ]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF012970))),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF012970))),
           const SizedBox(height: 12),
           Row(
             children: [
               PickerButton(icon: Icons.photo_camera_outlined, onTap: onCamera),
               const SizedBox(width: 10),
-              PickerButton(icon: Icons.photo_library_outlined, onTap: onGallery),
+              PickerButton(
+                  icon: Icons.photo_library_outlined, onTap: onGallery),
               const SizedBox(width: 10),
               PickerButton(icon: Icons.upload_file_outlined, onTap: onFiles),
             ],
           ),
           if (documents.isNotEmpty) ...[
             const SizedBox(height: 12),
-            ...List.generate(documents.length, (index) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.description_outlined, color: Color(0xFF4154F1)),
-                  title: Text(documents[index].label),
-                  trailing: IconButton(icon: const Icon(Icons.close), onPressed: () => onRemove(index)),
-                )),
+            ...List.generate(
+                documents.length,
+                (index) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.description_outlined,
+                          color: Color(0xFF4154F1)),
+                      title: Text(documents[index].label),
+                      trailing: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => onRemove(index)),
+                    )),
           ],
         ],
       ),
@@ -564,7 +729,9 @@ class PickerButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           height: 50,
-          decoration: BoxDecoration(color: const Color(0xFFF6F9FF), borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+              color: const Color(0xFFF6F9FF),
+              borderRadius: BorderRadius.circular(16)),
           child: Icon(icon, color: const Color(0xFF012970)),
         ),
       ),
@@ -572,8 +739,51 @@ class PickerButton extends StatelessWidget {
   }
 }
 
+class AppBrandText extends StatelessWidget {
+  const AppBrandText({super.key, required this.color, this.compact = false});
+
+  final Color color;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          brandName,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: color,
+                fontSize: compact ? 20 : 26,
+                fontWeight: FontWeight.w900,
+                height: .95,
+              ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          brandTagline,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: color,
+                fontSize: compact ? 11 : 14,
+                fontWeight: FontWeight.w700,
+                height: 1.1,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
 class AuthScaffold extends StatelessWidget {
-  const AuthScaffold({super.key, required this.title, required this.subtitle, required this.child, this.showBack = false});
+  const AuthScaffold(
+      {super.key,
+      required this.title,
+      required this.subtitle,
+      required this.child,
+      this.showBack = false});
 
   final String title;
   final String subtitle;
@@ -587,28 +797,55 @@ class AuthScaffold extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(22),
           children: [
-            if (showBack) Align(alignment: Alignment.centerLeft, child: IconButton.filledTonal(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.arrow_back))),
+            if (showBack)
+              Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton.filledTonal(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back))),
             const SizedBox(height: 18),
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: const Color(0xFF012970),
                 borderRadius: BorderRadius.circular(30),
-                boxShadow: const [BoxShadow(color: Color(0x26012970), blurRadius: 26, offset: Offset(0, 14))],
+                boxShadow: const [
+                  BoxShadow(
+                      color: Color(0x26012970),
+                      blurRadius: 26,
+                      offset: Offset(0, 14))
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(color: const Color(0xFFFFC107), borderRadius: BorderRadius.circular(18)),
-                    child: const Icon(Icons.savings_outlined, color: Color(0xFF012970)),
+                  Row(
+                    children: [
+                      Container(
+                        width: 58,
+                        height: 58,
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18)),
+                        child: Image.asset(logoIconAsset, fit: BoxFit.contain),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(child: AppBrandText(color: Colors.white)),
+                    ],
                   ),
                   const SizedBox(height: 24),
-                  Text(title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                  Text(title,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineMedium
+                          ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900)),
                   const SizedBox(height: 8),
-                  Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(.78), height: 1.45)),
+                  Text(subtitle,
+                      style: TextStyle(
+                          color: Colors.white.withOpacity(.78), height: 1.45)),
                 ],
               ),
             ),
@@ -622,7 +859,16 @@ class AuthScaffold extends StatelessWidget {
 }
 
 class AppTextField extends StatelessWidget {
-  const AppTextField({super.key, required this.controller, required this.label, required this.icon, this.obscure = false, this.readOnly = false, this.onTap, this.keyboardType, this.maxLines = 1});
+  const AppTextField(
+      {super.key,
+      required this.controller,
+      required this.label,
+      required this.icon,
+      this.obscure = false,
+      this.readOnly = false,
+      this.onTap,
+      this.keyboardType,
+      this.maxLines = 1});
 
   final TextEditingController controller;
   final String label;
@@ -648,5 +894,6 @@ class AppTextField extends StatelessWidget {
 }
 
 void showMessage(BuildContext context, String message) {
-  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), behavior: SnackBarBehavior.floating));
+  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating));
 }

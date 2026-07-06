@@ -1,3 +1,5 @@
+import com.android.build.gradle.LibraryExtension
+
 allprojects {
     repositories {
         google()
@@ -17,6 +19,24 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
+}
+
+subprojects {
+    fun overrideCompileSdk() {
+        plugins.withId("com.android.library") {
+            extensions.configure<LibraryExtension>("android") {
+                compileSdk = 36
+            }
+        }
+    }
+
+    if (state.executed) {
+        overrideCompileSdk()
+    } else {
+        afterEvaluate {
+            overrideCompileSdk()
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
