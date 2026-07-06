@@ -18,4 +18,10 @@ Flutter Android app for members to complete first login, manage password recover
    flutter run --dart-define=FAIRLIFE_API_BASE_URL=https://your-domain.example/mobile/api
    ```
 
+   If the API host uses a self-signed certificate chain, the app allows that certificate for the configured API host by default. To require a publicly trusted certificate, run with:
+
+   ```powershell
+   flutter run --dart-define=FAIRLIFE_ALLOW_SELF_SIGNED_CERTIFICATE=false
+   ```
+
 The PHP API creates `mobile_api_tokens` and `mobile_security_questions` automatically on first use. The same SQL is also included in `mobile/api/schema.sql` for manual deployment.

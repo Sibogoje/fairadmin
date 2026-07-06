@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http/io_client.dart';
 
 class ApiException implements Exception {
   ApiException(this.message, {this.code, this.statusCode});
@@ -15,12 +16,36 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
-  ApiClient({required this.baseUrl, http.Client? httpClient})
-      : _httpClient = httpClient ?? http.Client();
+  ApiClient({
+    required this.baseUrl,
+    this.allowSelfSignedCertificate = false,
+    http.Client? httpClient,
+  }) : _httpClient = httpClient ??
+            _defaultClient(
+              baseUrl,
+              allowSelfSignedCertificate: allowSelfSignedCertificate,
+            );
 
   final String baseUrl;
+  final bool allowSelfSignedCertificate;
   final http.Client _httpClient;
   static const requestTimeout = Duration(seconds: 30);
+
+  static http.Client _defaultClient(
+    String baseUrl, {
+    required bool allowSelfSignedCertificate,
+  }) {
+    final apiHost = Uri.parse(baseUrl).host.toLowerCase();
+    final httpClient = HttpClient();
+
+    if (allowSelfSignedCertificate) {
+      httpClient.badCertificateCallback = (certificate, host, port) {
+        return host.toLowerCase() == apiHost;
+      };
+    }
+
+    return IOClient(httpClient);
+  }
 
   Uri _uri(String path, [Map<String, String>? query]) {
     return Uri.parse('$baseUrl/$path').replace(queryParameters: query);
@@ -100,6 +125,9 @@ class ApiClient {
     } on SocketException {
       throw ApiException(
           'Could not connect to the Fairlife server. Check your internet connection and API URL.');
+    } on HandshakeException {
+      throw ApiException(
+          'Could not verify the Fairlife server certificate. The app is currently configured for $baseUrl.');
     } on HttpException {
       throw ApiException(
           'The Fairlife server closed the request unexpectedly.');

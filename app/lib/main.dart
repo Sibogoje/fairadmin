@@ -14,6 +14,10 @@ const apiBaseUrl = String.fromEnvironment(
   'FAIRLIFE_API_BASE_URL',
   defaultValue: 'https://fairlife.grinpath.com/mobile/api',
 );
+const allowSelfSignedApiCertificate = bool.fromEnvironment(
+  'FAIRLIFE_ALLOW_SELF_SIGNED_CERTIFICATE',
+  defaultValue: true,
+);
 const logoIconAsset = 'assets/logo.png';
 const brandName = 'Fairlife';
 const brandTagline = 'Benefit Benefit Swaziland.';
@@ -82,7 +86,10 @@ class AppRoot extends StatefulWidget {
 }
 
 class _AppRootState extends State<AppRoot> {
-  late final ApiClient api = ApiClient(baseUrl: apiBaseUrl);
+  late final ApiClient api = ApiClient(
+    baseUrl: apiBaseUrl,
+    allowSelfSignedCertificate: allowSelfSignedApiCertificate,
+  );
   String? token;
   String? name;
 

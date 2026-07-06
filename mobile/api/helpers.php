@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../../scripts/bootstrap.php';
-require_once __DIR__ . '/../config.php';
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -9,6 +8,24 @@ header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
+    exit;
+}
+
+try {
+    $pdo = new PDO(
+        'mysql:host=srv1212.hstgr.io;dbname=u747325399_fairlifeSLA;charset=utf8mb4',
+        'u747325399_fairlifeSLA',
+        'u747325399fairlifeSLA',
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ]
+    );
+} catch (PDOException $error) {
+    error_log('mobile api db connect failed: ' . $error->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database connection error. Please try again later.']);
     exit;
 }
 
