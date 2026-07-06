@@ -70,7 +70,7 @@ class ApiClient {
   }
 
   Future<List<String>> fetchSecurityQuestions(String memberNo) async {
-    final response = await _request(() =>
+    final response = await _jsonResponse(() =>
         _httpClient.get(_uri('forgot-password.php', {'memberno': memberNo})));
     final data = _decode(response);
     return (data['questions'] as List<dynamic>).cast<String>();
@@ -111,12 +111,32 @@ class ApiClient {
 
   Future<Map<String, dynamic>> _postJson(
       String path, Map<String, dynamic> body) async {
-    final response = await _request(() => _httpClient.post(
+    final response = await _jsonResponse(() => _httpClient.post(
           _uri(path),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(body),
         ));
     return _decode(response);
+  }
+
+  Future<http.Response> _jsonResponse(
+      Future<http.Response> Function() send) async {
+    final response = await _request(send);
+    if (_looksLikeJson(response.body)) {
+      return response;
+    }
+
+    final retryResponse = await _request(send);
+    if (_looksLikeJson(retryResponse.body)) {
+      return retryResponse;
+    }
+
+    return response;
+  }
+
+  bool _looksLikeJson(String body) {
+    final trimmed = body.trimLeft();
+    return trimmed.startsWith('{') || trimmed.startsWith('[');
   }
 
   Future<T> _request<T>(Future<T> Function() send) async {
