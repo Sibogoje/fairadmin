@@ -115,7 +115,7 @@ echo $row13['DeceasedSurname']." ".$row13['DeceasedFirstnames']; ?></td>
                     <th scope="col" style="vertical-align: top;" >Deceased ID</th>
 					<td scope="col"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row13['DeceasedID']; ?></td>
+echo !empty($row13['DeceasedIDnumber']) ? $row13['DeceasedIDnumber'] : $row13['DeceasedID']; ?></td>
 					<th scope="col" style="vertical-align: top;">Deceased Date Of Death</th>
 					<td scope="col"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
@@ -146,7 +146,7 @@ echo $row13['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></td>
                     <th scope="col" style="vertical-align: top;">Guardian ID</th>
 					<td scope="col"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row13['GuardianID']; ?></td>
+echo !empty($row13['GuardianIDno']) ? $row13['GuardianIDno'] : $row13['GuardianID']; ?></td>
 					<th scope="col" style="vertical-align: top;">Guardian Contacts</th>
 					<td scope="col"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';

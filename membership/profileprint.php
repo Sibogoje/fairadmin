@@ -217,7 +217,7 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row13['DeceasedSurname']." ".$row13['DeceasedFirstnames']; ?></span></th>
                     <th colspan="2" scope="col" style="" >Deceased ID: <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row13['DeceasedID']; ?></span></th>
+echo !empty($row13['DeceasedIDnumber']) ? $row13['DeceasedIDnumber'] : $row13['DeceasedID']; ?></span></th>
 					<th colspan="2" scope="col" style="">Deceased Date Of Death: <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row13['DateOfDeath']; ?></span></th>
@@ -246,7 +246,7 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row13['GuardianSurname']." ".$row12['GuardianFirstNames']; ?></span></th>
                     <th colspan="2" scope="col" style="">Guardian ID: <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row13['GuardianID']; ?></span></th>
+echo !empty($row13['GuardianIDno']) ? $row13['GuardianIDno'] : $row13['GuardianID']; ?></span></th>
 					<th colspan="2" scope="col" style="">Guardian Contacts: <span style="font-weight: normal;"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row13['GuardianCell']; ?></span></th>
