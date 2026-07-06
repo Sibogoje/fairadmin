@@ -236,6 +236,15 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
     'What is your mother\'s maiden name?',
   ];
   bool loading = false;
+  String? statusMessage;
+  bool statusIsError = false;
+
+  void setStatus(String message, {bool isError = true}) {
+    setState(() {
+      statusMessage = message;
+      statusIsError = isError;
+    });
+  }
 
   @override
   void initState() {
@@ -250,16 +259,35 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
       lastDate: DateTime.now(),
       initialDate: DateTime.now(),
     );
-    if (picked != null)
+    if (picked != null) {
       dateOpened.text = DateFormat('yyyy-MM-dd').format(picked);
+    }
   }
 
   Future<void> submit() async {
-    if (password.text != confirmPassword.text) {
-      showMessage(context, 'Passwords do not match.');
+    if (memberNo.text.trim().isEmpty ||
+        deceasedId.text.trim().isEmpty ||
+        memberId.text.trim().isEmpty ||
+        dateOpened.text.trim().isEmpty ||
+        password.text.isEmpty ||
+        confirmPassword.text.isEmpty ||
+        answers.any((answer) => answer.text.trim().isEmpty)) {
+      setStatus('Please complete all first login fields.');
       return;
     }
-    setState(() => loading = true);
+    if (password.text.length < 8) {
+      setStatus('Password must be at least 8 characters.');
+      return;
+    }
+    if (password.text != confirmPassword.text) {
+      setStatus('Passwords do not match.');
+      return;
+    }
+    setState(() {
+      loading = true;
+      statusMessage = 'Checking your details...';
+      statusIsError = false;
+    });
     try {
       final data = await widget.api.firstLogin({
         'memberno': memberNo.text.trim(),
@@ -275,9 +303,15 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
                 }),
       });
       widget.onAuthenticated(data);
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        setStatus('First login complete. Opening your dashboard...',
+            isError: false);
+        Navigator.of(context).pop();
+      }
     } on ApiException catch (error) {
-      if (mounted) showMessage(context, error.message);
+      if (mounted) setStatus(error.message);
+    } catch (error) {
+      if (mounted) setStatus('First login failed: $error');
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -339,6 +373,10 @@ class _FirstLoginScreenState extends State<FirstLoginScreen> {
           ElevatedButton(
               onPressed: loading ? null : submit,
               child: Text(loading ? 'Setting up...' : 'Complete first login')),
+          if (statusMessage != null) ...[
+            const SizedBox(height: 14),
+            StatusPanel(message: statusMessage!, isError: statusIsError),
+          ],
         ],
       ),
     );
@@ -550,9 +588,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Align(
+                      const Align(
                         alignment: Alignment.centerLeft,
-                        child: const AppBrandText(
+                        child: AppBrandText(
                             color: Color(0xFF012970), compact: true),
                       ),
                       Text(widget.name,
@@ -773,6 +811,49 @@ class AppBrandText extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+class StatusPanel extends StatelessWidget {
+  const StatusPanel({super.key, required this.message, required this.isError});
+
+  final String message;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isError ? const Color(0xFFB42318) : const Color(0xFF027A48);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: .35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            isError ? Icons.error_outline : Icons.check_circle_outline,
+            color: color,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    height: 1.35,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -20,6 +20,7 @@ class ApiClient {
 
   final String baseUrl;
   final http.Client _httpClient;
+  static const requestTimeout = Duration(seconds: 30);
 
   Uri _uri(String path, [Map<String, String>? query]) {
     return Uri.parse('$baseUrl/$path').replace(queryParameters: query);
@@ -44,7 +45,8 @@ class ApiClient {
   }
 
   Future<List<String>> fetchSecurityQuestions(String memberNo) async {
-    final response = await _httpClient.get(_uri('forgot-password.php', {'memberno': memberNo}));
+    final response = await _request(() =>
+        _httpClient.get(_uri('forgot-password.php', {'memberno': memberNo})));
     final data = _decode(response);
     return (data['questions'] as List<dynamic>).cast<String>();
   }
@@ -77,22 +79,54 @@ class ApiClient {
       filename: 'adhoc_request.pdf',
     ));
 
-    final streamed = await _httpClient.send(request);
+    final streamed = await _request(() => _httpClient.send(request));
     final response = await http.Response.fromStream(streamed);
     return _decode(response);
   }
 
-  Future<Map<String, dynamic>> _postJson(String path, Map<String, dynamic> body) async {
-    final response = await _httpClient.post(
-      _uri(path),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
+  Future<Map<String, dynamic>> _postJson(
+      String path, Map<String, dynamic> body) async {
+    final response = await _request(() => _httpClient.post(
+          _uri(path),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(body),
+        ));
     return _decode(response);
   }
 
+  Future<T> _request<T>(Future<T> Function() send) async {
+    try {
+      return await send().timeout(requestTimeout);
+    } on SocketException {
+      throw ApiException(
+          'Could not connect to the Fairlife server. Check your internet connection and API URL.');
+    } on HttpException {
+      throw ApiException(
+          'The Fairlife server closed the request unexpectedly.');
+    } on FormatException {
+      throw ApiException(
+          'The Fairlife server returned an unreadable response.');
+    } on ApiException {
+      rethrow;
+    } catch (error) {
+      throw ApiException('Request failed: $error');
+    }
+  }
+
   Map<String, dynamic> _decode(http.Response response) {
-    final data = jsonDecode(response.body.isEmpty ? '{}' : response.body) as Map<String, dynamic>;
+    final Map<String, dynamic> data;
+    try {
+      data = jsonDecode(response.body.isEmpty ? '{}' : response.body)
+          as Map<String, dynamic>;
+    } on FormatException {
+      final preview = response.body.replaceAll(RegExp(r'\s+'), ' ').trim();
+      throw ApiException(
+        preview.isEmpty
+            ? 'The Fairlife server returned an empty response.'
+            : 'The Fairlife server returned a non-JSON response: ${preview.substring(0, preview.length > 120 ? 120 : preview.length)}',
+        statusCode: response.statusCode,
+      );
+    }
     if (response.statusCode >= 400 || data['success'] == false) {
       throw ApiException(
         (data['message'] as String?) ?? 'Request failed.',
