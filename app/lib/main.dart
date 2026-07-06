@@ -405,32 +405,74 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final answers = List.generate(3, (_) => TextEditingController());
   List<String> questions = [];
   bool loading = false;
+  String? statusMessage;
+  bool statusIsError = false;
+
+  void setStatus(String message, {bool isError = true}) {
+    setState(() {
+      statusMessage = message;
+      statusIsError = isError;
+    });
+  }
 
   Future<void> loadQuestions() async {
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      statusMessage = null;
+    });
     try {
       questions = await widget.api.fetchSecurityQuestions(memberNo.text.trim());
+      for (final answer in answers) {
+        answer.clear();
+      }
+      if (mounted) setStatus('Security questions loaded.', isError: false);
     } on ApiException catch (error) {
-      if (mounted) showMessage(context, error.message);
+      if (mounted) setStatus(error.message);
+    } catch (error) {
+      if (mounted) setStatus('Could not load security questions: $error');
     } finally {
       if (mounted) setState(() => loading = false);
     }
   }
 
   Future<void> reset() async {
-    setState(() => loading = true);
+    if (questions.length != 3 ||
+        password.text.isEmpty ||
+        answers.any((answer) => answer.text.trim().isEmpty)) {
+      setStatus(
+          'Please answer all security questions and enter a new password.');
+      return;
+    }
+    if (password.text.length < 8) {
+      setStatus('Password must be at least 8 characters.');
+      return;
+    }
+
+    setState(() {
+      loading = true;
+      statusMessage = 'Checking your security answers...';
+      statusIsError = false;
+    });
     try {
       await widget.api.resetPassword(
         memberNo: memberNo.text.trim(),
         password: password.text,
-        answers: answers.map((answer) => answer.text).toList(),
+        answers: List.generate(
+          questions.length,
+          (index) => {
+            'question': questions[index],
+            'answer': answers[index].text,
+          },
+        ),
       );
       if (mounted) {
-        showMessage(context, 'Password reset successful.');
+        setStatus('Password reset successful.', isError: false);
         Navigator.of(context).pop();
       }
     } on ApiException catch (error) {
-      if (mounted) showMessage(context, error.message);
+      if (mounted) setStatus(error.message);
+    } catch (error) {
+      if (mounted) setStatus('Password reset failed: $error');
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -473,6 +515,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ElevatedButton(
                 onPressed: loading ? null : reset,
                 child: Text(loading ? 'Resetting...' : 'Reset password')),
+          ],
+          if (statusMessage != null) ...[
+            const SizedBox(height: 14),
+            StatusPanel(message: statusMessage!, isError: statusIsError),
           ],
         ],
       ),

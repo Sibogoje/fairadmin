@@ -79,7 +79,7 @@ class ApiClient {
   Future<void> resetPassword({
     required String memberNo,
     required String password,
-    required List<String> answers,
+    required List<Map<String, String>> answers,
   }) async {
     await _postJson('forgot-password.php', {
       'memberno': memberNo,
