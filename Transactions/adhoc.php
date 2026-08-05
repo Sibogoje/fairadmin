@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 //$ids=$_POST['id'];
 //$ids = $_REQUEST['id'];
 
@@ -59,6 +60,7 @@ $AdHocPayment,
 $Comments
 );
 $stmt->execute();
+audit_trail_log($conn, 'adhoc_stage_create', 'Staged adhoc payment for member ' . $MemberID . ' amount ' . $AdHocPayment);
     
   }} 
 

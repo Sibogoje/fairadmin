@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 $rr = $_POST['id'];
 /////////////retrieve adhoc record for corresponding adhoc id ///////////////////////////////////
@@ -71,6 +72,7 @@ $Comments
 
 );
 $insertnew->execute();
+audit_trail_log($conn, 'capital_process', 'Posted additional capital for member ' . $MemberID . ' amount ' . $AdHocPayment);
 $Credit = 0;
 $TransactionTypeID = 5;
 $AdHocPayment1 = ($AdHocPayment * 0.01);
@@ -88,10 +90,12 @@ $newbb,
 $Comments
 
 );
+audit_trail_log($conn, 'capital_fee_post', 'Posted additional capital fee for member ' . $MemberID . ' amount ' . $AdHocPayment1);
 $insertnew->execute();
 
 $deleteadhoc = $conn->prepare("DELETE FROM `tbltempcapital` WHERE `capitalID`=? ");
 $deleteadhoc->bind_param("s", $adhocPaymentID);
+
 $deleteadhoc->execute();
 	}
 	$response = array(

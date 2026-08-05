@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 //$ids=$_POST['id'];
 //$ids = $_REQUEST['id'];
 $ids = $_GET['id'];
@@ -65,6 +66,8 @@ $RetirementFundID
 
 
 $stmt->execute() ;
+
+audit_trail_log($conn, 'fund_update', 'Updated retirement fund ID ' . $RetirementFundID);
 
 // if (!$stmt->execute()) {
 //     echo "Error: " . $stmt->error;

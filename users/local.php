@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 
 
 if (isset($_POST['savenew'])) {
@@ -40,6 +41,7 @@ if (isset($_POST['savenew'])) {
         // Execute the statement
         if ($stmt->execute()) {
             // Display an alert if insertion was successful
+          audit_trail_log($conn, 'user_create', 'Created or replaced user ' . $username . ' with role ' . $role);
             echo "<script>alert('Data inserted successfully');</script>";
             echo "<script>window.location.href = 'local.php';</script>";
             exit();
@@ -62,6 +64,7 @@ $id = $_POST['id'];
 
 $stmt = $conn->prepare("DELETE FROM `realuzer` where `id`='$id' ");
 $stmt->execute();
+audit_trail_log($conn, 'user_delete', 'Deleted user record ID ' . $id);
 
 //echo "New records created successfully";
 header ('Location: local.php');

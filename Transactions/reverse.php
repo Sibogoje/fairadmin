@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
 set_time_limit(0);
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 $amount = $_POST['amount'];
 $type = $_POST['type'];
@@ -44,6 +45,7 @@ $Credit = 0;
   `Comments`
 
 )
+
 
 VALUES
   (

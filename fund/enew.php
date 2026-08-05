@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 
 ////////insert new 
 
@@ -63,6 +64,8 @@ $EmployerCell
 
 );
 $stmt->execute();
+
+audit_trail_log($conn, 'fund_create', 'Created employer ' . $EmployerName . ' for fund ' . $FundID);
 
 echo "New records created successfully";
 header("location: ./");

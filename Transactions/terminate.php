@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 //$ids=$_POST['id'];
 //$ids = $_REQUEST['id'];
 
@@ -71,6 +72,7 @@ $insertnew = $conn->prepare("insert into `tblmemberaccounts` (
   );
 
   $insertnew->execute();
+  audit_trail_log($conn, 'termination_process', 'Posted termination fee for member ' . $MemberID . ' amount ' . $Amount);
   $TransactionTypeID = '11';
   $finalbalance = 0.00;
   $Detailsfinal = 'Final Transaction';
@@ -93,6 +95,7 @@ $insertnew = $conn->prepare("insert into `tblmemberaccounts` (
     $update = $conn->prepare("UPDATE tblmembers SET `Terminated` = '1' WHERE MemberID=? ");
 $update->bind_param("s", $MemberID);
 $update->execute();
+audit_trail_log($conn, 'member_terminate', 'Terminated member ' . $MemberID);
 echo "<script> alert('The Member Was Terminted Succesfully');
 window.location.href='terminate.php';
 </script>";

@@ -6,6 +6,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['zid'])) {
@@ -40,6 +41,7 @@ if (isset($_POST['adjustmentAmount'])) {
         if ($stmt->execute()) {
             $success++;
             $conn->query("UPDATE balances SET NewBalance = $newBalance WHERE memberID = '{$member['memberID']}'");
+            audit_trail_log($conn, 'bulk_adjustment', 'Applied bulk adjustment to member ' . $member['memberID'] . ' portion ' . $portion);
         } else {
             $fail++;
         }

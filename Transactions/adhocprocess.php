@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 $rr = $_POST['id'];
 /////////////retrieve adhoc record for corresponding adhoc id ///////////////////////////////////
@@ -66,6 +67,7 @@ if ($result->num_rows > 0) {
                 );
 
                 $insertnew->execute();
+                audit_trail_log($conn, 'adhoc_process', 'Posted adhoc payment for member ' . $MemberID . ' amount ' . $AdHocPayment);
 
                 $TransactionTypeID = 5;
                 $AdHocPayment1 = ($AdHocPayment * 0.02);
@@ -85,9 +87,11 @@ if ($result->num_rows > 0) {
                 );
 
                 if ($insertnew->execute()) { 
+                    audit_trail_log($conn, 'adhoc_fee_post', 'Posted adhoc fee for member ' . $MemberID . ' fee amount ' . $AdHocPayment1);
                     $deleteadhoc = $conn->prepare("DELETE FROM `tbltempadhocpayments` WHERE adhocPaymentID=? ");
                     $deleteadhoc->bind_param("s", $adhocPaymentID);
                     $deleteadhoc->execute();
+                    audit_trail_log($conn, 'adhoc_stage_delete', 'Deleted staged adhoc payment ID ' . $adhocPaymentID);
 
                     $response = array(
                         'statusCode' => 200,

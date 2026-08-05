@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 	$rr = "0";
 	$val = 0;
@@ -72,6 +73,7 @@ $Comments
 );
 
 if($insertnew->execute()){
+	audit_trail_log($conn, 'scheduled_fee_process', 'Posted scheduled payment for member ' . $MemberNo . ' amount ' . $FixedPaymentAmount);
 
 
 	$transactionfee = $FixedPaymentAmount * ($TransactionPercent/100);
@@ -92,6 +94,7 @@ if($insertnew->execute()){
 	$Comments
 	);
 	$insertnew->execute();
+	audit_trail_log($conn, 'scheduled_fee_post', 'Posted scheduled transaction fee for member ' . $MemberNo . ' amount ' . $transactionfee);
 
 
 

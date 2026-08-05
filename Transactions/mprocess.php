@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
 set_time_limit(0);
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 $rr = "0";
 $r1 = $_POST['id'];
@@ -98,6 +99,7 @@ $Comments
 
 );
 $insertnew->execute();
+audit_trail_log($conn, 'monthly_fee_process', 'Posted monthly fee for member ' . $MemberNo . ' amount ' . $x);
 
 	$amount2 = $FixedMonthlyFee;
 	$finalbalance = $afterminusadmin - $amount2;
@@ -114,6 +116,7 @@ $Comments
 
 );
 $insertnew->execute();
+audit_trail_log($conn, 'monthly_fee_process', 'Posted fixed monthly fee for member ' . $MemberNo . ' amount ' . $amount2);
 	
 	
 	

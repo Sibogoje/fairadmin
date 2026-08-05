@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
 set_time_limit(0);
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 $id=$_POST['MemberID'];
 $d1=$_POST['date1'];
@@ -118,6 +119,7 @@ $sreg,
 );
 $insertnew1->execute();
 	
+
 $type = "Adhoc";
 $insertnew1->bind_param("sssssss", 
 $id, 

@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 //$ids=$_POST['id'];
 //$ids = $_REQUEST['id'];
 $ids = $_GET['id'];
@@ -55,6 +56,7 @@ $TerminationFeePercent,
 $RetirementFundID
 );
   $stmt->execute();
+  audit_trail_log($conn, 'fund_fees_update', 'Updated fees for retirement fund ID ' . $RetirementFundID);
   $stmt->close();
 } catch (mysqli_sql_exception $e) {
   error_log("fees.php update error for RetirementFundID " . $RetirementFundID . ": " . $e->getMessage());
