@@ -17,8 +17,6 @@ if (!access_control_is_allowed($role, $currentRoutePath)) {
   access_control_forbidden();
 }
 
-audit_trail_log($conn, 'page_view', $currentRoutePath);
-
 $canRoute = static function (string $relativePath) use ($role): bool {
   return access_control_can_show_menu_item($role, '/' . ltrim($relativePath, '/'));
 };
