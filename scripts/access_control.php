@@ -118,6 +118,13 @@ if (!function_exists('access_control_permission_definitions')) {
                 ],
                 'default_roles' => ['admin'],
             ],
+            'admin_only_audit' => [
+                'label' => 'Admin Only: Audit Trail',
+                'patterns' => [
+                    '#/audit_log\.php$#',
+                ],
+                'default_roles' => ['admin'],
+            ],
             'transactions_adjustment' => [
                 'label' => 'Transactions: Adjustment',
                 'patterns' => [

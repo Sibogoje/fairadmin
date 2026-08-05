@@ -2,6 +2,7 @@
 require_once __DIR__ . '/scripts/bootstrap.php';
 require_once __DIR__ . '/scripts/connection.php';
 require_once __DIR__ . '/scripts/access_control.php';
+require_once __DIR__ . '/scripts/audit.php';
 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
@@ -15,6 +16,8 @@ $currentRoutePath = access_control_route_path();
 if (!access_control_is_allowed($role, $currentRoutePath)) {
   access_control_forbidden();
 }
+
+audit_trail_log($conn, 'page_view', $currentRoutePath);
 
 $canRoute = static function (string $relativePath) use ($role): bool {
   return access_control_can_show_menu_item($role, '/' . ltrim($relativePath, '/'));

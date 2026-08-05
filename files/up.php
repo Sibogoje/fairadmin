@@ -4,6 +4,7 @@ $useid = $_GET['owner'];
 echo $useid;
 session_start();
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 $gg = $_SESSION['user'];
 
 
@@ -44,6 +45,7 @@ $location,
 $original_file_name
 );
 $insertnew->execute();
+        audit_trail_log($conn, 'file_upload', 'File uploaded for member ' . $useid . ': ' . $original_file_name);
 
         }
     } else {

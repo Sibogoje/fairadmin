@@ -2,6 +2,7 @@
 require_once __DIR__ . '/scripts/bootstrap.php';
 session_start();
 require_once 'scripts/connection.php';
+require_once 'scripts/audit.php';
 set_time_limit(0);
 
 if(count($_POST) > 0){
@@ -34,6 +35,8 @@ if(count($_POST) > 0){
 	 		$updatesession->bind_param("ss", $session, $id);
 	 		$updatesession->execute();
 
+	 		audit_trail_log($conn, 'login', 'Authenticated with role: ' . $role);
+
 	 		// Write session to disk before redirect
 	 		session_write_close();
 	 		
@@ -42,6 +45,8 @@ if(count($_POST) > 0){
 	 		exit;
 	 	}	 
 	 } 
+
+	audit_trail_log($conn, 'login_failed', 'Invalid login attempt for username: ' . $user);
 }
 
 // Invalid request or failed auth - redirect to login

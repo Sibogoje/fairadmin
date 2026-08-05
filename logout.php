@@ -2,10 +2,12 @@
 require_once __DIR__ . '/scripts/bootstrap.php';
 session_start();
 require_once 'scripts/connection.php';
+require_once 'scripts/audit.php';
 if(isset($_SESSION['zid']))
 {
     $session = 0;
     $userid = isset($_SESSION['xid']) ? $_SESSION['xid'] : null;
+    $username = audit_trail_username();
 
     // update server session flag
     if ($userid) {
@@ -15,6 +17,8 @@ if(isset($_SESSION['zid']))
         $updatesession->bind_param("sss", $session, $login, $userid);
         $updatesession->execute();
     }
+
+    audit_trail_log($conn, 'logout', 'User logged out: ' . $username);
 
     // Send no-cache headers to prevent back-button showing cached pages
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');

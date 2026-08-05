@@ -11,6 +11,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 require_once 'scripts/connection.php';
+require_once 'scripts/audit.php';
 
 // Check if the fileId is set in the POST request
 if (isset($_POST['fileId'])) {
@@ -22,6 +23,7 @@ if (isset($_POST['fileId'])) {
 
     // Perform the database deletion
     if ($stmt->execute()) {
+        audit_trail_log($conn, 'file_delete', 'Deleted file reference: ' . $fileId);
         $response = array('status' => 'success');
     } else {
         $response = array('status' => 'error', 'message' => $stmt->error);

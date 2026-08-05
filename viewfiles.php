@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once 'scripts/connection.php';
+require_once 'scripts/audit.php';
  error_log('File deletion script executed successfully.');
  
  
@@ -63,6 +64,7 @@ if (!in_array($extension, ['zip', 'pdf', 'docx', 'png', 'jpg', 'jpeg', 'doc'])) 
 
         $sql = "INSERT INTO adhocfiles (`member`, `name`, `dateupload`, `reason`, `url`) VALUES ('$owner','$new_filename', '$dates', '$reason', '$url')";
         if (mysqli_query($conn, $sql)) {
+            audit_trail_log($conn, 'file_upload', 'Adhoc document uploaded for member ' . $owner . ': ' . $new_filename);
             echo '<script>alert("Document uploaded successfully!"); window.location.href = "files.php";</script>';
         } else {
             echo '<script>alert("Operation not successful!"); window.location.href = "files.php";</script>';
