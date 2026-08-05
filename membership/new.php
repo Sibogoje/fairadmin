@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 
 ////////insert new 
 if (isset($_POST['submit'])){
@@ -148,6 +149,8 @@ $FixedPaymentEndDate
 );
 // set parameters and execute
 $stmt->execute();
+
+audit_trail_log($conn, 'member_create', 'Created member ' . $MemberNo . ' for deceased ' . $DeceasedID);
 
 
 echo "<script> alert('New Beneficiary Added');

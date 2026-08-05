@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
 $rr = $_POST['id'];
 /////////////retrieve adhoc record for corresponding adhoc id ///////////////////////////////////
@@ -98,6 +99,7 @@ while($row = $result->fetch_assoc()) {
             $updaterunning->bind_param("ss", $terminated,  $MemberID);
             
             if ($updaterunning->execute()) { 
+                audit_trail_log($conn, 'member_approve', 'Approved member ' . $MemberID . ' with opening amount ' . $amount);
                 $response = array(
                     'statusCode'=>200,
                     'datas'=>"Member Approved Succesfully"

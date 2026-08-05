@@ -2,6 +2,7 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once __DIR__ . '/../scripts/access_control.php';
+require_once __DIR__ . '/../scripts/audit.php';
 session_start();
 
 if (!isset($_SESSION['zid'])) {
@@ -38,6 +39,7 @@ if(isset($_SESSION['zid'])) {
 
             // Execute the statement
             if($stmt->execute()) {
+              audit_trail_log($conn, 'user_create', 'Created user ' . $username . ' with role ' . $role);
                 // Display an alert if insertion was successful
                 echo "<script>alert('Data inserted successfully');</script>";
                 echo "<script>window.location.href = 'local.php';</script>";
@@ -87,6 +89,7 @@ if(isset($_SESSION['zid'])) {
 
             // Execute the statement
             if($stmt->execute()) {
+              audit_trail_log($conn, 'user_update', 'Updated user ' . $username . ' with role ' . $role);
                 // Display an alert if update was successful
                 echo "<script>alert('Data updated successfully');</script>";
                 echo "<script>window.location.href = 'local.php';</script>";

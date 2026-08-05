@@ -6,6 +6,7 @@ if(isset($_SESSION['zid']))
 {
 $gg = $_SESSION['user'];
 require_once '../scripts/connection.php';
+require_once __DIR__ . '/../scripts/audit.php';
 //$ids=$_POST['id'];
 //$ids = $_REQUEST['id'];
 $ids = $_GET['id'];
@@ -115,7 +116,7 @@ $MemberNo
 );
 // set parameters and execute
 //$stmt->execute();
-if (!$stmt->execute() ){}else{header("location: index.php");} 
+if (!$stmt->execute() ){}else{audit_trail_log($conn, 'member_update', 'Updated member ' . $MemberNo); header("location: index.php");} 
  //echo "Execute Error: ($stmt->errno)  $stmt->error";
 //echo "update made";
 
