@@ -57,6 +57,9 @@
     "admin_only_settings": [
       "admin"
     ],
+    "admin_only_system_fix": [
+      "admin"
+    ],
     "transactions_adjustment": [
       "admin",
       "Operations",

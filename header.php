@@ -82,6 +82,8 @@ $showSettings =
 
 $showUsers = $canRoute('users/local2.php') || $canRoute('users/access_control_manager.php');
 
+$showSystemFix = $canRoute('system_fix.php');
+
 $notificationCount = 0;
 $lowBalanceRows = [];
 
@@ -411,6 +413,16 @@ try {
             <li><a href="<?= app_url('users/access_control_manager.php') ?>"><i class="bi bi-circle"></i><span>Access Control Manager</span></a></li>
           <?php endif; ?>
         </ul>
+      </li>
+    <?php endif; ?>
+
+    <?php if ($showSystemFix): ?>
+      <li class="nav-heading">Maintenance</li>
+      <li class="nav-item">
+        <a class="nav-link" href="<?= app_url('system_fix.php') ?>">
+          <i class="bi bi-tools"></i>
+          <span>System Fix</span>
+        </a>
       </li>
     <?php endif; ?>
 

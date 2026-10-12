@@ -125,6 +125,13 @@ if (!function_exists('access_control_permission_definitions')) {
                 ],
                 'default_roles' => ['admin'],
             ],
+            'admin_only_system_fix' => [
+                'label' => 'Admin Only: System Fix',
+                'patterns' => [
+                    '#/system_fix\.php$#',
+                ],
+                'default_roles' => ['admin'],
+            ],
             'transactions_adjustment' => [
                 'label' => 'Transactions: Adjustment',
                 'patterns' => [
