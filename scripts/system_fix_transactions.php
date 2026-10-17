@@ -133,6 +133,13 @@ if (!function_exists('system_fix_tx_terminations_table')) {
     }
 }
 
+if (!function_exists('system_fix_tx_schedule_table')) {
+    function system_fix_tx_schedule_table(): string
+    {
+        return 'transactionsfix_schedule';
+    }
+}
+
 if (!function_exists('system_fix_tx_termination_fee_percent')) {
     /**
      * Termination fee percentage (1%). All 736 members carry
@@ -165,6 +172,7 @@ if (!function_exists('system_fix_tx_ensure_table')) {
      *   transactionsfix_members  — running roster of members in the fund at a period
      *   transactionsfix_regular  — captured regular-payment amounts per member/month
      *   interestfix              — summed interest pool (type 8) per month/year
+     *   transactionsfix_schedule — member ledger schedule (join date + capital movements)
      *
      * All are sandbox objects; production tables are read-only.
      */
@@ -175,6 +183,7 @@ if (!function_exists('system_fix_tx_ensure_table')) {
         $regularTable = system_fix_tx_regular_capture_table();
         $interestTable = system_fix_tx_interest_pool_table();
         $termTable = system_fix_tx_terminations_table();
+        $scheduleTable = system_fix_tx_schedule_table();
 
         $sql = "CREATE TABLE IF NOT EXISTS `{$table}` (
             `accountsID` INT(10) NOT NULL AUTO_INCREMENT,
@@ -250,11 +259,22 @@ if (!function_exists('system_fix_tx_ensure_table')) {
             KEY `idx_term_member` (`memberID`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
+        $scheduleSql = "CREATE TABLE IF NOT EXISTS `{$scheduleTable}` (
+            `memberID` INT NOT NULL,
+            `MemberNo` VARCHAR(20) NULL,
+            `DateJoined` DATE NULL,
+            `Source` VARCHAR(20) NULL,
+            `BuiltAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`memberID`),
+            KEY `idx_schedule_joined` (`DateJoined`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
         return (bool) $conn->query($sql)
             && (bool) $conn->query($membersSql)
             && (bool) $conn->query($regularSql)
             && (bool) $conn->query($interestSql)
-            && (bool) $conn->query($termSql);
+            && (bool) $conn->query($termSql)
+            && (bool) $conn->query($scheduleSql);
     }
 }
 
@@ -1905,6 +1925,15 @@ if (!function_exists('system_fix_tx_month_end_ids')) {
      */
     function system_fix_tx_month_end_ids(mysqli $conn, string $runId, string $periodDate): array
     {
+        // The member schedule is authoritative when built: it lists every member
+        // who existed in the fund at that time — including those with no adhocs or
+        // regular payments.
+        $scheduled = system_fix_tx_schedule_member_ids($conn, $periodDate);
+        if (!empty($scheduled)) {
+            return $scheduled;
+        }
+
+        // Fall back to the running roster, then to whatever is already in scope.
         $roster = system_fix_tx_roster_ids($conn, system_fix_tx_period_key($periodDate));
         if (!empty($roster)) {
             return $roster;
@@ -1989,6 +2018,11 @@ if (!function_exists('system_fix_tx_run_month')) {
 
         $result = ['period' => $runId];
 
+        // 0. Make sure EVERY member who existed in the fund at this time is
+        //    present in the sandbox, even those with no adhocs or regulars. Their
+        //    history is pulled from production once, before the month is rebuilt.
+        $result['sync'] = system_fix_tx_backfill_from_production($conn, $periodDate);
+
         // 1. Adhocs, terminations and capital movements.
         $result['adhoc'] = system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate);
 
@@ -2014,6 +2048,148 @@ if (!function_exists('system_fix_tx_run_month')) {
         }
 
         return $result;
+    }
+}
+
+if (!function_exists('system_fix_tx_build_schedule')) {
+    /**
+     * Build the member schedule: one row per member recording WHEN they joined
+     * the fund, so every member can be included in the month runs — even those
+     * with no adhocs or regular payments.
+     *
+     * "Date joined" is the earliest date we can prove they existed:
+     *   1. `tblmembers.DateAccountOpened`
+     *   2. the earliest `tblmemberaccounts.TransactionDate` (opening balance etc.)
+     *
+     * Members are keyed by `memberID`, which is sequential (1, 2, 3, ...).
+     *
+     * Idempotent: rebuilds the table each time it is run.
+     *
+     * @return array{members:int}
+     */
+    function system_fix_tx_build_schedule(mysqli $conn): array
+    {
+        $schedule = system_fix_tx_schedule_table();
+
+        $conn->query("DELETE FROM `{$schedule}`");
+
+        $conn->query(
+            "INSERT INTO `{$schedule}` (`memberID`, `MemberNo`, `DateJoined`, `Source`)
+             SELECT
+                 m.`MemberID`,
+                 m.`MemberNo`,
+                 COALESCE(m.`DateAccountOpened`, a.`first_tx`),
+                 CASE
+                     WHEN m.`DateAccountOpened` IS NOT NULL THEN 'account'
+                     WHEN a.`first_tx` IS NOT NULL THEN 'ledger'
+                     ELSE 'unknown'
+                 END
+             FROM `tblmembers` m
+             LEFT JOIN (
+                 SELECT `memberID`, MIN(`TransactionDate`) AS first_tx
+                 FROM `tblmemberaccounts`
+                 WHERE `memberID` > 0
+                 GROUP BY `memberID`
+             ) a ON a.`memberID` = m.`MemberID`"
+        );
+
+        $count = $conn->query("SELECT COUNT(*) AS c FROM `{$schedule}`")->fetch_assoc();
+
+        return ['members' => (int) ($count['c'] ?? 0)];
+    }
+}
+
+if (!function_exists('system_fix_tx_schedule_member_ids')) {
+    /**
+     * Members whose join date is on or before the given period end — i.e. the
+     * members who existed in the fund at that time.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_schedule_member_ids(mysqli $conn, string $periodDate): array
+    {
+        $schedule = system_fix_tx_schedule_table();
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $ids = [];
+
+        $stmt = $conn->prepare(
+            "SELECT `memberID` FROM `{$schedule}`
+             WHERE `DateJoined` IS NOT NULL AND `DateJoined` <= ?
+             ORDER BY `memberID` ASC"
+        );
+        $stmt->bind_param('s', $bounds['end']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $ids[] = (int) $row['memberID'];
+        }
+        $stmt->close();
+
+        return $ids;
+    }
+}
+
+if (!function_exists('system_fix_tx_backfill_from_production')) {
+    /**
+     * Pull each scheduled member's ENTIRE production history up to the run date
+     * into the sandbox, so members with no adhocs or regulars still appear in the
+     * month runs.
+     *
+     * This is deliberately careful:
+     *   - it only runs when the sandbox has NO rows for that member at all, so a
+     *     member already rebuilt by the fix is never overwritten or duplicated;
+     *   - it copies rows dated strictly BEFORE the month being run (the current
+     *     month is rebuilt by the stages), which also establishes the opening
+     *     balance for the first month they are included.
+     *
+     * @param array<int,int>|null $memberIds Defaults to the whole schedule.
+     * @return array{members:int, rows:int}
+     */
+    function system_fix_tx_backfill_from_production(mysqli $conn, string $periodDate, ?array $memberIds = null): array
+    {
+        $table = system_fix_tx_table();
+        $bounds = system_fix_tx_period_bounds($periodDate);
+
+        if ($memberIds === null) {
+            $memberIds = system_fix_tx_schedule_member_ids($conn, $periodDate);
+        }
+        if (empty($memberIds)) {
+            return ['members' => 0, 'rows' => 0];
+        }
+
+        // Exclude members that already have any sandbox history.
+        $existing = system_fix_tx_running_balances($conn, $periodDate);
+        $missing = [];
+        foreach ($memberIds as $id) {
+            $id = (int) $id;
+            if ($id > 0 && !array_key_exists($id, $existing)) {
+                $missing[] = $id;
+            }
+        }
+        if (empty($missing)) {
+            return ['members' => 0, 'rows' => 0];
+        }
+
+        $in = system_fix_tx_in_scope($missing);
+        [$scopeSql, $scopeTypes, $scopeParams] = $in;
+
+        $sql = "INSERT INTO `{$table}`
+                    (`TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                     `StartingBalance`, `Amount`, `NewBalance`, `Comments`)
+                SELECT `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                       `StartingBalance`, `Amount`, `NewBalance`, `Comments`
+                FROM `tblmemberaccounts`
+                WHERE `TransactionDate` < ?" . $scopeSql;
+
+        $stmt = $conn->prepare($sql);
+        $types = 's' . $scopeTypes;
+        $params = array_merge([$bounds['start']], $scopeParams);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $rows = $stmt->affected_rows;
+        $stmt->close();
+
+        return ['members' => count($missing), 'rows' => $rows];
     }
 }
 

@@ -379,6 +379,28 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_build_interest_pool', "Built interest pool: {$pool['months']} months");
                 break;
 
+            case 'build_schedule':
+                $schedule = system_fix_tx_build_schedule($conn);
+                $sandboxMessages[] = sprintf(
+                    'Member schedule built: %d member(s) with a join date. Members without adhocs will now be included in the month runs.',
+                    $schedule['members']
+                );
+                audit_trail_log($conn, 'system_fix_build_schedule', "Built schedule for {$schedule['members']} members");
+                break;
+
+            case 'sync_members':
+                $sync = system_fix_tx_backfill_from_production($conn, $period);
+                $scheduleCount = count(system_fix_tx_schedule_member_ids($conn, $period));
+                $sandboxMessages[] = sprintf(
+                    'Member sync for %s: %d schedule member(s) exist by that date; %d member(s) had no sandbox history and were pulled from production (%d row(s)).',
+                    system_fix_tx_period_key($period),
+                    $scheduleCount,
+                    $sync['members'],
+                    $sync['rows']
+                );
+                audit_trail_log($conn, 'system_fix_sync_members', "Synced {$sync['members']} members for " . system_fix_tx_period_key($period));
+                break;
+
             case 'stage_openings':
                 $runId = system_fix_tx_current_run();
                 $result = system_fix_tx_stage_openings($conn, $runId, $period);
@@ -458,6 +480,7 @@ $sandboxRunId = system_fix_tx_period_key($sandboxPeriod);
 $sandboxSummary = $sandboxTableReady ? system_fix_tx_summary($conn) : ['runs' => 0, 'rows' => 0, 'last_run' => null];
 $sandboxScopeCount = 0;
 $sandboxRosterCount = 0;
+$sandboxScheduleCount = 0;
 $sandboxCapturedCount = 0;
 $sandboxInterestMonths = 0;
 $sandboxInterestPools = [];
@@ -473,6 +496,7 @@ if ($sandboxTableReady) {
     try {
         $sandboxScopeCount = count(system_fix_tx_scope_ids($conn, $sandboxPeriodKey));
         $sandboxRosterCount = count(system_fix_tx_roster_ids($conn, $sandboxPeriodKey));
+        $sandboxScheduleCount = count(system_fix_tx_schedule_member_ids($conn, $sandboxPeriod));
     } catch (mysqli_sql_exception $e) {
         error_log('System Fix scope count error: ' . $e->getMessage());
     }
@@ -823,6 +847,14 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                   nothing until the member list is defined by the import.
                 <?php endif; ?>
                 <br>
+                <strong>Schedule:</strong>
+                <?php if ($sandboxScheduleCount > 0): ?>
+                  <strong><?= (int) $sandboxScheduleCount ?></strong> member(s) existed in the fund by <?= htmlspecialchars($sandboxPeriodKey) ?>.
+                  Members without adhocs are still included in the month runs.
+                <?php else: ?>
+                  <span class="text-danger">not built yet — click <em>Build Member Schedule</em> so members without adhocs are included.</span>
+                <?php endif; ?>
+                <br>
                 <strong>Roster (<?= htmlspecialchars($sandboxPeriodKey) ?>):</strong>
                 <strong><?= (int) $sandboxRosterCount ?></strong> member(s) exist in the fund for this period.
                 Month-end stages (regular, admin, fixed, interest) run for these members.
@@ -847,6 +879,16 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
               <div class="col-md-3 d-grid align-self-end">
                 <button type="submit" form="stageForm" name="action" value="seed_history" class="btn btn-outline-dark" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-box-arrow-in-down me-1"></i>Seed History
+                </button>
+              </div>
+              <div class="col-md-3 d-grid align-self-end">
+                <button type="submit" form="stageForm" name="action" value="build_schedule" class="btn btn-outline-info" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-calendar3 me-1"></i>Build Member Schedule
+                </button>
+              </div>
+              <div class="col-md-3 d-grid align-self-end">
+                <button type="submit" form="stageForm" name="action" value="sync_members" class="btn btn-outline-info" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-arrow-left-right me-1"></i>Sync Members for Period
                 </button>
               </div>
             </div>
