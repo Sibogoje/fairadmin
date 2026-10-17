@@ -45,24 +45,55 @@ if (!isset($_SESSION['system_fix_period'])) {
 $action = (string) ($_POST['action'] ?? '');
 
 /**
- * Pick the CSV source for an adhocs action: an uploaded file wins, otherwise a
- * file already present on the server. Returns [path, label, error].
+ * Folders searched for spreadsheets. Values are relative to the app root so a
+ * selected file can be resolved back to a real path.
  */
-$resolveAdhocSource = static function (): array {
+$sandboxSpreadsheetFolders = ['', 'Transactions/filestoupload'];
+
+/**
+ * Find a spreadsheet by name across the known folders.
+ */
+$findSpreadsheet = static function (string $name) use ($sandboxSpreadsheetFolders): array {
+    $name = basename($name); // blocks path traversal
+    foreach ($sandboxSpreadsheetFolders as $folder) {
+        $path = $folder === '' ? __DIR__ . '/' . $name : __DIR__ . '/' . $folder . '/' . $name;
+        if (is_file($path)) {
+            return [$path, $name, ''];
+        }
+    }
+
+    return ['', '', 'The selected file could not be found on the server.'];
+};
+
+/**
+ * Pick the adhocs source: an uploaded file wins, else a file already present on
+ * the server (matched across the known folders). Returns [path, label, error].
+ */
+$resolveAdhocSource = static function () use ($findSpreadsheet): array {
     if (!empty($_FILES['adhoc_csv']['tmp_name']) && is_uploaded_file($_FILES['adhoc_csv']['tmp_name'])) {
         return [$_FILES['adhoc_csv']['tmp_name'], (string) ($_FILES['adhoc_csv']['name'] ?? 'uploaded file'), ''];
     }
 
     if (!empty($_POST['existing_csv'])) {
-        $candidate = __DIR__ . '/' . basename((string) $_POST['existing_csv']); // basename() blocks path traversal
-        if (is_file($candidate)) {
-            return [$candidate, basename($candidate), ''];
-        }
-
-        return ['', '', 'The selected CSV file could not be found.'];
+        return $findSpreadsheet((string) $_POST['existing_csv']);
     }
 
     return ['', '', 'Choose a CSV file to upload, or pick one of the existing files.'];
+};
+
+/**
+ * Pick the regulars source the same way.
+ */
+$resolveRegularSource = static function () use ($findSpreadsheet): array {
+    if (!empty($_FILES['regular_xlsx']['tmp_name']) && is_uploaded_file($_FILES['regular_xlsx']['tmp_name'])) {
+        return [$_FILES['regular_xlsx']['tmp_name'], (string) ($_FILES['regular_xlsx']['name'] ?? 'uploaded regulars'), ''];
+    }
+
+    if (!empty($_POST['existing_regular'])) {
+        return $findSpreadsheet((string) $_POST['existing_regular']);
+    }
+
+    return ['', '', 'Choose a regulars file to upload, or pick one of the existing files.'];
 };
 
 if ($action !== '' && $sandboxTableReady) {
@@ -177,24 +208,15 @@ if ($action !== '' && $sandboxTableReady) {
                 // so balances carry forward automatically.
                 [$adhocSource, $adhocLabel, $adhocError] = $resolveAdhocSource();
                 if ($adhocError !== '') {
-                    $sandboxErrors[] = 'Adhocs: ' . $adhocError;
+                    $sandboxErrors[] = 'Adhocs spreadsheet: upload it on the left, or choose it from the “adhocs on the server” dropdown.';
                     break;
                 }
 
                 $regularSource = '';
                 $regularLabel = '';
-                if (!empty($_FILES['regular_xlsx']['tmp_name']) && is_uploaded_file($_FILES['regular_xlsx']['tmp_name'])) {
-                    $regularSource = $_FILES['regular_xlsx']['tmp_name'];
-                    $regularLabel = (string) ($_FILES['regular_xlsx']['name'] ?? 'uploaded regulars');
-                } elseif (!empty($_POST['existing_regular'])) {
-                    $candidate = __DIR__ . '/' . basename((string) $_POST['existing_regular']);
-                    if (is_file($candidate)) {
-                        $regularSource = $candidate;
-                        $regularLabel = basename($candidate);
-                    }
-                }
+                [$regularSource, $regularLabel, $regularError] = $resolveRegularSource();
                 if ($regularSource === '') {
-                    $sandboxErrors[] = 'Regulars: choose a regulars spreadsheet to upload, or pick one on the server.';
+                    $sandboxErrors[] = 'Regulars spreadsheet: upload it, or choose it from the “regulars on the server” dropdown.';
                     break;
                 }
 
@@ -221,7 +243,18 @@ if ($action !== '' && $sandboxTableReady) {
 
                 $fromMonth = substr($allDates[0], 0, 7) . '-01';
                 $toMonth = substr(end($allDates), 0, 7) . '-01';
+
+                // Optional override so a seeded month is not processed twice.
+                $fromOverride = trim((string) ($_POST['run_from_month'] ?? ''));
+                if (preg_match('#^\d{4}-\d{2}$#', $fromOverride) && $fromOverride > substr($fromMonth, 0, 7)) {
+                    $fromMonth = $fromOverride . '-01';
+                }
+
                 $months = system_fix_tx_months_between($fromMonth, $toMonth);
+                if (empty($months)) {
+                    $sandboxErrors[] = 'No months to process — the start month is after the last month in the files.';
+                    break;
+                }
 
                 $processed = 0;
                 $totalTerminations = 0;
@@ -458,11 +491,15 @@ if ($sandboxTableReady) {
 }
 
 $existingCsvFiles = [];
-foreach (array_merge(glob(__DIR__ . '/*.csv') ?: [], glob(__DIR__ . '/*.xlsx') ?: [], glob(__DIR__ . '/Transactions/filestoupload/*') ?: []) as $csvPath) {
-    if (is_file($csvPath) && preg_match('/\.(csv|xlsx)$/i', $csvPath)) {
-        $existingCsvFiles[] = basename($csvPath);
+foreach ($sandboxSpreadsheetFolders as $folder) {
+    $pattern = $folder === '' ? __DIR__ . '/*' : __DIR__ . '/' . $folder . '/*';
+    foreach (glob($pattern) ?: [] as $csvPath) {
+        if (is_file($csvPath) && preg_match('/\.(csv|xlsx)$/i', $csvPath)) {
+            $existingCsvFiles[] = basename($csvPath);
+        }
     }
 }
+$existingCsvFiles = array_values(array_unique($existingCsvFiles));
 sort($existingCsvFiles);
 
 /**
@@ -650,11 +687,24 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
 
             <form method="post" enctype="multipart/form-data" id="runAllForm" class="row g-3 align-items-end mb-3">
               <div class="col-md-4">
+                <label class="form-label" for="adhoc_csv_run">Adhocs spreadsheet (upload)</label>
+                <input type="file" class="form-control" id="adhoc_csv_run" name="adhoc_csv" accept=".csv,.xlsx">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="existing_csv2">…or adhocs on the server</label>
+                <select class="form-select" id="existing_csv2" name="existing_csv">
+                  <option value="">— none —</option>
+                  <?php foreach ($existingCsvFiles as $csvFile): ?>
+                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-3">
                 <label class="form-label" for="regular_xlsx">Regulars spreadsheet (upload)</label>
                 <input type="file" class="form-control" id="regular_xlsx" name="regular_xlsx" accept=".csv,.xlsx">
               </div>
               <div class="col-md-3">
-                <label class="form-label" for="existing_regular">…or use a file on the server</label>
+                <label class="form-label" for="existing_regular">…or regulars on the server</label>
                 <select class="form-select" id="existing_regular" name="existing_regular">
                   <option value="">— none —</option>
                   <?php foreach ($existingCsvFiles as $csvFile): ?>
@@ -662,14 +712,10 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                   <?php endforeach; ?>
                 </select>
               </div>
-              <div class="col-md-2">
-                <label class="form-label" for="existing_csv2">Adhocs file (on server)</label>
-                <select class="form-select" id="existing_csv2" name="existing_csv">
-                  <option value="">— none —</option>
-                  <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
-                  <?php endforeach; ?>
-                </select>
+              <div class="col-md-3">
+                <label class="form-label" for="run_from_month">Start from month</label>
+                <input type="month" class="form-control" id="run_from_month" name="run_from_month" value="">
+                <div class="form-text">Leave blank to start at the first month in the files.</div>
               </div>
               <div class="col-md-3 d-grid">
                 <button type="submit" name="action" value="run_all_months" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
