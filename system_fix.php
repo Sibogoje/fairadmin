@@ -38,9 +38,6 @@ try {
     $sandboxErrors[] = 'Unable to prepare the transactionsfix table: ' . $e->getMessage();
 }
 
-if (!isset($_SESSION['system_fix_run_id'])) {
-    $_SESSION['system_fix_run_id'] = '';
-}
 if (!isset($_SESSION['system_fix_period'])) {
     $_SESSION['system_fix_period'] = date('Y-m-t');
 }
@@ -74,22 +71,11 @@ if ($action !== '' && $sandboxTableReady) {
 
     try {
         switch ($action) {
-            case 'new_run':
-                // Start a fresh, isolated run so results never mix.
-                $_SESSION['system_fix_run_id'] = 'SF-' . date('Ymd-His');
-                $sandboxMessages[] = 'Started a new sandbox run: ' . $_SESSION['system_fix_run_id'];
-                break;
-
             case 'clear_run':
-                $runId = (string) ($_POST['run_id'] ?? $_SESSION['system_fix_run_id']);
-                if ($runId !== '') {
-                    $deleted = system_fix_tx_clear_run($conn, $runId);
-                    $sandboxMessages[] = "Cleared {$deleted} sandbox row(s) from run {$runId}.";
-                    if ($runId === $_SESSION['system_fix_run_id']) {
-                        $_SESSION['system_fix_run_id'] = '';
-                    }
-                    audit_trail_log($conn, 'system_fix_clear_run', 'Cleared sandbox run ' . $runId);
-                }
+                $runId = (string) ($_POST['run_id'] ?? system_fix_tx_current_run());
+                $deleted = system_fix_tx_clear_run($conn, $runId);
+                $sandboxMessages[] = "Cleared {$deleted} sandbox row(s) for period {$runId}.";
+                audit_trail_log($conn, 'system_fix_clear_run', 'Cleared sandbox period ' . $runId);
                 break;
 
             case 'preview_adhocs':
@@ -254,8 +240,8 @@ if ($action !== '' && $sandboxTableReady) {
     }
 }
 
-$sandboxRunId = (string) $_SESSION['system_fix_run_id'];
 $sandboxPeriod = (string) $_SESSION['system_fix_period'];
+$sandboxRunId = system_fix_tx_period_key($sandboxPeriod);
 $sandboxSummary = $sandboxTableReady ? system_fix_tx_summary($conn) : ['runs' => 0, 'rows' => 0, 'last_run' => null];
 $sandboxScopeCount = 0;
 $sandboxRosterCount = 0;
@@ -266,9 +252,9 @@ $sandboxPeriodKey = system_fix_tx_period_key($sandboxPeriod);
 $sandboxRunRows = [];
 $sandboxStageTotals = [];
 
-if ($sandboxTableReady && $sandboxRunId !== '') {
+if ($sandboxTableReady) {
     try {
-        $sandboxScopeCount = count(system_fix_tx_scope_ids($conn, $sandboxRunId));
+        $sandboxScopeCount = count(system_fix_tx_scope_ids($conn, $sandboxPeriodKey));
         $sandboxRosterCount = count(system_fix_tx_roster_ids($conn, $sandboxPeriodKey));
     } catch (mysqli_sql_exception $e) {
         error_log('System Fix scope count error: ' . $e->getMessage());
@@ -305,17 +291,19 @@ if ($sandboxTableReady) {
     }
 }
 
-if ($sandboxTableReady && $sandboxRunId !== '') {
+if ($sandboxTableReady) {
+    // Rows for the period being rebuilt (the sandbox is period-scoped).
+    $bounds = system_fix_tx_period_bounds($sandboxPeriod);
     try {
         $stmt = $conn->prepare(
-            "SELECT `AccountsID`, `TransactionDate`, `TransactionTypeID`, `MemberNo`, `Details`,
-                    `Credit`, `StartingBalance`, `Amount`, `NewBalance`, `Stage`
+            "SELECT `accountsID`, `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`,
+                    `Credit`, `StartingBalance`, `Amount`, `NewBalance`, `Comments`
              FROM `transactionsfix`
-             WHERE `RunID` = ?
-             ORDER BY `AccountsID` ASC
+             WHERE `TransactionDate` BETWEEN ? AND ?
+             ORDER BY `accountsID` ASC
              LIMIT 300"
         );
-        $stmt->bind_param('s', $sandboxRunId);
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -324,13 +312,13 @@ if ($sandboxTableReady && $sandboxRunId !== '') {
         $stmt->close();
 
         $stmt = $conn->prepare(
-            "SELECT `Stage`, `TransactionTypeID`, COUNT(*) AS rows_count, COALESCE(SUM(`Amount`), 0) AS total
+            "SELECT `TransactionTypeID`, COUNT(*) AS rows_count, COALESCE(SUM(`Amount`), 0) AS total
              FROM `transactionsfix`
-             WHERE `RunID` = ?
-             GROUP BY `Stage`, `TransactionTypeID`
-             ORDER BY MIN(`AccountsID`) ASC"
+             WHERE `TransactionDate` BETWEEN ? AND ?
+             GROUP BY `TransactionTypeID`
+             ORDER BY MIN(`accountsID`) ASC"
         );
-        $stmt->bind_param('s', $sandboxRunId);
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -344,8 +332,10 @@ if ($sandboxTableReady && $sandboxRunId !== '') {
 }
 
 $existingCsvFiles = [];
-foreach (glob(__DIR__ . '/*.csv') ?: [] as $csvPath) {
-    $existingCsvFiles[] = basename($csvPath);
+foreach (array_merge(glob(__DIR__ . '/*.csv') ?: [], glob(__DIR__ . '/*.xlsx') ?: [], glob(__DIR__ . '/Transactions/filestoupload/*') ?: []) as $csvPath) {
+    if (is_file($csvPath) && preg_match('/\.(csv|xlsx)$/i', $csvPath)) {
+        $existingCsvFiles[] = basename($csvPath);
+    }
 }
 sort($existingCsvFiles);
 
@@ -523,8 +513,8 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
               </div>
 
               <div class="col-md-4">
-                <label class="form-label" for="adhoc_csv">Adhocs CSV (upload)</label>
-                <input type="file" class="form-control" id="adhoc_csv" name="adhoc_csv" accept=".csv,text/csv">
+                <label class="form-label" for="adhoc_csv">Adhocs file (CSV or Excel)</label>
+                <input type="file" class="form-control" id="adhoc_csv" name="adhoc_csv" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
               </div>
 
               <div class="col-md-3">
@@ -630,14 +620,10 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
             <form method="post" id="stageForm" class="d-flex flex-wrap gap-2 align-items-center">
               <input type="hidden" name="period" value="<?= htmlspecialchars($sandboxPeriod) ?>">
               <span class="text-muted small me-2">
-                Current run: <code><?= htmlspecialchars($sandboxRunId !== '' ? $sandboxRunId : '(none yet)') ?></code>
-                · Period: <code><?= htmlspecialchars($sandboxPeriod) ?></code>
+                Period: <code><?= htmlspecialchars($sandboxRunId) ?></code>
               </span>
-              <button type="submit" name="action" value="new_run" class="btn btn-sm btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                <i class="bi bi-plus-circle me-1"></i>New Run
-              </button>
-              <button type="submit" name="action" value="clear_run" class="btn btn-sm btn-outline-danger" <?= ($sandboxTableReady && $sandboxRunId !== '') ? '' : 'disabled' ?>>
-                <i class="bi bi-trash me-1"></i>Clear Current Run
+              <button type="submit" name="action" value="clear_run" class="btn btn-sm btn-outline-danger" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                <i class="bi bi-trash me-1"></i>Clear This Period
               </button>
             </form>
 
@@ -645,10 +631,9 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
               <table class="table table-sm table-striped align-middle mb-0">
                 <thead>
                   <tr>
-                    <th>Run</th>
-                    <th>Rows</th>
                     <th>Period</th>
-                    <th>Started</th>
+                    <th>Rows</th>
+                    <th>Date Range in Sandbox</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -662,10 +647,9 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                       &rarr;
                       <?= htmlspecialchars((string) ($lastRun['period_end'] ?? '')) ?>
                     </td>
-                    <td><?= htmlspecialchars((string) $lastRun['started_at']) ?></td>
                   </tr>
 <?php else: ?>
-                  <tr><td colspan="4" class="text-muted">No sandbox runs yet.</td></tr>
+                  <tr><td colspan="3" class="text-muted">No sandbox rows yet.</td></tr>
 <?php endif; ?>
                 </tbody>
               </table>
@@ -784,7 +768,7 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                 <tbody>
 <?php foreach ($sandboxStageTotals as $stage): ?>
                   <tr>
-                    <td><?= htmlspecialchars((string) $stage['Stage']) ?></td>
+                    <td><?= htmlspecialchars(system_fix_tx_transaction_type_name($conn, (int) $stage['TransactionTypeID'])) ?></td>
                     <td><?= (int) $stage['TransactionTypeID'] ?></td>
                     <td><?= (int) $stage['rows_count'] ?></td>
                     <td>E <?= htmlspecialchars(number_format((float) $stage['total'], 2)) ?></td>
@@ -799,12 +783,12 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
     </div>
 <?php endif; ?>
 
-<?php if ($sandboxRunId !== '' && !empty($sandboxRunRows)): ?>
+<?php if (!empty($sandboxRunRows)): ?>
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Sandbox Rows <small class="text-muted">(first 300)</small></h5>
+            <h5 class="card-title">Sandbox Rows <small class="text-muted">(first 300 for <?= htmlspecialchars($sandboxRunId) ?>)</small></h5>
             <div class="table-responsive">
               <table class="table table-striped datatable nowrap" style="width:100%">
                 <thead>
@@ -812,28 +796,28 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                     <th>ID</th>
                     <th>Date</th>
                     <th>Type</th>
-                    <th>Member</th>
+                    <th>Member ID</th>
                     <th>Details</th>
                     <th>Cr</th>
                     <th>Starting</th>
                     <th>Amount</th>
                     <th>New Balance</th>
-                    <th>Stage</th>
+                    <th>Comments</th>
                   </tr>
                 </thead>
                 <tbody>
 <?php foreach ($sandboxRunRows as $row): ?>
                   <tr>
-                    <td><?= (int) $row['AccountsID'] ?></td>
+                    <td><?= (int) $row['accountsID'] ?></td>
                     <td><?= htmlspecialchars((string) $row['TransactionDate']) ?></td>
                     <td><?= (int) $row['TransactionTypeID'] ?></td>
-                    <td><?= htmlspecialchars((string) $row['MemberNo']) ?></td>
+                    <td><?= htmlspecialchars((string) $row['memberID']) ?></td>
                     <td><?= htmlspecialchars((string) $row['Details']) ?></td>
-                    <td><?= (int) $row['Credit'] ?></td>
+                    <td><?= htmlspecialchars((string) $row['Credit']) ?></td>
                     <td><?= htmlspecialchars(number_format((float) $row['StartingBalance'], 2)) ?></td>
                     <td><?= htmlspecialchars(number_format((float) $row['Amount'], 2)) ?></td>
                     <td><?= htmlspecialchars(number_format((float) $row['NewBalance'], 2)) ?></td>
-                    <td><?= htmlspecialchars((string) $row['Stage']) ?></td>
+                    <td><?= htmlspecialchars((string) $row['Comments']) ?></td>
                   </tr>
 <?php endforeach; ?>
                 </tbody>

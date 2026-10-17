@@ -48,16 +48,17 @@ if (!function_exists('system_fix_tx_table')) {
 
 if (!function_exists('system_fix_tx_current_run')) {
     /**
-     * Return the run id for the current session, creating one on first use.
-     * A "run" keeps each reconstruction isolated so results never mix.
+     * The current run identifier.
+     *
+     * The sandbox now mirrors `tblmemberaccounts` (no RunID column), so a "run"
+     * is identified by its PERIOD: the YYYY-MM of the month being rebuilt. This
+     * keeps months isolated — staging August never mixes with July — because all
+     * queries filter on TransactionDate within that month.
      */
     function system_fix_tx_current_run(): string
     {
-        if (empty($_SESSION['system_fix_run_id'])) {
-            $_SESSION['system_fix_run_id'] = 'SF-' . date('Ymd-His');
-        }
-
-        return (string) $_SESSION['system_fix_run_id'];
+        $period = $_SESSION['system_fix_period'] ?? date('Y-m-t');
+        return date('Y-m', strtotime($period));
     }
 }
 
@@ -156,25 +157,19 @@ if (!function_exists('system_fix_tx_ensure_table')) {
         $interestTable = system_fix_tx_interest_pool_table();
 
         $sql = "CREATE TABLE IF NOT EXISTS `{$table}` (
-            `AccountsID` INT NOT NULL AUTO_INCREMENT,
-            `RunID` VARCHAR(40) NOT NULL,
-            `TransactionDate` DATE NULL,
-            `TransactionTypeID` INT NULL,
-            `memberID` INT NULL,
-            `MemberNo` VARCHAR(20) NULL,
-            `Details` VARCHAR(255) NULL,
-            `Credit` TINYINT(1) NOT NULL DEFAULT 0,
-            `StartingBalance` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-            `Amount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-            `NewBalance` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
-            `Comments` VARCHAR(500) NULL,
-            `Stage` VARCHAR(30) NULL,
-            `CreatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`AccountsID`),
-            KEY `idx_txf_run` (`RunID`),
-            KEY `idx_txf_member` (`memberID`),
-            KEY `idx_txf_type` (`TransactionTypeID`),
-            KEY `idx_txf_date` (`TransactionDate`)
+            `accountsID` INT(10) NOT NULL AUTO_INCREMENT,
+            `TransactionDate` DATE DEFAULT NULL,
+            `TransactionTypeID` INT(10) DEFAULT NULL,
+            `memberID` INT(10) DEFAULT NULL,
+            `Details` VARCHAR(255) DEFAULT NULL,
+            `Credit` CHAR(1) NOT NULL DEFAULT '0',
+            `StartingBalance` DOUBLE(10,2) DEFAULT NULL,
+            `Amount` DOUBLE(10,2) DEFAULT NULL,
+            `NewBalance` DOUBLE(10,2) DEFAULT NULL,
+            `Comments` VARCHAR(255) DEFAULT NULL,
+            PRIMARY KEY (`accountsID`),
+            KEY `memberID` (`memberID`),
+            KEY `TransactionTypeID` (`TransactionTypeID`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
         $membersSql = "CREATE TABLE IF NOT EXISTS `{$membersTable}` (
@@ -235,18 +230,21 @@ if (!function_exists('system_fix_tx_summary')) {
         $summary = ['runs' => 0, 'rows' => 0, 'last_run' => null];
 
         try {
-            if ($result = $conn->query("SELECT COUNT(DISTINCT `RunID`) AS runs, COUNT(*) AS rows FROM `{$table}`")) {
+            if ($result = $conn->query(
+                "SELECT COUNT(DISTINCT DATE_FORMAT(`TransactionDate`, '%Y-%m')) AS runs, COUNT(*) AS rows
+                 FROM `{$table}`"
+            )) {
                 $row = $result->fetch_assoc();
                 $summary['runs'] = (int) ($row['runs'] ?? 0);
                 $summary['rows'] = (int) ($row['rows'] ?? 0);
             }
 
             if ($result = $conn->query(
-                "SELECT `RunID`, MIN(`CreatedAt`) AS started_at, COUNT(*) AS rows,
+                "SELECT DATE_FORMAT(`TransactionDate`, '%Y-%m') AS RunID, COUNT(*) AS rows,
                         MIN(`TransactionDate`) AS period_start, MAX(`TransactionDate`) AS period_end
                  FROM `{$table}`
-                 GROUP BY `RunID`
-                 ORDER BY started_at DESC
+                 GROUP BY RunID
+                 ORDER BY period_start DESC
                  LIMIT 1"
             )) {
                 $summary['last_run'] = $result->fetch_assoc() ?: null;
@@ -260,11 +258,20 @@ if (!function_exists('system_fix_tx_summary')) {
 }
 
 if (!function_exists('system_fix_tx_clear_run')) {
+    /**
+     * Clear all sandbox rows for a period (YYYY-MM). The period is derived from
+     * TransactionDate because the sandbox mirrors tblmemberaccounts exactly.
+     */
     function system_fix_tx_clear_run(mysqli $conn, string $runId): int
     {
         $table = system_fix_tx_table();
-        $stmt = $conn->prepare("DELETE FROM `{$table}` WHERE `RunID` = ?");
-        $stmt->bind_param('s', $runId);
+        $period = substr($runId, 0, 7);
+        $bounds = system_fix_tx_period_bounds($period . '-01');
+
+        $stmt = $conn->prepare(
+            "DELETE FROM `{$table}` WHERE `TransactionDate` BETWEEN ? AND ?"
+        );
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
         $stmt->execute();
         $deleted = $stmt->affected_rows;
         $stmt->close();
@@ -304,27 +311,74 @@ if (!function_exists('system_fix_tx_resolve_member')) {
 
 if (!function_exists('system_fix_tx_parse_csv')) {
     /**
-     * Parse an adhocs CSV into normalised rows.
-     * Expected headers: MemberNo, Transaction Date, Comments, Amount
+     * Parse an adhocs spreadsheet (CSV or .xlsx) into normalised rows.
+     * Expected headers: Member No, Transaction Date, Comments, Amount
+     * An optional Transaction Type / Type ID column is also honoured.
      *
      * @return array{rows:array<int,array>, errors:array<int,string>}
      */
     function system_fix_tx_parse_csv(string $filePath): array
     {
+        if (preg_match('/\.xlsx$/i', $filePath)) {
+            return system_fix_tx_parse_xlsx($filePath);
+        }
+
         $rows = [];
         $errors = [];
 
         if (($handle = fopen($filePath, 'r')) === false) {
-            return ['rows' => [], 'errors' => ['Unable to open the uploaded CSV file.']];
+            return ['rows' => [], 'errors' => ['Unable to open the uploaded file.']];
         }
 
         $header = fgetcsv($handle, 0, ',');
-        if ($header === false) {
-            fclose($handle);
-            return ['rows' => [], 'errors' => ['The CSV file is empty.']];
+        $dataRows = [];
+        while (($data = fgetcsv($handle, 0, ',')) !== false) {
+            $dataRows[] = $data;
+        }
+        fclose($handle);
+
+        return system_fix_tx_rows_to_adhocs($header ?: [], $dataRows);
+    }
+}
+
+if (!function_exists('system_fix_tx_parse_xlsx')) {
+    /**
+     * Parse an .xlsx adhocs file into the same shape as the CSV parser.
+     *
+     * @return array{rows:array<int,array>, errors:array<int,string>}
+     */
+    function system_fix_tx_parse_xlsx(string $filePath): array
+    {
+        $read = system_fix_tx_xlsx_rows($filePath);
+        if (!empty($read['errors'])) {
+            return ['rows' => [], 'errors' => $read['errors']];
         }
 
-        // Normalise header names so "Transaction Date", "transaction_date" etc. all map.
+        $all = $read['rows'];
+        if (empty($all)) {
+            return ['rows' => [], 'errors' => ['The spreadsheet is empty.']];
+        }
+
+        $header = array_shift($all);
+        return system_fix_tx_rows_to_adhocs($header, $all);
+    }
+}
+
+if (!function_exists('system_fix_tx_rows_to_adhocs')) {
+    /**
+     * Turn a header row + data rows into normalised adhoc rows. Shared by the
+     * CSV and XLSX readers so both behave identically.
+     *
+     * @param array<int,string> $header
+     * @param array<int,array>  $dataRows
+     * @return array{rows:array<int,array>, errors:array<int,string>}
+     */
+    function system_fix_tx_rows_to_adhocs(array $header, array $dataRows): array
+    {
+        $rows = [];
+        $errors = [];
+
+        // Normalise header names so "Member No", "member_no" etc. all map.
         $map = [];
         foreach ($header as $index => $name) {
             $key = strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $name));
@@ -335,22 +389,29 @@ if (!function_exists('system_fix_tx_parse_csv')) {
         $dateIdx = $map['transactiondate'] ?? $map['date'] ?? 1;
         $commentIdx = $map['comments'] ?? $map['comment'] ?? 2;
         $amountIdx = $map['amount'] ?? 3;
+        $typeIdx = $map['transactiontypeid'] ?? $map['transactiontype'] ?? $map['type'] ?? $map['typeid'] ?? null;
 
         $lineNo = 1;
-        while (($data = fgetcsv($handle, 0, ',')) !== false) {
+        foreach ($dataRows as $data) {
             $lineNo++;
 
             $memberNo = trim((string) ($data[$memberIdx] ?? ''));
             $rawDate = trim((string) ($data[$dateIdx] ?? ''));
             $comments = trim((string) ($data[$commentIdx] ?? ''));
-            $rawAmount = str_replace([' ', ','], '', trim((string) ($data[$amountIdx] ?? '')));
+            // Strip currency symbols, thousands separators and spaces.
+            $rawAmount = preg_replace('/[^0-9.\-]/', '', (string) ($data[$amountIdx] ?? ''));
+
+            $type = 4; // default adhoc payment
+            if ($typeIdx !== null && isset($data[$typeIdx]) && trim((string) $data[$typeIdx]) !== '') {
+                $type = (int) $data[$typeIdx];
+            }
 
             if ($memberNo === '' && $rawDate === '' && $rawAmount === '') {
                 continue; // blank line
             }
 
             if ($memberNo === '' || !is_numeric($rawAmount)) {
-                $errors[] = "Line {$lineNo}: skipped (MemberNo/Amount could not be read).";
+                $errors[] = "Line {$lineNo}: skipped (Member No/Amount could not be read).";
                 continue;
             }
 
@@ -365,24 +426,112 @@ if (!function_exists('system_fix_tx_parse_csv')) {
                 'date' => $date,
                 'comments' => $comments,
                 'amount' => round((float) $rawAmount, 2),
+                'type' => $type,
             ];
         }
 
-        fclose($handle);
-
         if (empty($rows) && empty($errors)) {
-            $errors[] = 'No data rows were found in the CSV file.';
+            $errors[] = 'No data rows were found in the file.';
         }
 
         return ['rows' => $rows, 'errors' => $errors];
     }
 }
 
-if (!function_exists('system_fix_tx_normalise_date')) {
+if (!function_exists('system_fix_tx_xlsx_rows')) {
     /**
-     * Accept dd/mm/yyyy (the adhocs format), yyyy-mm-dd, or anything strtotime understands.
-     * Returns Y-m-d, or null when the value cannot be interpreted.
+     * Read the first worksheet of an .xlsx file into a plain array of rows.
+     *
+     * Uses ZipArchive + SimpleXML (both bundled with XAMPP PHP) so no external
+     * library is required. Dates stored as Excel serial numbers are returned as
+     * numbers; system_fix_tx_normalise_date() converts them later.
+     *
+     * @return array{rows:array<int,array<int,string>>, errors:array<int,string>}
      */
+    function system_fix_tx_xlsx_rows(string $filePath): array
+    {
+        if (!class_exists('ZipArchive')) {
+            return ['rows' => [], 'errors' => ['The PHP zip extension is required to read .xlsx files.']];
+        }
+
+        $zip = new ZipArchive();
+        if ($zip->open($filePath) !== true) {
+            return ['rows' => [], 'errors' => ['Unable to open the .xlsx file.']];
+        }
+
+        // Shared strings table (values referenced by t="s" cells).
+        $shared = [];
+        $sharedXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($sharedXml !== false) {
+            $sx = @simplexml_load_string($sharedXml);
+            if ($sx !== false) {
+                foreach ($sx->si as $si) {
+                    // Concatenate all <t> runs (formatted text).
+                    $text = '';
+                    foreach ($si->t as $t) {
+                        $text .= (string) $t;
+                    }
+                    if ($text === '' && isset($si->r)) {
+                        foreach ($si->r as $run) {
+                            $text .= (string) $run->t;
+                        }
+                    }
+                    $shared[] = $text;
+                }
+            }
+        }
+
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        if ($sheetXml === false) {
+            $zip->close();
+            return ['rows' => [], 'errors' => ['The .xlsx file has no first worksheet.']];
+        }
+
+        $sheet = @simplexml_load_string($sheetXml);
+        $zip->close();
+        if ($sheet === false) {
+            return ['rows' => [], 'errors' => ['Unable to parse the worksheet XML.']];
+        }
+
+        $rows = [];
+        foreach ($sheet->sheetData->row as $row) {
+            $cells = [];
+            foreach ($row->c as $c) {
+                $ref = (string) $c['r'];
+                // Column letter -> zero-based index (A=0, B=1, ...).
+                preg_match('#^([A-Z]+)#', $ref, $m);
+                $colLetters = $m[1] ?? 'A';
+                $colIndex = 0;
+                for ($i = 0; $i < strlen($colLetters); $i++) {
+                    $colIndex = $colIndex * 26 + (ord($colLetters[$i]) - 64);
+                }
+                $colIndex--;
+
+                $type = (string) $c['t'];
+                $value = (string) $c->v;
+                if ($type === 's') {
+                    $value = $shared[(int) $value] ?? '';
+                }
+
+                $cells[$colIndex] = $value;
+            }
+
+            if (!empty($cells)) {
+                // Fill gaps so indexes line up, then order by column.
+                $max = max(array_keys($cells));
+                $ordered = [];
+                for ($i = 0; $i <= $max; $i++) {
+                    $ordered[$i] = $cells[$i] ?? '';
+                }
+                $rows[] = $ordered;
+            }
+        }
+
+        return ['rows' => $rows, 'errors' => []];
+    }
+}
+
+if (!function_exists('system_fix_tx_normalise_date')) {
     function system_fix_tx_normalise_date(string $value): ?string
     {
         $value = trim($value);
@@ -396,6 +545,15 @@ if (!function_exists('system_fix_tx_normalise_date')) {
 
         if (preg_match('#^(\d{4})-(\d{1,2})-(\d{1,2})$#', $value, $m)) {
             return sprintf('%04d-%02d-%02d', (int) $m[1], (int) $m[2], (int) $m[3]);
+        }
+
+        // Excel serial date (days since 1899-12-30), typically 20000–60000.
+        if (preg_match('#^\d{4,6}(\.\d+)?$#', $value)) {
+            $serial = (float) $value;
+            if ($serial >= 1000 && $serial <= 80000) {
+                $unix = ($serial - 25569) * 86400;
+                return gmdate('Y-m-d', (int) $unix);
+            }
         }
 
         $ts = strtotime($value);
@@ -502,44 +660,40 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             }
 
             $memberId = (int) $member['MemberID'];
-            $memberNo = (string) $member['MemberNo'];
             $date = $row['date'] ?: $periodDate;
             $amount = (float) $row['amount'];
+            // Type comes from the spreadsheet when present, else Ad Hoc Payment (4).
+            $type = (int) ($row['type'] ?? 4);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             $afterPayment = round($starting - $amount, 2);
 
-            // --- Adhoc payment (type 4) ---------------------------------------
+            // --- Main transaction (spreadsheet type, default 4) ---------------
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $date,
-                'type' => 4,
+                'type' => $type,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Ad Hoc Payment',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, $type),
+                'credit' => '0',
                 'starting' => $starting,
                 'amount' => $amount,
                 'new_balance' => $afterPayment,
                 'comments' => (string) $row['comments'],
-                'stage' => 'adhoc',
             ]);
 
-            // --- Adhoc transaction fee (type 5) = 2% --------------------------
+            // --- Transaction fee (type 5) = 2% --------------------------------
             $fee = round($amount * 0.02, 2);
             $afterFee = round($afterPayment - $fee, 2);
+            $feeType = 5;
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $date,
-                'type' => 5,
+                'type' => $feeType,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Adhoc Transaction Fee',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, $feeType),
+                'credit' => '0',
                 'starting' => $afterPayment,
                 'amount' => $fee,
                 'new_balance' => $afterFee,
                 'comments' => (string) $row['comments'],
-                'stage' => 'adhoc_fee',
             ]);
 
             // Carry the closing balance forward so the next adhoc for this
@@ -560,47 +714,67 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
     }
 }
 
+if (!function_exists('system_fix_tx_transaction_type_name')) {
+    /**
+     * Transaction type label from tbltransactiontypes, used for `Details`.
+     */
+    function system_fix_tx_transaction_type_name(mysqli $conn, int $typeId): string
+    {
+        static $cache = [];
+
+        if (array_key_exists($typeId, $cache)) {
+            return $cache[$typeId];
+        }
+
+        $stmt = $conn->prepare("SELECT `TransactionType` FROM `tbltransactiontypes` WHERE `transactiontypeID` = ? LIMIT 1");
+        $stmt->bind_param('i', $typeId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+
+        return $cache[$typeId] = $row ? (string) $row['TransactionType'] : '';
+    }
+}
+
 if (!function_exists('system_fix_tx_insert')) {
     /**
      * Low level insert helper for the sandbox table (single prepared statement).
+     *
+     * The sandbox mirrors `tblmemberaccounts` exactly: (TransactionDate,
+     * TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount,
+     * NewBalance, Comments).
      */
     function system_fix_tx_insert(mysqli $conn, array $row): void
     {
         $table = system_fix_tx_table();
         $stmt = $conn->prepare(
             "INSERT INTO `{$table}`
-                (`RunID`, `TransactionDate`, `TransactionTypeID`, `memberID`, `MemberNo`, `Details`,
-                 `Credit`, `StartingBalance`, `Amount`, `NewBalance`, `Comments`, `Stage`)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                (`TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                 `StartingBalance`, `Amount`, `NewBalance`, `Comments`)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
-        $runId = (string) ($row['run_id'] ?? '');
         $date = (string) ($row['date'] ?? '');
         $type = (int) ($row['type'] ?? 0);
         $memberId = (int) ($row['member_id'] ?? 0);
-        $memberNo = (string) ($row['member_no'] ?? '');
         $details = (string) ($row['details'] ?? '');
-        $credit = (int) ($row['credit'] ?? 0);
+        $credit = (string) ($row['credit'] ?? '0');
         $starting = (float) ($row['starting'] ?? 0);
         $amount = (float) ($row['amount'] ?? 0);
         $newBalance = (float) ($row['new_balance'] ?? 0);
         $comments = (string) ($row['comments'] ?? '');
-        $stage = (string) ($row['stage'] ?? '');
 
         $stmt->bind_param(
-            'ssiissidddss',
-            $runId,
+            'siissddds',
             $date,
             $type,
             $memberId,
-            $memberNo,
             $details,
             $credit,
             $starting,
             $amount,
             $newBalance,
-            $comments,
-            $stage
+            $comments
         );
         $stmt->execute();
         $stmt->close();
@@ -697,15 +871,17 @@ if (!function_exists('system_fix_tx_running_balances')) {
     function system_fix_tx_running_balances(mysqli $conn, string $runId): array
     {
         $table = system_fix_tx_table();
+        $period = substr($runId, 0, 7);
+        $bounds = system_fix_tx_period_bounds($period . '-01');
         $balances = [];
 
         $stmt = $conn->prepare(
             "SELECT `memberID`, `NewBalance`
              FROM `{$table}`
-             WHERE `RunID` = ?
-             ORDER BY `AccountsID` ASC"
+             WHERE `TransactionDate` BETWEEN ? AND ?
+             ORDER BY `accountsID` ASC"
         );
-        $stmt->bind_param('s', $runId);
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -764,40 +940,33 @@ if (!function_exists('system_fix_tx_stage_regular')) {
                 continue; // nothing ran for this member — no regular payment to mirror
             }
 
-            $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             $afterPayment = round($starting - $amount, 2);
 
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $periodDate,
                 'type' => 3,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Regular Payments',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, 3),
+                'credit' => '0',
                 'starting' => $starting,
                 'amount' => $amount,
                 'new_balance' => $afterPayment,
                 'comments' => '',
-                'stage' => 'regular',
             ]);
 
             $fee = round($amount * ($percent / 100), 2);
             $afterFee = round($afterPayment - $fee, 2);
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $periodDate,
                 'type' => 5,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Scheduled Transaction Fee',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, 5),
+                'credit' => '0',
                 'starting' => $afterPayment,
                 'amount' => $fee,
                 'new_balance' => $afterFee,
                 'comments' => '',
-                'stage' => 'regular_fee',
             ]);
 
             $balances[$memberId] = $afterFee;
@@ -852,24 +1021,20 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
 
         while ($row = $result->fetch_assoc()) {
             $memberId = (int) $row['MemberID'];
-            $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
             $fee = round(((1.5 / 100) * $starting / 365) * $days, 2);
 
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $periodDate,
                 'type' => 7,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Admin Fees',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, 7),
+                'credit' => '0',
                 'starting' => $starting,
                 'amount' => $fee,
                 'new_balance' => round($starting - $fee, 2),
                 'comments' => '',
-                'stage' => 'admin_fee',
             ]);
 
             $posted++;
@@ -924,22 +1089,18 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
             }
 
             $amount = 10.00; // flat monthly fee
-            $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $periodDate,
                 'type' => 6,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Fixed Monthly Fee',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, 6),
+                'credit' => '0',
                 'starting' => $starting,
                 'amount' => $amount,
                 'new_balance' => round($starting - $amount, 2),
                 'comments' => '',
-                'stage' => 'fixed_fee',
             ]);
 
             $posted++;
@@ -962,12 +1123,15 @@ if (!function_exists('system_fix_tx_scope_ids')) {
     function system_fix_tx_scope_ids(mysqli $conn, string $runId): array
     {
         $table = system_fix_tx_table();
+        $period = substr($runId, 0, 7);
+        $bounds = system_fix_tx_period_bounds($period . '-01');
         $ids = [];
 
         $stmt = $conn->prepare(
-            "SELECT DISTINCT `memberID` FROM `{$table}` WHERE `RunID` = ? AND `memberID` > 0"
+            "SELECT DISTINCT `memberID` FROM `{$table}`
+             WHERE `TransactionDate` BETWEEN ? AND ? AND `memberID` > 0"
         );
-        $stmt->bind_param('s', $runId);
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -1362,35 +1526,29 @@ if (!function_exists('system_fix_tx_stage_openings')) {
 
             // --- Opening Balance (type 1), Credit = 1 -------------------------
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $openingDate,
                 'type' => 1,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Opening Balance',
-                'credit' => 1,
+                'details' => system_fix_tx_transaction_type_name($conn, 1),
+                'credit' => '1',
                 'starting' => 0.00,
                 'amount' => round($approved, 2),
                 'new_balance' => round($approved, 2),
                 'comments' => '',
-                'stage' => 'opening',
             ]);
 
             // --- Transfer In Fee (type 2): 1%, waived below 20,000 ------------
             $fee = $approved < 20000 ? 0.00 : round($approved * 0.01, 2);
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $openingDate,
                 'type' => 2,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Transfer In Fee',
-                'credit' => 0,
+                'details' => system_fix_tx_transaction_type_name($conn, 2),
+                'credit' => '0',
                 'starting' => round($approved, 2),
                 'amount' => $fee,
                 'new_balance' => round($approved - $fee, 2),
                 'comments' => $fee == 0.00 ? 'No charge (below 20,000)' : '',
-                'stage' => 'transfer_in_fee',
             ]);
 
             if ($fee > 0) {
@@ -1420,8 +1578,14 @@ if (!function_exists('system_fix_tx_member_has_rows')) {
     function system_fix_tx_member_has_rows(mysqli $conn, string $runId, int $memberId): bool
     {
         $table = system_fix_tx_table();
-        $stmt = $conn->prepare("SELECT 1 FROM `{$table}` WHERE `RunID` = ? AND `memberID` = ? LIMIT 1");
-        $stmt->bind_param('si', $runId, $memberId);
+        $period = substr($runId, 0, 7);
+        $bounds = system_fix_tx_period_bounds($period . '-01');
+
+        $stmt = $conn->prepare(
+            "SELECT 1 FROM `{$table}`
+             WHERE `TransactionDate` BETWEEN ? AND ? AND `memberID` = ? LIMIT 1"
+        );
+        $stmt->bind_param('ssi', $bounds['start'], $bounds['end'], $memberId);
         $stmt->execute();
         $found = $stmt->get_result()->fetch_row() !== null;
         $stmt->close();
@@ -1464,21 +1628,17 @@ if (!function_exists('system_fix_tx_stage_interest')) {
 
         foreach ($balances as $memberId => $starting) {
             $interest = round(($starting / $totalFunds) * $pool, 2);
-            $memberNo = system_fix_tx_member_no($conn, $memberId);
 
             system_fix_tx_insert($conn, [
-                'run_id' => $runId,
                 'date' => $periodDate,
                 'type' => 8,
                 'member_id' => $memberId,
-                'member_no' => $memberNo,
-                'details' => 'Monthly Interest ' . date('F', strtotime($periodDate)) . ' Allocated',
-                'credit' => 1,
+                'details' => system_fix_tx_transaction_type_name($conn, 8),
+                'credit' => '1',
                 'starting' => $starting,
                 'amount' => $interest,
                 'new_balance' => round($starting + $interest, 2),
                 'comments' => '',
-                'stage' => 'interest',
             ]);
 
             $posted++;
@@ -1523,15 +1683,16 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
     function system_fix_tx_balance_denominator(mysqli $conn, string $runId, string $periodDate): array
     {
         $table = system_fix_tx_table();
+        $bounds = system_fix_tx_period_bounds($periodDate);
         $balances = [];
 
         $stmt = $conn->prepare(
             "SELECT `memberID`, `NewBalance`
              FROM `{$table}`
-             WHERE `RunID` = ?
-             ORDER BY `AccountsID` DESC"
+             WHERE `TransactionDate` BETWEEN ? AND ?
+             ORDER BY `accountsID` DESC"
         );
-        $stmt->bind_param('s', $runId);
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
