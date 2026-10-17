@@ -66,10 +66,37 @@ $findSpreadsheet = static function (string $name) use ($sandboxSpreadsheetFolder
 };
 
 /**
+ * Auto-detect a spreadsheet by a keyword in its filename (e.g. "regular" or
+ * "adhoc"). Only used as a fallback when nothing was explicitly chosen, and only
+ * when exactly one file matches — never guesses between candidates.
+ *
+ * @return array{0:string, 1:string} [path, label] or ['', '']
+ */
+$findSpreadsheetByKeyword = static function (string $keyword) use ($sandboxSpreadsheetFolders, $findSpreadsheet): array {
+    $matches = [];
+    foreach ($sandboxSpreadsheetFolders as $folder) {
+        $pattern = $folder === '' ? __DIR__ . '/*' : __DIR__ . '/' . $folder . '/*';
+        foreach (glob($pattern) ?: [] as $path) {
+            if (is_file($path) && preg_match('/\.(csv|xlsx)$/i', $path) && stripos(basename($path), $keyword) !== false) {
+                $matches[] = basename($path);
+            }
+        }
+    }
+
+    $matches = array_values(array_unique($matches));
+    if (count($matches) !== 1) {
+        return ['', ''];
+    }
+
+    [$path, $label] = $findSpreadsheet($matches[0]);
+    return [$path, $label];
+};
+
+/**
  * Pick the adhocs source: an uploaded file wins, else a file already present on
  * the server (matched across the known folders). Returns [path, label, error].
  */
-$resolveAdhocSource = static function () use ($findSpreadsheet): array {
+$resolveAdhocSource = static function () use ($findSpreadsheet, $findSpreadsheetByKeyword): array {
     if (!empty($_FILES['adhoc_csv']['tmp_name']) && is_uploaded_file($_FILES['adhoc_csv']['tmp_name'])) {
         return [$_FILES['adhoc_csv']['tmp_name'], (string) ($_FILES['adhoc_csv']['name'] ?? 'uploaded file'), ''];
     }
@@ -78,19 +105,31 @@ $resolveAdhocSource = static function () use ($findSpreadsheet): array {
         return $findSpreadsheet((string) $_POST['existing_csv']);
     }
 
+    // Fallback: the only adhocs-looking file on disk (e.g. "…ADHOC - done.xlsx").
+    [$path, $label] = $findSpreadsheetByKeyword('adhoc');
+    if ($path !== '') {
+        return [$path, $label, ''];
+    }
+
     return ['', '', 'Choose a CSV file to upload, or pick one of the existing files.'];
 };
 
 /**
  * Pick the regulars source the same way.
  */
-$resolveRegularSource = static function () use ($findSpreadsheet): array {
+$resolveRegularSource = static function () use ($findSpreadsheet, $findSpreadsheetByKeyword): array {
     if (!empty($_FILES['regular_xlsx']['tmp_name']) && is_uploaded_file($_FILES['regular_xlsx']['tmp_name'])) {
         return [$_FILES['regular_xlsx']['tmp_name'], (string) ($_FILES['regular_xlsx']['name'] ?? 'uploaded regulars'), ''];
     }
 
     if (!empty($_POST['existing_regular'])) {
         return $findSpreadsheet((string) $_POST['existing_regular']);
+    }
+
+    // Fallback: the only regulars-looking file on disk (e.g. "…REGULAR - done.xlsx").
+    [$path, $label] = $findSpreadsheetByKeyword('regular');
+    if ($path !== '') {
+        return [$path, $label, ''];
     }
 
     return ['', '', 'Choose a regulars file to upload, or pick one of the existing files.'];
@@ -207,18 +246,32 @@ if ($action !== '' && $sandboxTableReady) {
                 // full month end (adhocs -> regulars -> admin -> fixed -> interest)
                 // so balances carry forward automatically.
                 [$adhocSource, $adhocLabel, $adhocError] = $resolveAdhocSource();
-                if ($adhocError !== '') {
-                    $sandboxErrors[] = 'Adhocs spreadsheet: upload it on the left, or choose it from the “adhocs on the server” dropdown.';
+                if ($adhocSource === '') {
+                    $adhocGot = (string) ($_POST['existing_csv'] ?? '');
+                    $adhocUpload = $_FILES['adhoc_csv']['name'] ?? '';
+                    $sandboxErrors[] = sprintf(
+                        'Adhocs spreadsheet not found (dropdown="%s", upload="%s"). Pick “JANUARY 2014 - JUNE 2016 ADHOC - done.xlsx” and try again.',
+                        $adhocGot,
+                        $adhocUpload
+                    );
                     break;
                 }
+                $sandboxMessages[] = 'Adhocs loaded from: ' . htmlspecialchars($adhocLabel);
 
                 $regularSource = '';
                 $regularLabel = '';
                 [$regularSource, $regularLabel, $regularError] = $resolveRegularSource();
                 if ($regularSource === '') {
-                    $sandboxErrors[] = 'Regulars spreadsheet: upload it, or choose it from the “regulars on the server” dropdown.';
+                    $regularGot = (string) ($_POST['existing_regular'] ?? '');
+                    $regularUpload = $_FILES['regular_xlsx']['name'] ?? '';
+                    $sandboxErrors[] = sprintf(
+                        'Regulars spreadsheet not found (dropdown="%s", upload="%s"). Pick “JANUARY 2014 - JUNE 2016 REGULAR - done.xlsx” and click Run All Months again.',
+                        $regularGot,
+                        $regularUpload
+                    );
                     break;
                 }
+                $sandboxMessages[] = 'Regulars loaded from: ' . htmlspecialchars($regularLabel);
 
                 $adhocParsed = system_fix_tx_parse_csv($adhocSource);
                 $regularParsed = system_fix_tx_parse_csv($regularSource);
@@ -695,7 +748,7 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                 <select class="form-select" id="existing_csv2" name="existing_csv">
                   <option value="">— none —</option>
                   <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
+                  <option value="<?= htmlspecialchars($csvFile) ?>" <?= stripos($csvFile, 'adhoc') !== false ? 'selected' : '' ?>><?= htmlspecialchars($csvFile) ?></option>
                   <?php endforeach; ?>
                 </select>
               </div>
@@ -708,7 +761,7 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                 <select class="form-select" id="existing_regular" name="existing_regular">
                   <option value="">— none —</option>
                   <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
+                  <option value="<?= htmlspecialchars($csvFile) ?>" <?= stripos($csvFile, 'regular') !== false ? 'selected' : '' ?>><?= htmlspecialchars($csvFile) ?></option>
                   <?php endforeach; ?>
                 </select>
               </div>
