@@ -25,6 +25,8 @@ $errors = [];
 $sandboxMessages = [];
 $sandboxErrors = [];
 $sandboxTableReady = false;
+$sandboxPreview = null;
+$sandboxPreviewLabel = '';
 
 // --- Transactions sandbox ----------------------------------------------------
 // Everything below writes ONLY to `transactionsfix`.
@@ -44,6 +46,28 @@ if (!isset($_SESSION['system_fix_period'])) {
 }
 
 $action = (string) ($_POST['action'] ?? '');
+
+/**
+ * Pick the CSV source for an adhocs action: an uploaded file wins, otherwise a
+ * file already present on the server. Returns [path, label, error].
+ */
+$resolveAdhocSource = static function (): array {
+    if (!empty($_FILES['adhoc_csv']['tmp_name']) && is_uploaded_file($_FILES['adhoc_csv']['tmp_name'])) {
+        return [$_FILES['adhoc_csv']['tmp_name'], (string) ($_FILES['adhoc_csv']['name'] ?? 'uploaded file'), ''];
+    }
+
+    if (!empty($_POST['existing_csv'])) {
+        $candidate = __DIR__ . '/' . basename((string) $_POST['existing_csv']); // basename() blocks path traversal
+        if (is_file($candidate)) {
+            return [$candidate, basename($candidate), ''];
+        }
+
+        return ['', '', 'The selected CSV file could not be found.'];
+    }
+
+    return ['', '', 'Choose a CSV file to upload, or pick one of the existing files.'];
+};
+
 if ($action !== '' && $sandboxTableReady) {
     $period = system_fix_tx_normalise_date((string) ($_POST['period'] ?? '')) ?: $_SESSION['system_fix_period'];
     $_SESSION['system_fix_period'] = $period;
@@ -68,50 +92,81 @@ if ($action !== '' && $sandboxTableReady) {
                 }
                 break;
 
+            case 'preview_adhocs':
+                // Show the MemberNo -> MemberID mapping without writing anything.
+                [$source, $sourceLabel, $sourceError] = $resolveAdhocSource();
+                if ($sourceError !== '') {
+                    $sandboxErrors[] = $sourceError;
+                    break;
+                }
+
+                $parsed = system_fix_tx_parse_csv($source);
+                foreach ($parsed['errors'] as $parseError) {
+                    $sandboxErrors[] = $parseError;
+                }
+
+                $sandboxPreview = system_fix_tx_preview_adhocs($conn, $parsed['rows']);
+                $sandboxPreviewLabel = $sourceLabel;
+                $sandboxMessages[] = sprintf(
+                    'Mapping check for %s: %d row(s) matched to a memberID, %d unmatched, total E %s.',
+                    htmlspecialchars($sourceLabel),
+                    $sandboxPreview['matched'],
+                    $sandboxPreview['unmatched'],
+                    number_format($sandboxPreview['total_amount'], 2)
+                );
+                break;
+
             case 'stage_adhocs':
                 $runId = system_fix_tx_current_run();
-                $source = '';
-
-                if (!empty($_FILES['adhoc_csv']['tmp_name']) && is_uploaded_file($_FILES['adhoc_csv']['tmp_name'])) {
-                    $source = $_FILES['adhoc_csv']['tmp_name'];
-                    $sourceLabel = $_FILES['adhoc_csv']['name'] ?? 'uploaded file';
-                } elseif (!empty($_POST['existing_csv'])) {
-                    $candidate = __DIR__ . '/' . basename((string) $_POST['existing_csv']);
-                    if (is_file($candidate)) {
-                        $source = $candidate;
-                        $sourceLabel = basename($candidate);
-                    } else {
-                        $sandboxErrors[] = 'The selected CSV file could not be found.';
-                    }
-                } else {
-                    $sandboxErrors[] = 'Choose a CSV file to upload, or pick one of the existing files.';
+                [$source, $sourceLabel, $sourceError] = $resolveAdhocSource();
+                if ($sourceError !== '') {
+                    $sandboxErrors[] = $sourceError;
+                    break;
                 }
 
-                if ($source !== '') {
-                    $parsed = system_fix_tx_parse_csv($source);
-                    foreach ($parsed['errors'] as $parseError) {
-                        $sandboxErrors[] = $parseError;
-                    }
-
-                    $result = system_fix_tx_stage_adhocs($conn, $runId, $parsed['rows'], $period);
-                    foreach ($result['skipped'] as $skipped) {
-                        $sandboxErrors[] = $skipped;
-                    }
-
-                    $sandboxMessages[] = sprintf(
-                        'Adhocs staged from %s: %d payment(s), total E %s, fees E %s.',
-                        htmlspecialchars($sourceLabel),
-                        $result['posted'],
-                        number_format($result['total_amount'], 2),
-                        number_format($result['total_fee'], 2)
-                    );
-                    audit_trail_log($conn, 'system_fix_stage_adhocs', "Staged {$result['posted']} adhocs for {$period}");
+                $parsed = system_fix_tx_parse_csv($source);
+                foreach ($parsed['errors'] as $parseError) {
+                    $sandboxErrors[] = $parseError;
                 }
+
+                $result = system_fix_tx_stage_adhocs($conn, $runId, $parsed['rows'], $period);
+                foreach ($result['skipped'] as $skipped) {
+                    $sandboxErrors[] = $skipped;
+                }
+
+                $sandboxMessages[] = sprintf(
+                    'Adhocs staged from %s: %d payment(s), total E %s, fees E %s.',
+                    htmlspecialchars($sourceLabel),
+                    $result['posted'],
+                    number_format($result['total_amount'], 2),
+                    number_format($result['total_fee'], 2)
+                );
+                audit_trail_log($conn, 'system_fix_stage_adhocs', "Staged {$result['posted']} adhocs for {$period}");
+                break;
+
+            case 'stage_openings':
+                $runId = system_fix_tx_current_run();
+                $result = system_fix_tx_stage_openings($conn, $runId, $period);
+                foreach ($result['skipped'] as $skipped) {
+                    $sandboxErrors[] = $skipped;
+                }
+                $sandboxMessages[] = sprintf(
+                    'Opening balances staged: %d member(s), total E %s, transfer-in fees E %s (%d charged, %d waived below 20,000).',
+                    $result['posted'],
+                    number_format($result['total_opening'], 2),
+                    number_format($result['total_fee'], 2),
+                    $result['fee_count'],
+                    $result['no_fee_count']
+                );
+                audit_trail_log($conn, 'system_fix_stage_openings', "Staged {$result['posted']} opening balances for {$period}");
                 break;
 
             case 'stage_regular':
                 $runId = system_fix_tx_current_run();
                 $result = system_fix_tx_stage_regular($conn, $runId, $period);
+                foreach (($result['skipped'] ?? []) as $skipped) {
+                    $sandboxErrors[] = $skipped;
+                }
                 $sandboxMessages[] = sprintf(
                     'Regular payments staged: %d member(s), total E %s, fees E %s.',
                     $result['posted'],
@@ -165,8 +220,17 @@ if ($action !== '' && $sandboxTableReady) {
 $sandboxRunId = (string) $_SESSION['system_fix_run_id'];
 $sandboxPeriod = (string) $_SESSION['system_fix_period'];
 $sandboxSummary = $sandboxTableReady ? system_fix_tx_summary($conn) : ['runs' => 0, 'rows' => 0, 'last_run' => null];
+$sandboxScopeCount = 0;
 $sandboxRunRows = [];
 $sandboxStageTotals = [];
+
+if ($sandboxTableReady && $sandboxRunId !== '') {
+    try {
+        $sandboxScopeCount = count(system_fix_tx_scope_ids($conn, $sandboxRunId));
+    } catch (mysqli_sql_exception $e) {
+        error_log('System Fix scope count error: ' . $e->getMessage());
+    }
+}
 
 if ($sandboxTableReady && $sandboxRunId !== '') {
     try {
@@ -378,7 +442,7 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
           <div class="card-body">
             <h5 class="card-title">Month-End Sandbox</h5>
 
-            <form method="post" enctype="multipart/form-data" class="row g-3 align-items-end mb-3">
+            <form method="post" enctype="multipart/form-data" id="adhocForm" class="row g-3 align-items-end mb-3">
               <div class="col-md-3">
                 <label class="form-label" for="period">Period end date</label>
                 <input type="date" class="form-control" id="period" name="period" value="<?= htmlspecialchars($sandboxPeriod) ?>" required>
@@ -400,16 +464,45 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                 </select>
               </div>
 
-              <div class="col-md-2 d-grid">
+              <div class="col-md-2 d-grid gap-2">
+                <button type="submit" name="action" value="preview_adhocs" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-search me-1"></i>Preview Mapping
+                </button>
                 <button type="submit" name="action" value="stage_adhocs" class="btn btn-warning" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-upload me-1"></i>Stage Adhocs
                 </button>
               </div>
             </form>
 
+            <p class="text-muted small mb-0">
+              <i class="bi bi-info-circle me-1"></i>
+              The CSV identifies members by <strong>Member No</strong>. Every transaction is keyed on
+              <code>memberID</code>, so each Member No is looked up in <code>tblmembers</code> first.
+              Use <em>Preview Mapping</em> to confirm the match before staging.
+            </p>
+
+            <div class="alert <?= $sandboxScopeCount > 0 ? 'alert-secondary' : 'alert-warning' ?> d-flex align-items-start mt-3 mb-0" role="alert">
+              <i class="bi bi-people me-2 fs-5"></i>
+              <div>
+                <strong>Scope:</strong>
+                <?php if ($sandboxScopeCount > 0): ?>
+                  this run covers <strong><?= (int) $sandboxScopeCount ?></strong> member(s) imported from the adhocs CSV.
+                  All later stages (openings, regular, admin, fixed fees and interest) apply to these members only.
+                <?php else: ?>
+                  no members in scope yet. <strong>Stage an adhocs CSV first</strong> — the other stages will do
+                  nothing until the member list is defined by the import.
+                <?php endif; ?>
+              </div>
+            </div>
+
             <hr>
 
             <div class="row g-2 mb-3">
+              <div class="col-md-3 d-grid">
+                <button type="submit" form="stageForm" name="action" value="stage_openings" class="btn btn-outline-dark" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-person-plus me-1"></i>Process Openings (New Members)
+                </button>
+              </div>
               <div class="col-md-3 d-grid">
                 <button type="submit" form="stageForm" name="action" value="stage_regular" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-arrow-repeat me-1"></i>Run Regular Payments
@@ -479,6 +572,62 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
         </div>
       </div>
     </div>
+
+<?php if ($sandboxPreview !== null): ?>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">
+              Member No &rarr; Member ID mapping
+              <small class="text-muted">— <?= htmlspecialchars($sandboxPreviewLabel) ?></small>
+            </h5>
+            <p class="mb-2">
+              <span class="badge bg-success"><?= (int) $sandboxPreview['matched'] ?> matched</span>
+              <?php if ($sandboxPreview['unmatched'] > 0): ?>
+              <span class="badge bg-danger"><?= (int) $sandboxPreview['unmatched'] ?> unmatched</span>
+              <?php endif; ?>
+              <span class="badge bg-secondary">Total E <?= htmlspecialchars(number_format($sandboxPreview['total_amount'], 2)) ?></span>
+            </p>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped datatable nowrap" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>Line</th>
+                    <th>Member No (CSV)</th>
+                    <th>Member ID (tblmembers)</th>
+                    <th>Name</th>
+                    <th>Terminated</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+<?php foreach ($sandboxPreview['lines'] as $line): ?>
+                  <tr>
+                    <td><?= (int) $line['line'] ?></td>
+                    <td><?= htmlspecialchars((string) $line['member_no']) ?></td>
+                    <td><?= $line['member_id'] === null ? '—' : (int) $line['member_id'] ?></td>
+                    <td><?= htmlspecialchars((string) $line['name']) ?></td>
+                    <td><?= $line['terminated'] === null ? '—' : ((int) $line['terminated'] === 1 ? 'Yes' : 'No') ?></td>
+                    <td><?= htmlspecialchars(number_format((float) $line['amount'], 2)) ?></td>
+                    <td>
+<?php if ($line['resolved']): ?>
+                      <span class="badge bg-success">Resolved</span>
+<?php else: ?>
+                      <span class="badge bg-danger">Not found</span>
+<?php endif; ?>
+                    </td>
+                  </tr>
+<?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<?php endif; ?>
 
 <?php if ($sandboxRunId !== '' && !empty($sandboxStageTotals)): ?>
     <div class="row">
