@@ -134,14 +134,50 @@ if ($action !== '' && $sandboxTableReady) {
                     $sandboxErrors[] = $skipped;
                 }
 
+                // Members who came through the CSV now exist in the fund for this
+                // period — add them to the running roster.
+                $rosterAdded = system_fix_tx_roster_add($conn, system_fix_tx_period_key($period), system_fix_tx_scope_ids($conn, $runId), 'csv');
+
                 $sandboxMessages[] = sprintf(
-                    'Adhocs staged from %s: %d payment(s), total E %s, fees E %s.',
+                    'Adhocs staged from %s: %d payment(s), total E %s, fees E %s. Roster updated (+%d member(s)).',
                     htmlspecialchars($sourceLabel),
                     $result['posted'],
                     number_format($result['total_amount'], 2),
-                    number_format($result['total_fee'], 2)
+                    number_format($result['total_fee'], 2),
+                    $rosterAdded
                 );
                 audit_trail_log($conn, 'system_fix_stage_adhocs', "Staged {$result['posted']} adhocs for {$period}");
+                break;
+
+            case 'update_roster':
+                $added = system_fix_tx_roster_add($conn, system_fix_tx_period_key($period), system_fix_tx_scope_ids($conn, system_fix_tx_current_run()), 'manual');
+                $sandboxMessages[] = sprintf(
+                    'Roster updated for %s: +%d member(s) added.',
+                    system_fix_tx_period_key($period),
+                    $added
+                );
+                audit_trail_log($conn, 'system_fix_update_roster', "Roster +{$added} for " . system_fix_tx_period_key($period));
+                break;
+
+            case 'capture_regular':
+                $capture = system_fix_tx_capture_regular($conn, $period);
+                $sandboxMessages[] = sprintf(
+                    'Captured regular payments for %s: %d member(s), total E %s (from tblmemberaccounts).',
+                    system_fix_tx_period_key($period),
+                    $capture['rows'],
+                    number_format($capture['total'], 2)
+                );
+                audit_trail_log($conn, 'system_fix_capture_regular', "Captured {$capture['rows']} regular payments for " . system_fix_tx_period_key($period));
+                break;
+
+            case 'build_interest_pool':
+                $pool = system_fix_tx_populate_interest_pool($conn, null);
+                $sandboxMessages[] = sprintf(
+                    'Interest pool built: %d month(s) stored in interestfix, total E %s.',
+                    $pool['months'],
+                    number_format($pool['total'], 2)
+                );
+                audit_trail_log($conn, 'system_fix_build_interest_pool', "Built interest pool: {$pool['months']} months");
                 break;
 
             case 'stage_openings':
@@ -191,9 +227,10 @@ if ($action !== '' && $sandboxTableReady) {
                 $runId = system_fix_tx_current_run();
                 $result = system_fix_tx_stage_fixed_fees($conn, $runId, $period);
                 $sandboxMessages[] = sprintf(
-                    'Fixed monthly fees staged: %d member(s), total E %s.',
+                    'Fixed monthly fees staged: %d member(s) at E 10.00 each, total E %s (%d Coca-Cola member(s) exempt).',
                     $result['posted'],
-                    number_format($result['total_amount'], 2)
+                    number_format($result['total_amount'], 2),
+                    $result['exempt']
                 );
                 audit_trail_log($conn, 'system_fix_stage_fixed_fees', "Staged {$result['posted']} fixed fees for {$period}");
                 break;
@@ -221,14 +258,50 @@ $sandboxRunId = (string) $_SESSION['system_fix_run_id'];
 $sandboxPeriod = (string) $_SESSION['system_fix_period'];
 $sandboxSummary = $sandboxTableReady ? system_fix_tx_summary($conn) : ['runs' => 0, 'rows' => 0, 'last_run' => null];
 $sandboxScopeCount = 0;
+$sandboxRosterCount = 0;
+$sandboxCapturedCount = 0;
+$sandboxInterestMonths = 0;
+$sandboxInterestPools = [];
+$sandboxPeriodKey = system_fix_tx_period_key($sandboxPeriod);
 $sandboxRunRows = [];
 $sandboxStageTotals = [];
 
 if ($sandboxTableReady && $sandboxRunId !== '') {
     try {
         $sandboxScopeCount = count(system_fix_tx_scope_ids($conn, $sandboxRunId));
+        $sandboxRosterCount = count(system_fix_tx_roster_ids($conn, $sandboxPeriodKey));
     } catch (mysqli_sql_exception $e) {
         error_log('System Fix scope count error: ' . $e->getMessage());
+    }
+}
+
+if ($sandboxTableReady) {
+    try {
+        $captureTable = system_fix_tx_regular_capture_table();
+        $stmt = $conn->prepare("SELECT COUNT(*) AS rows_count FROM `{$captureTable}` WHERE `Period` = ?");
+        $stmt->bind_param('s', $sandboxPeriodKey);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        $sandboxCapturedCount = (int) ($row['rows_count'] ?? 0);
+        $stmt->close();
+    } catch (mysqli_sql_exception $e) {
+        error_log('System Fix capture count error: ' . $e->getMessage());
+    }
+
+    try {
+        $interestTable = system_fix_tx_interest_pool_table();
+        if ($result = $conn->query("SELECT COUNT(*) AS months_count FROM `{$interestTable}`")) {
+            $sandboxInterestMonths = (int) ($result->fetch_assoc()['months_count'] ?? 0);
+        }
+
+        // Most recent 12 months for display.
+        if ($result = $conn->query("SELECT `Period`, `Amount`, `SourceRows` FROM `{$interestTable}` ORDER BY `Period` DESC LIMIT 12")) {
+            while ($row = $result->fetch_assoc()) {
+                $sandboxInterestPools[] = $row;
+            }
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log('System Fix interest pool read error: ' . $e->getMessage());
     }
 }
 
@@ -487,15 +560,44 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                 <strong>Scope:</strong>
                 <?php if ($sandboxScopeCount > 0): ?>
                   this run covers <strong><?= (int) $sandboxScopeCount ?></strong> member(s) imported from the adhocs CSV.
-                  All later stages (openings, regular, admin, fixed fees and interest) apply to these members only.
                 <?php else: ?>
                   no members in scope yet. <strong>Stage an adhocs CSV first</strong> — the other stages will do
                   nothing until the member list is defined by the import.
+                <?php endif; ?>
+                <br>
+                <strong>Roster (<?= htmlspecialchars($sandboxPeriodKey) ?>):</strong>
+                <strong><?= (int) $sandboxRosterCount ?></strong> member(s) exist in the fund for this period.
+                Month-end stages (regular, admin, fixed, interest) run for these members.
+                <?php if ($sandboxCapturedCount > 0): ?>
+                <br><strong>Regular payments captured:</strong> <strong><?= (int) $sandboxCapturedCount ?></strong> member(s)
+                for <?= htmlspecialchars($sandboxPeriodKey) ?>.
+                <?php else: ?>
+                <br><span class="text-danger">Regular payments not captured yet — click <em>Capture Regular Payments</em> before running them.</span>
                 <?php endif; ?>
               </div>
             </div>
 
             <hr>
+
+            <hr>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-3 d-grid">
+                <button type="submit" form="stageForm" name="action" value="update_roster" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-people me-1"></i>Update Roster
+                </button>
+              </div>
+              <div class="col-md-3 d-grid">
+                <button type="submit" form="stageForm" name="action" value="capture_regular" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-download me-1"></i>Capture Regular Payments
+                </button>
+              </div>
+              <div class="col-md-3 d-grid">
+                <button type="submit" form="stageForm" name="action" value="build_interest_pool" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-cash-stack me-1"></i>Build Interest Pool
+                </button>
+              </div>
+            </div>
 
             <div class="row g-2 mb-3">
               <div class="col-md-3 d-grid">
@@ -572,6 +674,40 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
         </div>
       </div>
     </div>
+
+<?php if ($sandboxTableReady && !empty($sandboxInterestPools)): ?>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">
+              Interest Pool <small class="text-muted">(interestfix — <?= (int) $sandboxInterestMonths ?> month(s) stored)</small>
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Month</th>
+                    <th>Pool Amount</th>
+                    <th>Source Rows in tblmemberaccounts</th>
+                  </tr>
+                </thead>
+                <tbody>
+<?php foreach ($sandboxInterestPools as $poolRow): ?>
+                  <tr>
+                    <td><code><?= htmlspecialchars((string) $poolRow['Period']) ?></code></td>
+                    <td>E <?= htmlspecialchars(number_format((float) $poolRow['Amount'], 2)) ?></td>
+                    <td><?= (int) $poolRow['SourceRows'] ?></td>
+                  </tr>
+<?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<?php endif; ?>
 
 <?php if ($sandboxPreview !== null): ?>
     <div class="row">

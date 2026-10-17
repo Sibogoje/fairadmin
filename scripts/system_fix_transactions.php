@@ -16,13 +16,20 @@
  *   - Opening balance        : TransactionTypeID 1, Credit=1, amount = ApprovedBenefit (approve.php)
  *   - Transfer In Fee        : TransactionTypeID 2, 1% of the approved amount; NO charge when
  *                              the approved amount is below 20,000 (approve.php)
- *   - Regular payment        : TransactionTypeID 3, fixed amount     (scheduleprocess.php)
+ *   - Regular payment        : TransactionTypeID 3, amount READ from tblmemberaccounts for the
+ *                              month (captured into transactionsfix_regular), then debited
+ *   - Regular transaction fee: TransactionTypeID 5, amount * TransactionPercent%
  *   - Adhoc payment          : TransactionTypeID 4, amount from CSV.
  *   - Adhoc transaction fee  : TransactionTypeID 5, amount * 2%      (adhocprocessall.php)
- *   - Regular transaction fee: TransactionTypeID 5, amount * TransactionPercent% (scheduleprocess.php)
- *   - Fixed monthly fee      : TransactionTypeID 6, member_fees.FixedMonthlyFee
+ *   - Fixed monthly fee      : TransactionTypeID 6, flat 10.00 per member; Coca-Cola fund
+ *                              (RetirementFundID 27) members are EXEMPT
  *   - Admin fees             : TransactionTypeID 7, (1.5% * balance / 365) * days (mprocess.php)
  *   - Interest allocation    : TransactionTypeID 8, proportional to balance share (interest.php)
+ *
+ * RUNNING MEMBER ROSTER
+ *   `transactionsfix_members` records, per period, which members existed in the fund at
+ *   that time (updated whenever a CSV is staged). The month-end stages run for the roster
+ *   members, so the fix mirrors everyone who was in the fund then — not just CSV importers.
  *
  * STARTING BALANCE RULE
  *   When a member has no rows in the current run, their starting balance is the
@@ -97,15 +104,56 @@ if (!function_exists('system_fix_tx_period_bounds')) {
     }
 }
 
+if (!function_exists('system_fix_tx_running_members_table')) {
+    function system_fix_tx_running_members_table(): string
+    {
+        return 'transactionsfix_members';
+    }
+}
+
+if (!function_exists('system_fix_tx_regular_capture_table')) {
+    function system_fix_tx_regular_capture_table(): string
+    {
+        return 'transactionsfix_regular';
+    }
+}
+
+if (!function_exists('system_fix_tx_interest_pool_table')) {
+    function system_fix_tx_interest_pool_table(): string
+    {
+        return 'interestfix';
+    }
+}
+
+if (!function_exists('system_fix_tx_cocacola_fund_id')) {
+    /**
+     * RetirementFundID for the Coca-Cola fund. Members in this fund are exempt
+     * from the fixed monthly fee. The link is member -> deceased -> retirement
+     * fund, surfaced by `member_fees.F_ID` (member_fees is a VIEW).
+     */
+    function system_fix_tx_cocacola_fund_id(): int
+    {
+        return 27; // Eswatini Coca Cola Provident Fund
+    }
+}
+
 if (!function_exists('system_fix_tx_ensure_table')) {
     /**
-     * Create the sandbox table if it does not exist yet.
-     * Structure intentionally mirrors `tblmemberaccounts` so results can be
-     * compared side by side and, if ever required, promoted later.
+     * Create the sandbox tables if they do not exist yet.
+     *
+     *   transactionsfix          — the rebuilt transactions (mirrors tblmemberaccounts)
+     *   transactionsfix_members  — running roster of members in the fund at a period
+     *   transactionsfix_regular  — captured regular-payment amounts per member/month
+     *   interestfix              — summed interest pool (type 8) per month/year
+     *
+     * All are sandbox objects; production tables are read-only.
      */
     function system_fix_tx_ensure_table(mysqli $conn): bool
     {
         $table = system_fix_tx_table();
+        $membersTable = system_fix_tx_running_members_table();
+        $regularTable = system_fix_tx_regular_capture_table();
+        $interestTable = system_fix_tx_interest_pool_table();
 
         $sql = "CREATE TABLE IF NOT EXISTS `{$table}` (
             `AccountsID` INT NOT NULL AUTO_INCREMENT,
@@ -129,7 +177,49 @@ if (!function_exists('system_fix_tx_ensure_table')) {
             KEY `idx_txf_date` (`TransactionDate`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
-        return (bool) $conn->query($sql);
+        $membersSql = "CREATE TABLE IF NOT EXISTS `{$membersTable}` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `Period` CHAR(7) NOT NULL,
+            `memberID` INT NOT NULL,
+            `MemberNo` VARCHAR(20) NULL,
+            `FundID` INT NULL,
+            `Source` VARCHAR(30) NULL,
+            `AddedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uniq_period_member` (`Period`, `memberID`),
+            KEY `idx_members_period` (`Period`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+        $regularSql = "CREATE TABLE IF NOT EXISTS `{$regularTable}` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `Period` CHAR(7) NOT NULL,
+            `memberID` INT NOT NULL,
+            `Amount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `Transactions` INT NOT NULL DEFAULT 0,
+            `Source` VARCHAR(30) NULL,
+            `CapturedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uniq_period_member` (`Period`, `memberID`),
+            KEY `idx_regular_period` (`Period`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+        $interestSql = "CREATE TABLE IF NOT EXISTS `{$interestTable}` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `Period` CHAR(7) NOT NULL,
+            `Year` SMALLINT NOT NULL,
+            `Month` TINYINT NOT NULL,
+            `Amount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `SourceRows` INT NOT NULL DEFAULT 0,
+            `CreatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `uniq_period` (`Period`),
+            KEY `idx_interest_year_month` (`Year`, `Month`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+        return (bool) $conn->query($sql)
+            && (bool) $conn->query($membersSql)
+            && (bool) $conn->query($regularSql)
+            && (bool) $conn->query($interestSql);
     }
 }
 
@@ -629,9 +719,13 @@ if (!function_exists('system_fix_tx_running_balances')) {
 
 if (!function_exists('system_fix_tx_stage_regular')) {
     /**
-     * STAGE 2 — Regular payments (type 3) plus their transaction fee (type 5).
-     * Mirrors Transactions/scheduleprocess.php: rate comes from the member's
-     * `TransactionPercent`, falling back to the fund fee table.
+     * STAGE 2 — Regular payments (type 3) plus their transaction fee (type 5),
+     * for every member on the running roster that existed in the fund.
+     *
+     * The AMOUNT is not recalculated from member_fees: it is read from the
+     * sandbox capture (`transactionsfix_regular`), which holds how much actually
+     * ran as a regular payment for each member in that month in production
+     * `tblmemberaccounts`. Capturing first guarantees identical amounts.
      *
      * @return array{posted:int, skipped:array<int,string>, total_amount:float, total_fee:float}
      */
@@ -641,17 +735,19 @@ if (!function_exists('system_fix_tx_stage_regular')) {
         $totalAmount = 0.0;
         $totalFee = 0.0;
 
-        $scopeIds = system_fix_tx_scope_ids($conn, $runId);
-        if (empty($scopeIds)) {
-            return ['posted' => 0, 'skipped' => ['No members in scope yet — import the adhocs CSV first.'], 'total_amount' => 0.0, 'total_fee' => 0.0];
+        $period = system_fix_tx_period_key($periodDate);
+        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        if (empty($ids)) {
+            return ['posted' => 0, 'skipped' => ['No members on the roster or in scope — import the adhocs CSV and update the roster first.'], 'total_amount' => 0.0, 'total_fee' => 0.0];
         }
 
-        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($scopeIds);
+        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($ids);
         $balances = system_fix_tx_running_balances($conn, $runId);
 
-        $sql = "SELECT `MemberID`, `FixedPaymentAmount`, `TransactionPercent`, `balance`
-                FROM `member_fees`
-                WHERE `FixedPaymentAmount` > 0 AND `Terminated` = 0" . $scopeSql;
+        // Pull the member's fee rate alongside the capture lookup.
+        $sql = "SELECT `m`.`MemberID`, `m`.`TransactionPercent`
+                FROM `member_fees` `m`
+                WHERE 1 = 1" . $scopeSql;
 
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($scopeTypes, ...$scopeParams);
@@ -660,11 +756,15 @@ if (!function_exists('system_fix_tx_stage_regular')) {
 
         while ($row = $result->fetch_assoc()) {
             $memberId = (int) $row['MemberID'];
-            $memberNo = system_fix_tx_member_no($conn, $memberId);
-            $amount = (float) $row['FixedPaymentAmount'];
             $percent = (float) $row['TransactionPercent'];
 
-            // Prefer the run balance, else the member's previous-month closing balance.
+            // Amount = what actually ran for this member that month.
+            $amount = system_fix_tx_captured_amount($conn, $period, $memberId);
+            if ($amount <= 0) {
+                continue; // nothing ran for this member — no regular payment to mirror
+            }
+
+            $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             $afterPayment = round($starting - $amount, 2);
 
@@ -719,8 +819,12 @@ if (!function_exists('system_fix_tx_stage_regular')) {
 
 if (!function_exists('system_fix_tx_stage_admin_fees')) {
     /**
-     * STAGE 3 — Admin fees (type 7). Mirrors Transactions/mprocess.php:
-     *   fee = (1.5% * balance / 365) * days, where days = 31 or 30 for the month.
+     * STAGE 3 — Admin fees (type 7) for every member on the roster.
+     *
+     *   fee = (1.5% * balance / 365) * days
+     *
+     * where `days` is 31 for Jan/Mar/May/Jul/Aug/Oct/Dec and 30 otherwise —
+     * identical to Transactions/mprocess.php's day count.
      *
      * @return array{posted:int, total_amount:float}
      */
@@ -731,15 +835,15 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
         $month = (int) date('n', strtotime($periodDate));
         $days = system_fix_tx_days_in_month($month);
 
-        $scopeIds = system_fix_tx_scope_ids($conn, $runId);
-        if (empty($scopeIds)) {
+        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        if (empty($ids)) {
             return ['posted' => 0, 'total_amount' => 0.0];
         }
 
-        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($scopeIds);
+        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($ids);
         $balances = system_fix_tx_running_balances($conn, $runId);
 
-        $sql = "SELECT `MemberID`, `balance` FROM `member_fees` WHERE `Terminated` = 0" . $scopeSql;
+        $sql = "SELECT `MemberID`, `balance` FROM `member_fees` WHERE 1 = 1" . $scopeSql;
 
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($scopeTypes, ...$scopeParams);
@@ -779,24 +883,30 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
 
 if (!function_exists('system_fix_tx_stage_fixed_fees')) {
     /**
-     * STAGE 4 — Fixed monthly fees (type 6) from member_fees.FixedMonthlyFee.
+     * STAGE 4 — Fixed monthly fee (type 6): a flat 10.00 per member per month.
      *
-     * @return array{posted:int, total_amount:float}
+     * Members belong to the fund via member -> deceased -> retirement fund,
+     * surfaced by `member_fees.F_ID`. Members of the Coca-Cola fund
+     * (RetirementFundID 27) are EXEMPT and receive no fixed monthly fee.
+     *
+     * @return array{posted:int, exempt:int, total_amount:float}
      */
     function system_fix_tx_stage_fixed_fees(mysqli $conn, string $runId, string $periodDate): array
     {
         $posted = 0;
+        $exempt = 0;
         $total = 0.0;
+        $cocaColaFundId = system_fix_tx_cocacola_fund_id();
 
-        $scopeIds = system_fix_tx_scope_ids($conn, $runId);
-        if (empty($scopeIds)) {
-            return ['posted' => 0, 'total_amount' => 0.0];
+        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        if (empty($ids)) {
+            return ['posted' => 0, 'exempt' => 0, 'total_amount' => 0.0];
         }
 
-        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($scopeIds);
+        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($ids);
         $balances = system_fix_tx_running_balances($conn, $runId);
 
-        $sql = "SELECT `MemberID`, `FixedMonthlyFee`, `balance` FROM `member_fees` WHERE `Terminated` = 0" . $scopeSql;
+        $sql = "SELECT `MemberID`, `F_ID` FROM `member_fees` WHERE 1 = 1" . $scopeSql;
 
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($scopeTypes, ...$scopeParams);
@@ -805,11 +915,15 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
 
         while ($row = $result->fetch_assoc()) {
             $memberId = (int) $row['MemberID'];
-            $amount = (float) $row['FixedMonthlyFee'];
-            if ($amount <= 0) {
+            $fundId = $row['F_ID'] === null ? 0 : (int) $row['F_ID'];
+
+            // Coca-Cola fund members are exempt from the fixed monthly fee.
+            if ($fundId === $cocaColaFundId) {
+                $exempt++;
                 continue;
             }
 
+            $amount = 10.00; // flat monthly fee
             $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
@@ -833,7 +947,7 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
         }
         $stmt->close();
 
-        return ['posted' => $posted, 'total_amount' => round($total, 2)];
+        return ['posted' => $posted, 'exempt' => $exempt, 'total_amount' => round($total, 2)];
     }
 }
 
@@ -862,6 +976,283 @@ if (!function_exists('system_fix_tx_scope_ids')) {
         $stmt->close();
 
         return $ids;
+    }
+}
+
+if (!function_exists('system_fix_tx_period_key')) {
+    /**
+     * Period key (YYYY-MM) used by the running-member roster and the captured
+     * regular payments, e.g. "2014-08".
+     */
+    function system_fix_tx_period_key(string $periodDate): string
+    {
+        return date('Y-m', strtotime($periodDate));
+    }
+}
+
+if (!function_exists('system_fix_tx_roster_add')) {
+    /**
+     * Record that members exist in the fund for a period (idempotent).
+     * Rows are never removed — the roster is the running list of members.
+     *
+     * @param array<int,int> $memberIds
+     */
+    function system_fix_tx_roster_add(mysqli $conn, string $period, array $memberIds, string $source = 'csv'): int
+    {
+        $table = system_fix_tx_running_members_table();
+        $added = 0;
+
+        $memberSql = "SELECT `m`.`MemberID`, `m`.`MemberNo`, `f`.`F_ID`
+                      FROM `tblmembers` `m`
+                      LEFT JOIN `member_fees` `f` ON `f`.`MemberID` = `m`.`MemberID`
+                      WHERE `m`.`MemberID` = ? LIMIT 1";
+        $memberStmt = $conn->prepare($memberSql);
+
+        $insert = $conn->prepare(
+            "INSERT IGNORE INTO `{$table}` (`Period`, `memberID`, `MemberNo`, `FundID`, `Source`)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+
+        foreach (array_unique(array_map('intval', $memberIds)) as $memberId) {
+            if ($memberId <= 0) {
+                continue;
+            }
+
+            $memberStmt->bind_param('i', $memberId);
+            $memberStmt->execute();
+            $member = $memberStmt->get_result()->fetch_assoc();
+            if ($member === null) {
+                continue;
+            }
+
+            $memberNo = (string) $member['MemberNo'];
+            $fundId = $member['F_ID'] === null ? 0 : (int) $member['F_ID'];
+            $insert->bind_param('sissi', $period, $memberId, $memberNo, $fundId, $source);
+            $insert->execute();
+            $added += $insert->affected_rows;
+        }
+
+        $memberStmt->close();
+        $insert->close();
+
+        return $added;
+    }
+}
+
+if (!function_exists('system_fix_tx_roster_ids')) {
+    /**
+     * Members on the running roster for a period.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_roster_ids(mysqli $conn, string $period): array
+    {
+        $table = system_fix_tx_running_members_table();
+        $ids = [];
+
+        $stmt = $conn->prepare("SELECT `memberID` FROM `{$table}` WHERE `Period` = ?");
+        $stmt->bind_param('s', $period);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        while ($row = $result->fetch_assoc()) {
+            $ids[] = (int) $row['memberID'];
+        }
+        $stmt->close();
+
+        return $ids;
+    }
+}
+
+if (!function_exists('system_fix_tx_capture_regular')) {
+    /**
+     * Capture how much was run as a regular payment (type 3) for each member in
+     * the period, straight from production `tblmemberaccounts`. This is the
+     * amount the rebuild then debits, so the fix mirrors what actually ran.
+     *
+     * Upserts one row per member per period. Writes only to the sandbox capture
+     * table.
+     *
+     * @return array{rows:int, total:float}
+     */
+    function system_fix_tx_capture_regular(mysqli $conn, string $periodDate, string $source = 'tblmemberaccounts'): array
+    {
+        $period = system_fix_tx_period_key($periodDate);
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $table = system_fix_tx_regular_capture_table();
+
+        $rows = 0;
+        $total = 0.0;
+
+        $stmt = $conn->prepare(
+            "SELECT `memberID`, COUNT(*) AS tx_count, COALESCE(SUM(`Amount`), 0) AS amount
+             FROM `tblmemberaccounts`
+             WHERE `TransactionTypeID` = 3
+               AND `TransactionDate` BETWEEN ? AND ?
+             GROUP BY `memberID`"
+        );
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $upsert = $conn->prepare(
+            "INSERT INTO `{$table}` (`Period`, `memberID`, `Amount`, `Transactions`, `Source`)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                 `Amount` = VALUES(`Amount`),
+                 `Transactions` = VALUES(`Transactions`),
+                 `Source` = VALUES(`Source`),
+                 `CapturedAt` = CURRENT_TIMESTAMP"
+        );
+
+        while ($row = $result->fetch_assoc()) {
+            $memberId = (int) $row['memberID'];
+            $amount = (float) $row['amount'];
+            $txCount = (int) $row['tx_count'];
+
+            $upsert->bind_param('sidis', $period, $memberId, $amount, $txCount, $source);
+            $upsert->execute();
+
+            $rows++;
+            $total += $amount;
+        }
+
+        $stmt->close();
+        $upsert->close();
+
+        return ['rows' => $rows, 'total' => round($total, 2)];
+    }
+}
+
+if (!function_exists('system_fix_tx_captured_amount')) {
+    /**
+     * Captured regular-payment amount for a member in a period (0 when none).
+     */
+    function system_fix_tx_captured_amount(mysqli $conn, string $period, int $memberId): float
+    {
+        $table = system_fix_tx_regular_capture_table();
+        $stmt = $conn->prepare("SELECT `Amount` FROM `{$table}` WHERE `Period` = ? AND `memberID` = ? LIMIT 1");
+        $stmt->bind_param('si', $period, $memberId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc() ?: null;
+        $stmt->close();
+
+        return $row ? (float) $row['Amount'] : 0.0;
+    }
+}
+
+if (!function_exists('system_fix_tx_populate_interest_pool')) {
+    /**
+     * Build the `interestfix` table: one row per month/year holding the TOTAL
+     * interest allocated (type 8) across all members in `tblmemberaccounts`.
+     *
+     * The pool is read from production ONCE per month and stored, so the rebuild
+     * never has to re-scan `tblmemberaccounts` for each run.
+     *
+     * Pass a start month to limit how far back to build, otherwise everything is
+     * rebuilt. Upserts by period, so it is safe to run repeatedly.
+     *
+     * @param string|null $fromMonth First month to include (Y-m). Null = all history.
+     * @return array{months:int, total:float}
+     */
+    function system_fix_tx_populate_interest_pool(mysqli $conn, ?string $fromMonth = null): array
+    {
+        $table = system_fix_tx_interest_pool_table();
+
+        $sql = "SELECT DATE_FORMAT(`TransactionDate`, '%Y-%m') AS period,
+                       YEAR(`TransactionDate`) AS yr,
+                       MONTH(`TransactionDate`) AS mo,
+                       COUNT(*) AS source_rows,
+                       COALESCE(SUM(`Amount`), 0) AS pool
+                FROM `tblmemberaccounts`
+                WHERE `TransactionTypeID` = 8
+                  AND `TransactionDate` IS NOT NULL";
+        if ($fromMonth !== null && $fromMonth !== '') {
+            $sql .= " AND `TransactionDate` >= ?";
+        }
+        $sql .= " GROUP BY period, yr, mo ORDER BY period ASC";
+
+        $stmt = $conn->prepare($sql);
+        if ($fromMonth !== null && $fromMonth !== '') {
+            $fromDate = $fromMonth . '-01';
+            $stmt->bind_param('s', $fromDate);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $upsert = $conn->prepare(
+            "INSERT INTO `{$table}` (`Period`, `Year`, `Month`, `Amount`, `SourceRows`)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE
+                 `Year` = VALUES(`Year`),
+                 `Month` = VALUES(`Month`),
+                 `Amount` = VALUES(`Amount`),
+                 `SourceRows` = VALUES(`SourceRows`)"
+        );
+
+        $months = 0;
+        $total = 0.0;
+
+        while ($row = $result->fetch_assoc()) {
+            $period = (string) $row['period'];
+            $year = (int) $row['yr'];
+            $month = (int) $row['mo'];
+            $pool = (float) $row['pool'];
+            $sourceRows = (int) $row['source_rows'];
+
+            $upsert->bind_param('siidi', $period, $year, $month, $pool, $sourceRows);
+            $upsert->execute();
+
+            $months++;
+            $total += $pool;
+        }
+
+        $stmt->close();
+        $upsert->close();
+
+        return ['months' => $months, 'total' => round($total, 2)];
+    }
+}
+
+if (!function_exists('system_fix_tx_interest_pool')) {
+    /**
+     * Stored interest pool for a period (0 when the month is not yet built).
+     */
+    function system_fix_tx_interest_pool(mysqli $conn, string $periodDate): float
+    {
+        $table = system_fix_tx_interest_pool_table();
+        $period = system_fix_tx_period_key($periodDate);
+
+        $stmt = $conn->prepare("SELECT `Amount` FROM `{$table}` WHERE `Period` = ? LIMIT 1");
+        $stmt->bind_param('s', $period);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc() ?: null;
+        $stmt->close();
+
+        return $row ? (float) $row['Amount'] : 0.0;
+    }
+}
+
+if (!function_exists('system_fix_tx_month_end_ids')) {
+    /**
+     * Member IDs the month-end stages (regular, admin, fixed, interest) run for.
+     *
+     * The running roster for the period is authoritative when populated: it lists
+     * every member that existed in the fund at that time. Until the roster is
+     * built (e.g. right after a CSV upload), fall back to the run scope so
+     * behaviour stays consistent.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_month_end_ids(mysqli $conn, string $runId, string $periodDate): array
+    {
+        $roster = system_fix_tx_roster_ids($conn, system_fix_tx_period_key($periodDate));
+        if (!empty($roster)) {
+            return $roster;
+        }
+
+        return system_fix_tx_scope_ids($conn, $runId);
     }
 }
 
@@ -1052,25 +1443,9 @@ if (!function_exists('system_fix_tx_stage_interest')) {
      */
     function system_fix_tx_stage_interest(mysqli $conn, string $runId, string $periodDate): array
     {
-        $bounds = system_fix_tx_period_bounds($periodDate);
-
-        // Pool = total interest already allocated for the month in production.
-        $pool = 0.0;
+        // Pool comes from the pre-built `interestfix` table (one row per month).
+        $pool = system_fix_tx_interest_pool($conn, $periodDate);
         $sourceRows = 0;
-        $stmt = $conn->prepare(
-            "SELECT COUNT(*) AS rows_count, COALESCE(SUM(`Amount`), 0) AS pool
-             FROM `tblmemberaccounts`
-             WHERE `TransactionTypeID` = 8
-               AND `TransactionDate` BETWEEN ? AND ?"
-        );
-        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        if ($row = $result->fetch_assoc()) {
-            $pool = (float) $row['pool'];
-            $sourceRows = (int) $row['rows_count'];
-        }
-        $stmt->close();
 
         $posted = 0;
         $total = 0.0;
@@ -1137,10 +1512,11 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
     /**
      * Balance-per-member to use as the interest denominator.
      *
-     * Scoped to the members who came through the adhocs CSV for this run.
-     * Walks the run from newest row backwards so each member only contributes
-     * their most recent closing balance. Scoped members not yet touched by the
-     * run fall back to their PREVIOUS-MONTH closing balance in tblmemberaccounts.
+     * Scoped to the members who existed in the fund for the period (the running
+     * roster, falling back to the run scope). Walks the run from newest row
+     * backwards so each member only contributes their most recent closing
+     * balance; roster members not yet touched by the run fall back to their
+     * PREVIOUS-MONTH closing balance in tblmemberaccounts.
      *
      * @return array<int,float> [memberID => balance]
      */
@@ -1166,9 +1542,8 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
         }
         $stmt->close();
 
-        // Scoped members with no rows in this run: use their previous-month close.
-        $scopeIds = system_fix_tx_scope_ids($conn, $runId);
-        foreach ($scopeIds as $memberId) {
+        // Members with no rows in this run: use their previous-month close.
+        foreach (system_fix_tx_month_end_ids($conn, $runId, $periodDate) as $memberId) {
             if (!array_key_exists($memberId, $balances)) {
                 $balances[$memberId] = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             }
