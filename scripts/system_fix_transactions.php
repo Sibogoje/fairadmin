@@ -1236,8 +1236,13 @@ if (!function_exists('system_fix_tx_base_balance')) {
 
 if (!function_exists('system_fix_tx_running_balances')) {
     /**
-     * Build the running balance for every member within a run, so each stage
-     * chains off the previous stage's closing balance.
+     * Latest closing balance per member as at the END of the given period —
+     * i.e. the running balance carried forward from every prior month in the
+     * sandbox plus anything already staged for this month.
+     *
+     * Reading only the current month would break the chain: each new month would
+     * fall back to production instead of continuing from the previous month's
+     * sandbox balance.
      *
      * @return array<int,float> [memberID => closing balance]
      */
@@ -1249,12 +1254,16 @@ if (!function_exists('system_fix_tx_running_balances')) {
         $balances = [];
 
         $stmt = $conn->prepare(
-            "SELECT `memberID`, `NewBalance`
-             FROM `{$table}`
-             WHERE `TransactionDate` BETWEEN ? AND ?
-             ORDER BY `accountsID` ASC"
+            "SELECT t.`memberID`, t.`NewBalance`
+             FROM `{$table}` t
+             INNER JOIN (
+                 SELECT `memberID`, MAX(`accountsID`) AS last_id
+                 FROM `{$table}`
+                 WHERE `TransactionDate` <= ?
+                 GROUP BY `memberID`
+             ) x ON x.last_id = t.`accountsID`"
         );
-        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
+        $stmt->bind_param('s', $bounds['end']);
         $stmt->execute();
         $result = $stmt->get_result();
         while ($row = $result->fetch_assoc()) {
@@ -1953,9 +1962,14 @@ if (!function_exists('system_fix_tx_months_between')) {
 
 if (!function_exists('system_fix_tx_run_month')) {
     /**
-     * Run one month end to end for the period supplied:
-     *   adhocs (with terminations) -> regulars from spreadsheet -> admin ->
-     *   fixed -> interest.
+     * Run one month end to end for the period supplied, in the statement order
+     * that keeps the money flowing correctly:
+     *
+     *   1. Adhocs / terminations / capital (money in and out)
+     *   2. Regular payments
+     *   3. Interest            (credited on the post-regular balance)
+     *   4. Fixed monthly fee   (except Coca-Cola fund members)
+     *   5. Admin fees          (charged last)
      *
      * Balances carry forward automatically because each stage reads the running
      * balances already in the sandbox for the period.
@@ -1973,14 +1987,22 @@ if (!function_exists('system_fix_tx_run_month')) {
     ): array {
         $runId = system_fix_tx_period_key($periodDate);
 
-        $result = [
-            'period' => $runId,
-            'adhoc' => system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate),
-            'regular' => system_fix_tx_stage_regular_from_rows($conn, $runId, $regularRows, $periodDate),
-            'admin' => system_fix_tx_stage_admin_fees($conn, $runId, $periodDate),
-            'fixed' => system_fix_tx_stage_fixed_fees($conn, $runId, $periodDate),
-            'interest' => system_fix_tx_stage_interest($conn, $runId, $periodDate),
-        ];
+        $result = ['period' => $runId];
+
+        // 1. Adhocs, terminations and capital movements.
+        $result['adhoc'] = system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate);
+
+        // 2. Regular payments.
+        $result['regular'] = system_fix_tx_stage_regular_from_rows($conn, $runId, $regularRows, $periodDate);
+
+        // 3. Interest — credited before any fees are deducted.
+        $result['interest'] = system_fix_tx_stage_interest($conn, $runId, $periodDate);
+
+        // 4. Fixed monthly fee (Coca-Cola fund members are exempt).
+        $result['fixed'] = system_fix_tx_stage_fixed_fees($conn, $runId, $periodDate);
+
+        // 5. Admin fees — charged on the closing balance.
+        $result['admin'] = system_fix_tx_stage_admin_fees($conn, $runId, $periodDate);
 
         if ($updateRoster) {
             $result['roster'] = system_fix_tx_roster_add(
@@ -2237,33 +2259,16 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
      */
     function system_fix_tx_balance_denominator(mysqli $conn, string $runId, string $periodDate): array
     {
-        $table = system_fix_tx_table();
-        $bounds = system_fix_tx_period_bounds($periodDate);
-        $balances = [];
+        // Latest sandbox balance per member as at the end of this period — this
+        // already carries forward every earlier month, so the interest split is
+        // based on the true running balances.
+        $balances = system_fix_tx_running_balances($conn, $runId);
 
-        $stmt = $conn->prepare(
-            "SELECT `memberID`, `NewBalance`
-             FROM `{$table}`
-             WHERE `TransactionDate` BETWEEN ? AND ?
-             ORDER BY `accountsID` DESC"
-        );
-        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        while ($row = $result->fetch_assoc()) {
-            $memberId = (int) $row['memberID'];
-            if (!array_key_exists($memberId, $balances)) {
-                $balances[$memberId] = (float) $row['NewBalance'];
-            }
-        }
-        $stmt->close();
-
-        // Members with no rows in this run: use their previous-month close.
-        // Terminated members are excluded so the interest denominator only ever
-        // contains members who were still in the fund for the period.
+        // Members on the roster who have no sandbox history yet fall back to
+        // their previous-month closing balance.
         $active = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
         foreach ($active as $memberId) {
-            if (!array_key_exists($memberId, $balances) && !isset($balances[$memberId])) {
+            if (!array_key_exists($memberId, $balances)) {
                 $balances[$memberId] = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             }
         }
