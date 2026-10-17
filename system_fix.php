@@ -588,23 +588,6 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
   </div>
 
   <section class="section">
-    <div class="alert alert-warning d-flex align-items-start" role="alert">
-      <i class="bi bi-exclamation-triangle me-2 fs-5"></i>
-      <div>
-        <strong>Administrator area.</strong> This page is for diagnosing and repairing database issues.
-        Any corrective actions will be added here as we work through them — nothing is modified automatically yet.
-      </div>
-    </div>
-
-    <div class="alert alert-info d-flex align-items-start" role="alert">
-      <i class="bi bi-shield-check me-2 fs-5"></i>
-      <div>
-        <strong>Sandbox:</strong> the transaction reconstruction below writes <em>only</em> to the
-        <code>transactionsfix</code> table. Production tables (<code>tblmemberaccounts</code>,
-        <code>balances</code>, <code>member_fees</code>) are read-only here.
-      </div>
-    </div>
-
     <?php foreach ($sandboxMessages as $message): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
       <?= $message ?>
