@@ -93,8 +93,15 @@ $findSpreadsheetByKeyword = static function (string $keyword) use ($sandboxSprea
 };
 
 /**
- * Pick the adhocs source: an uploaded file wins, else a file already present on
- * the server (matched across the known folders). Returns [path, label, error].
+ * Pick the adhocs source: an uploaded file wins, else the server dropdown, else
+ * the only "adhoc" file on disk.
+ *
+ * The dropdown choice is cross-checked against the expected keyword: if the
+ * chosen file plainly looks like the OTHER spreadsheet (e.g. a regulars file was
+ * picked in the adhocs box), the correctly-named file is used instead so an
+ * honest mis-selection cannot silently produce an empty stage.
+ *
+ * @return array{0:string, 1:string, 2:string} [path, label, error]
  */
 $resolveAdhocSource = static function () use ($findSpreadsheet, $findSpreadsheetByKeyword): array {
     if (!empty($_FILES['adhoc_csv']['tmp_name']) && is_uploaded_file($_FILES['adhoc_csv']['tmp_name'])) {
@@ -102,10 +109,18 @@ $resolveAdhocSource = static function () use ($findSpreadsheet, $findSpreadsheet
     }
 
     if (!empty($_POST['existing_csv'])) {
-        return $findSpreadsheet((string) $_POST['existing_csv']);
+        $chosen = (string) $_POST['existing_csv'];
+        // Wrong spreadsheet in this box? Prefer the adhocs-looking file.
+        if (stripos($chosen, 'regular') !== false && stripos($chosen, 'adhoc') === false) {
+            [$path, $label] = $findSpreadsheetByKeyword('adhoc');
+            if ($path !== '') {
+                return [$path, $label, ''];
+            }
+        }
+
+        return $findSpreadsheet($chosen);
     }
 
-    // Fallback: the only adhocs-looking file on disk (e.g. "…ADHOC - done.xlsx").
     [$path, $label] = $findSpreadsheetByKeyword('adhoc');
     if ($path !== '') {
         return [$path, $label, ''];
@@ -123,10 +138,17 @@ $resolveRegularSource = static function () use ($findSpreadsheet, $findSpreadshe
     }
 
     if (!empty($_POST['existing_regular'])) {
-        return $findSpreadsheet((string) $_POST['existing_regular']);
+        $chosen = (string) $_POST['existing_regular'];
+        if (stripos($chosen, 'adhoc') !== false && stripos($chosen, 'regular') === false) {
+            [$path, $label] = $findSpreadsheetByKeyword('regular');
+            if ($path !== '') {
+                return [$path, $label, ''];
+            }
+        }
+
+        return $findSpreadsheet($chosen);
     }
 
-    // Fallback: the only regulars-looking file on disk (e.g. "…REGULAR - done.xlsx").
     [$path, $label] = $findSpreadsheetByKeyword('regular');
     if ($path !== '') {
         return [$path, $label, ''];

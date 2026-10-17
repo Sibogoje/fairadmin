@@ -419,7 +419,11 @@ if (!function_exists('system_fix_tx_parse_csv')) {
      */
     function system_fix_tx_parse_csv(string $filePath): array
     {
-        if (preg_match('/\.xlsx$/i', $filePath)) {
+        // Detect the format from the NAME or the CONTENT. Uploaded files arrive
+        // with an extensionless temp name (e.g. phpA1B2.tmp), so the content sniff
+        // is essential — otherwise an .xlsx would be parsed as CSV and every row
+        // would fail.
+        if (preg_match('/\.xlsx$/i', $filePath) || system_fix_tx_looks_like_xlsx($filePath)) {
             return system_fix_tx_parse_xlsx($filePath);
         }
 
@@ -438,6 +442,28 @@ if (!function_exists('system_fix_tx_parse_csv')) {
         fclose($handle);
 
         return system_fix_tx_rows_to_adhocs($header ?: [], $dataRows);
+    }
+}
+
+if (!function_exists('system_fix_tx_looks_like_xlsx')) {
+    /**
+     * Sniff whether a file is really an .xlsx (a ZIP archive). The first bytes of
+     * any ZIP are "PK", which is enough to tell it apart from CSV text.
+     */
+    function system_fix_tx_looks_like_xlsx(string $filePath): bool
+    {
+        if (!is_file($filePath)) {
+            return false;
+        }
+
+        $handle = @fopen($filePath, 'rb');
+        if ($handle === false) {
+            return false;
+        }
+        $magic = (string) fread($handle, 2);
+        fclose($handle);
+
+        return $magic === 'PK';
     }
 }
 
