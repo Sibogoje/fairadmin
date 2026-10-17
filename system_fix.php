@@ -156,6 +156,21 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_capture_regular', "Captured {$capture['rows']} regular payments for " . system_fix_tx_period_key($period));
                 break;
 
+            case 'seed_history':
+                // Copy production history before 2014-05 into the sandbox baseline.
+                $seedBefore = system_fix_tx_normalise_date((string) ($_POST['seed_before'] ?? '')) ?: '2014-05-01';
+                $seed = system_fix_tx_seed_history($conn, $seedBefore);
+                $sandboxMessages[] = sprintf(
+                    'History seeded: %d row(s) copied from tblmemberaccounts before %s (%d previous seed row(s) replaced). %d member(s) added to the roster for %s.',
+                    $seed['inserted'],
+                    $seedBefore,
+                    $seed['deleted'],
+                    $seed['members'],
+                    $seed['roster_period']
+                );
+                audit_trail_log($conn, 'system_fix_seed_history', "Seeded {$seed['inserted']} rows before {$seedBefore}");
+                break;
+
             case 'build_interest_pool':
                 $pool = system_fix_tx_populate_interest_pool($conn, null);
                 $sandboxMessages[] = sprintf(
@@ -570,6 +585,18 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
             <hr>
 
             <hr>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-3">
+                <label class="form-label" for="seed_before">Seed history before</label>
+                <input type="date" class="form-control" id="seed_before" name="seed_before" form="stageForm" value="2014-05-01">
+              </div>
+              <div class="col-md-3 d-grid align-self-end">
+                <button type="submit" form="stageForm" name="action" value="seed_history" class="btn btn-outline-dark" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-box-arrow-in-down me-1"></i>Seed History
+                </button>
+              </div>
+            </div>
 
             <div class="row g-2 mb-3">
               <div class="col-md-3 d-grid">

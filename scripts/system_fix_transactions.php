@@ -257,6 +257,66 @@ if (!function_exists('system_fix_tx_summary')) {
     }
 }
 
+if (!function_exists('system_fix_tx_seed_history')) {
+    /**
+     * Copy historical rows from `tblmemberaccounts` into the sandbox, so the
+     * rebuild starts from a known-good baseline.
+     *
+     * Defaults to everything BEFORE 2014-05-01 — this establishes opening
+     * balances for the months that will be rebuilt from the spreadsheets.
+     * Reads production; writes ONLY to `transactionsfix` (period-scoped by
+     * TransactionDate, so it sits outside the months being rebuilt).
+     */
+    function system_fix_tx_seed_history(mysqli $conn, string $beforeDate = '2014-05-01'): array
+    {
+        $table = system_fix_tx_table();
+
+        // Idempotent: remove any previous seed for the same window first.
+        $del = $conn->prepare("DELETE FROM `{$table}` WHERE `TransactionDate` < ?");
+        $del->bind_param('s', $beforeDate);
+        $del->execute();
+        $deleted = $del->affected_rows;
+        $del->close();
+
+        $stmt = $conn->prepare(
+            "INSERT INTO `{$table}`
+                (`TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                 `StartingBalance`, `Amount`, `NewBalance`, `Comments`)
+             SELECT `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                    `StartingBalance`, `Amount`, `NewBalance`, `Comments`
+             FROM `tblmemberaccounts`
+             WHERE `TransactionDate` < ?"
+        );
+        $stmt->bind_param('s', $beforeDate);
+        $stmt->execute();
+        $inserted = $stmt->affected_rows;
+        $stmt->close();
+
+        // Members present in the seeded history exist in the fund at that time.
+        $rosterPeriod = date('Y-m', strtotime($beforeDate . ' -1 day'));
+        $idStmt = $conn->prepare(
+            "SELECT DISTINCT `memberID` FROM `{$table}` WHERE `TransactionDate` < ? AND `memberID` > 0"
+        );
+        $idStmt->bind_param('s', $beforeDate);
+        $idStmt->execute();
+        $idResult = $idStmt->get_result();
+        $memberIds = [];
+        while ($row = $idResult->fetch_assoc()) {
+            $memberIds[] = (int) $row['memberID'];
+        }
+        $idStmt->close();
+        $rosterAdded = system_fix_tx_roster_add($conn, $rosterPeriod, $memberIds, 'seed');
+
+        return [
+            'deleted' => $deleted,
+            'inserted' => $inserted,
+            'members' => count($memberIds),
+            'roster_period' => $rosterPeriod,
+            'roster_added' => $rosterAdded,
+        ];
+    }
+}
+
 if (!function_exists('system_fix_tx_clear_run')) {
     /**
      * Clear all sandbox rows for a period (YYYY-MM). The period is derived from
@@ -1191,7 +1251,8 @@ if (!function_exists('system_fix_tx_roster_add')) {
 
             $memberNo = (string) $member['MemberNo'];
             $fundId = $member['F_ID'] === null ? 0 : (int) $member['F_ID'];
-            $insert->bind_param('sissi', $period, $memberId, $memberNo, $fundId, $source);
+            // Period(s), memberID(i), MemberNo(s), FundID(i), Source(s)
+            $insert->bind_param('sisis', $period, $memberId, $memberNo, $fundId, $source);
             $insert->execute();
             $added += $insert->affected_rows;
         }
