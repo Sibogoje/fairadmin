@@ -171,6 +171,96 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_seed_history', "Seeded {$seed['inserted']} rows before {$seedBefore}");
                 break;
 
+            case 'run_all_months':
+                // Walk every month between the spreadsheet dates, running the
+                // full month end (adhocs -> regulars -> admin -> fixed -> interest)
+                // so balances carry forward automatically.
+                [$adhocSource, $adhocLabel, $adhocError] = $resolveAdhocSource();
+                if ($adhocError !== '') {
+                    $sandboxErrors[] = 'Adhocs: ' . $adhocError;
+                    break;
+                }
+
+                $regularSource = '';
+                $regularLabel = '';
+                if (!empty($_FILES['regular_xlsx']['tmp_name']) && is_uploaded_file($_FILES['regular_xlsx']['tmp_name'])) {
+                    $regularSource = $_FILES['regular_xlsx']['tmp_name'];
+                    $regularLabel = (string) ($_FILES['regular_xlsx']['name'] ?? 'uploaded regulars');
+                } elseif (!empty($_POST['existing_regular'])) {
+                    $candidate = __DIR__ . '/' . basename((string) $_POST['existing_regular']);
+                    if (is_file($candidate)) {
+                        $regularSource = $candidate;
+                        $regularLabel = basename($candidate);
+                    }
+                }
+                if ($regularSource === '') {
+                    $sandboxErrors[] = 'Regulars: choose a regulars spreadsheet to upload, or pick one on the server.';
+                    break;
+                }
+
+                $adhocParsed = system_fix_tx_parse_csv($adhocSource);
+                $regularParsed = system_fix_tx_parse_csv($regularSource);
+                foreach (array_merge($adhocParsed['errors'], $regularParsed['errors']) as $parseError) {
+                    $sandboxErrors[] = $parseError;
+                }
+
+                if (empty($adhocParsed['rows']) && empty($regularParsed['rows'])) {
+                    $sandboxErrors[] = 'Neither spreadsheet produced any rows.';
+                    break;
+                }
+
+                // Determine the month range from the rows themselves.
+                $allDates = [];
+                foreach ($adhocParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
+                foreach ($regularParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
+                if (empty($allDates)) {
+                    $sandboxErrors[] = 'No usable dates found in the spreadsheets.';
+                    break;
+                }
+                sort($allDates);
+
+                $fromMonth = substr($allDates[0], 0, 7) . '-01';
+                $toMonth = substr(end($allDates), 0, 7) . '-01';
+                $months = system_fix_tx_months_between($fromMonth, $toMonth);
+
+                $processed = 0;
+                $totalTerminations = 0;
+                $totalTermFee = 0.0;
+                $totalAdhoc = 0.0;
+                $totalRegular = 0.0;
+                $totalAdmin = 0.0;
+                $totalFixed = 0.0;
+                $totalInterest = 0.0;
+
+                foreach ($months as $monthStart) {
+                    $monthEnd = date('Y-m-t', strtotime($monthStart));
+                    $m = system_fix_tx_run_month($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows'], true);
+                    $processed++;
+                    $totalTerminations += $m['adhoc']['terminations'] ?? 0;
+                    $totalTermFee += $m['adhoc']['termination_fee'] ?? 0;
+                    $totalAdhoc += $m['adhoc']['total_amount'] ?? 0;
+                    $totalRegular += $m['regular']['total_amount'] ?? 0;
+                    $totalAdmin += $m['admin']['total_amount'] ?? 0;
+                    $totalFixed += $m['fixed']['total_amount'] ?? 0;
+                    $totalInterest += $m['interest']['total_amount'] ?? 0;
+                }
+
+                $sandboxMessages[] = sprintf(
+                    'Ran %d month(s) from %s to %s. Adhocs E %s, regulars E %s, admin E %s, fixed E %s, interest E %s. %d termination(s), termination fees E %s.',
+                    $processed,
+                    date('F Y', strtotime($fromMonth)),
+                    date('F Y', strtotime($toMonth)),
+                    number_format($totalAdhoc, 2),
+                    number_format($totalRegular, 2),
+                    number_format($totalAdmin, 2),
+                    number_format($totalFixed, 2),
+                    number_format($totalInterest, 2),
+                    $totalTerminations,
+                    number_format($totalTermFee, 2)
+                );
+                audit_trail_log($conn, 'system_fix_run_all_months', "Ran {$processed} months {$fromMonth}..{$toMonth}");
+                break;
+
             case 'build_interest_pool':
                 $pool = system_fix_tx_populate_interest_pool($conn, null);
                 $sandboxMessages[] = sprintf(
@@ -266,6 +356,10 @@ $sandboxInterestPools = [];
 $sandboxPeriodKey = system_fix_tx_period_key($sandboxPeriod);
 $sandboxRunRows = [];
 $sandboxStageTotals = [];
+$sandboxTerminationCount = 0;
+$sandboxTerminationDiscrepancy = 0.0;
+$sandboxTerminationFees = 0.0;
+$sandboxTerminationRows = [];
 
 if ($sandboxTableReady) {
     try {
@@ -303,6 +397,23 @@ if ($sandboxTableReady) {
         }
     } catch (mysqli_sql_exception $e) {
         error_log('System Fix interest pool read error: ' . $e->getMessage());
+    }
+
+    try {
+        $termTable = system_fix_tx_terminations_table();
+        if ($result = $conn->query("SELECT COUNT(*) AS c, COALESCE(SUM(`Discrepancy`),0) AS d, COALESCE(SUM(`TerminationFee`),0) AS f FROM `{$termTable}`")) {
+            $row = $result->fetch_assoc();
+            $sandboxTerminationCount = (int) ($row['c'] ?? 0);
+            $sandboxTerminationDiscrepancy = (float) ($row['d'] ?? 0);
+            $sandboxTerminationFees = (float) ($row['f'] ?? 0);
+        }
+        if ($result = $conn->query("SELECT `Period`, `TransactionDate`, `MemberNo`, `AmountRequested`, `AmountAvailable`, `AmountGiven`, `Discrepancy`, `TerminationFee`, `Reason` FROM `{$termTable}` ORDER BY `id` DESC LIMIT 50")) {
+            while ($row = $result->fetch_assoc()) {
+                $sandboxTerminationRows[] = $row;
+            }
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log('System Fix terminations read error: ' . $e->getMessage());
     }
 }
 
@@ -552,6 +663,44 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
               </div>
             </form>
 
+            <hr>
+
+            <form method="post" enctype="multipart/form-data" id="runAllForm" class="row g-3 align-items-end mb-3">
+              <div class="col-md-4">
+                <label class="form-label" for="regular_xlsx">Regulars spreadsheet (upload)</label>
+                <input type="file" class="form-control" id="regular_xlsx" name="regular_xlsx" accept=".csv,.xlsx">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="existing_regular">…or use a file on the server</label>
+                <select class="form-select" id="existing_regular" name="existing_regular">
+                  <option value="">— none —</option>
+                  <?php foreach ($existingCsvFiles as $csvFile): ?>
+                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label" for="existing_csv2">Adhocs file (on server)</label>
+                <select class="form-select" id="existing_csv2" name="existing_csv">
+                  <option value="">— none —</option>
+                  <?php foreach ($existingCsvFiles as $csvFile): ?>
+                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-3 d-grid">
+                <button type="submit" name="action" value="run_all_months" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-play-circle me-1"></i>Run All Months
+                </button>
+              </div>
+              <div class="col-12">
+                <div class="form-text">
+                  Walks every month between the two spreadsheets, running adhocs → regulars → admin → fixed → interest
+                  and carrying balances forward. Terminations are recorded, not applied to members.
+                </div>
+              </div>
+            </form>
+
             <p class="text-muted small mb-0">
               <i class="bi bi-info-circle me-1"></i>
               The CSV identifies members by <strong>Member No</strong>. Every transaction is keyed on
@@ -709,6 +858,60 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                     <td><code><?= htmlspecialchars((string) $poolRow['Period']) ?></code></td>
                     <td>E <?= htmlspecialchars(number_format((float) $poolRow['Amount'], 2)) ?></td>
                     <td><?= (int) $poolRow['SourceRows'] ?></td>
+                  </tr>
+<?php endforeach; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($sandboxTableReady && !empty($sandboxTerminationRows)): ?>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">
+              Terminations
+              <small class="text-muted">
+                — <?= (int) $sandboxTerminationCount ?> recorded ·
+                discrepancy E <?= htmlspecialchars(number_format($sandboxTerminationDiscrepancy, 2)) ?> ·
+                fees E <?= htmlspecialchars(number_format($sandboxTerminationFees, 2)) ?>
+              </small>
+            </h5>
+            <p class="text-muted small">
+              Decisions are recorded here only — <code>tblmembers</code> is not modified by this fix.
+            </p>
+            <div class="table-responsive">
+              <table class="table table-sm table-striped datatable nowrap" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>Period</th>
+                    <th>Date</th>
+                    <th>Member No</th>
+                    <th>Requested</th>
+                    <th>Available</th>
+                    <th>Given</th>
+                    <th>Discrepancy</th>
+                    <th>Term Fee</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+<?php foreach ($sandboxTerminationRows as $tRow): ?>
+                  <tr>
+                    <td><?= htmlspecialchars((string) $tRow['Period']) ?></td>
+                    <td><?= htmlspecialchars((string) $tRow['TransactionDate']) ?></td>
+                    <td><?= htmlspecialchars((string) $tRow['MemberNo']) ?></td>
+                    <td><?= htmlspecialchars(number_format((float) $tRow['AmountRequested'], 2)) ?></td>
+                    <td><?= htmlspecialchars(number_format((float) $tRow['AmountAvailable'], 2)) ?></td>
+                    <td><?= htmlspecialchars(number_format((float) $tRow['AmountGiven'], 2)) ?></td>
+                    <td><?= htmlspecialchars(number_format((float) $tRow['Discrepancy'], 2)) ?></td>
+                    <td><?= htmlspecialchars(number_format((float) $tRow['TerminationFee'], 2)) ?></td>
+                    <td><?= htmlspecialchars((string) $tRow['Reason']) ?></td>
                   </tr>
 <?php endforeach; ?>
                 </tbody>

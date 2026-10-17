@@ -126,6 +126,25 @@ if (!function_exists('system_fix_tx_interest_pool_table')) {
     }
 }
 
+if (!function_exists('system_fix_tx_terminations_table')) {
+    function system_fix_tx_terminations_table(): string
+    {
+        return 'transactionsfix_terminations';
+    }
+}
+
+if (!function_exists('system_fix_tx_termination_fee_percent')) {
+    /**
+     * Termination fee percentage (1%). All 736 members carry
+     * `member_fees.TerminationFeePercent = 1`, so this is the standing rate.
+     * The link member -> fund is available if a per-fund rate is ever needed.
+     */
+    function system_fix_tx_termination_fee_percent(): float
+    {
+        return 1.0;
+    }
+}
+
 if (!function_exists('system_fix_tx_cocacola_fund_id')) {
     /**
      * RetirementFundID for the Coca-Cola fund. Members in this fund are exempt
@@ -155,6 +174,7 @@ if (!function_exists('system_fix_tx_ensure_table')) {
         $membersTable = system_fix_tx_running_members_table();
         $regularTable = system_fix_tx_regular_capture_table();
         $interestTable = system_fix_tx_interest_pool_table();
+        $termTable = system_fix_tx_terminations_table();
 
         $sql = "CREATE TABLE IF NOT EXISTS `{$table}` (
             `accountsID` INT(10) NOT NULL AUTO_INCREMENT,
@@ -211,10 +231,30 @@ if (!function_exists('system_fix_tx_ensure_table')) {
             KEY `idx_interest_year_month` (`Year`, `Month`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
+        $termSql = "CREATE TABLE IF NOT EXISTS `{$termTable}` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `Period` CHAR(7) NOT NULL,
+            `TransactionDate` DATE NULL,
+            `MemberNo` VARCHAR(20) NOT NULL,
+            `memberID` INT NOT NULL,
+            `AmountRequested` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `AmountAvailable` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `AmountGiven` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `Discrepancy` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `TerminationFee` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `Reason` VARCHAR(50) NULL,
+            `Source` VARCHAR(30) NULL,
+            `CreatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `idx_term_period` (`Period`),
+            KEY `idx_term_member` (`memberID`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
         return (bool) $conn->query($sql)
             && (bool) $conn->query($membersSql)
             && (bool) $conn->query($regularSql)
-            && (bool) $conn->query($interestSql);
+            && (bool) $conn->query($interestSql)
+            && (bool) $conn->query($termSql);
     }
 }
 
@@ -447,7 +487,7 @@ if (!function_exists('system_fix_tx_rows_to_adhocs')) {
 
         $memberIdx = $map['memberno'] ?? 0;
         $dateIdx = $map['transactiondate'] ?? $map['date'] ?? 1;
-        $commentIdx = $map['comments'] ?? $map['comment'] ?? 2;
+        $commentIdx = $map['comments'] ?? $map['comment'] ?? $map['details'] ?? 2;
         $amountIdx = $map['amount'] ?? 3;
         $typeIdx = $map['transactiontypeid'] ?? $map['transactiontype'] ?? $map['type'] ?? $map['typeid'] ?? null;
 
@@ -693,6 +733,63 @@ if (!function_exists('system_fix_tx_preview_adhocs')) {
     }
 }
 
+if (!function_exists('system_fix_tx_record_termination')) {
+    /**
+     * Record a termination in the sandbox termination table.
+     *
+     * Records EVERY termination, including exact matches (discrepancy 0).
+     * The member is NOT modified in `tblmembers` during the fix — the decision
+     * is simply recorded here for review/application.
+     *
+     * @return array{Discrepancy:float, AmountGiven:float, TerminationFee:float}
+     */
+    function system_fix_tx_record_termination(
+        mysqli $conn,
+        string $period,
+        string $date,
+        int $memberId,
+        string $memberNo,
+        float $requested,
+        float $available,
+        float $given,
+        float $terminationFee,
+        string $reason,
+        string $source = 'adhoc'
+    ): array {
+        $table = system_fix_tx_terminations_table();
+        $discrepancy = round(max(0.0, $requested - $available), 2);
+
+        $stmt = $conn->prepare(
+            "INSERT INTO `{$table}`
+                (`Period`, `TransactionDate`, `MemberNo`, `memberID`, `AmountRequested`,
+                 `AmountAvailable`, `AmountGiven`, `Discrepancy`, `TerminationFee`, `Reason`, `Source`)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->bind_param(
+            'sssidddddss',
+            $period,
+            $date,
+            $memberNo,
+            $memberId,
+            $requested,
+            $available,
+            $given,
+            $discrepancy,
+            $terminationFee,
+            $reason,
+            $source
+        );
+        $stmt->execute();
+        $stmt->close();
+
+        return [
+            'Discrepancy' => $discrepancy,
+            'AmountGiven' => $given,
+            'TerminationFee' => $terminationFee,
+        ];
+    }
+}
+
 if (!function_exists('system_fix_tx_stage_adhocs')) {
     /**
      * STAGE 1 — Read the adhocs CSV, resolve each MemberNo and write both the
@@ -707,6 +804,8 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
         $skipped = [];
         $totalAmount = 0.0;
         $totalFee = 0.0;
+        $terminations = 0;
+        $terminationFeeTotal = 0.0;
 
         // Seed running balances from the run, then resolve each member's opening
         // balance (run balance, else previous-month closing balance) as we go.
@@ -720,28 +819,51 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             }
 
             $memberId = (int) $member['MemberID'];
+            $memberNo = (string) $member['MemberNo'];
             $date = $row['date'] ?: $periodDate;
-            $amount = (float) $row['amount'];
+            $requested = (float) $row['amount'];
             // Type comes from the spreadsheet when present, else Ad Hoc Payment (4).
             $type = (int) ($row['type'] ?? 4);
-            $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
-            $afterPayment = round($starting - $amount, 2);
+            $available = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
-            // --- Main transaction (spreadsheet type, default 4) ---------------
+            // A request that meets or exceeds the balance terminates the member.
+            if ($requested >= $available) {
+                $result = system_fix_tx_terminate_member(
+                    $conn,
+                    $runId,
+                    $periodDate,
+                    $date,
+                    $memberId,
+                    $memberNo,
+                    $requested,
+                    $available,
+                    'adhoc',
+                    (string) $row['comments']
+                );
+
+                $balances[$memberId] = 0.0;
+                $terminations++;
+                $terminationFeeTotal += $result['TerminationFee'];
+                $posted++;
+                continue;
+            }
+
+            // --- Normal adhoc payment (type 4) --------------------------------
+            $afterPayment = round($available - $requested, 2);
             system_fix_tx_insert($conn, [
                 'date' => $date,
                 'type' => $type,
                 'member_id' => $memberId,
                 'details' => system_fix_tx_transaction_type_name($conn, $type),
                 'credit' => '0',
-                'starting' => $starting,
-                'amount' => $amount,
+                'starting' => $available,
+                'amount' => $requested,
                 'new_balance' => $afterPayment,
                 'comments' => (string) $row['comments'],
             ]);
 
             // --- Transaction fee (type 5) = 2% --------------------------------
-            $fee = round($amount * 0.02, 2);
+            $fee = round($requested * 0.02, 2);
             $afterFee = round($afterPayment - $fee, 2);
             $feeType = 5;
             system_fix_tx_insert($conn, [
@@ -761,7 +883,7 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             $balances[$memberId] = $afterFee;
 
             $posted++;
-            $totalAmount += $amount;
+            $totalAmount += $requested;
             $totalFee += $fee;
         }
 
@@ -770,7 +892,80 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             'skipped' => $skipped,
             'total_amount' => round($totalAmount, 2),
             'total_fee' => round($totalFee, 2),
+            'terminations' => $terminations,
+            'termination_fee' => round($terminationFeeTotal, 2),
         ];
+    }
+}
+
+if (!function_exists('system_fix_tx_terminate_member')) {
+    /**
+     * Terminate a member in the sandbox.
+     *
+     * Charged BEFORE the payout so the balance never goes negative:
+     *   termination fee (type 12) = TerminationFeePercent (1%) of the available
+     *   balance, funded from the balance; then the remainder is paid out
+     *   (type 11 "Final Transaction") leaving a zero balance.
+     *
+     * The decision is RECORDED in `transactionsfix_terminations`; `tblmembers`
+     * is never modified during the fix.
+     *
+     * @return array{TerminationFee:float, AmountGiven:float, Discrepancy:float}
+     */
+    function system_fix_tx_terminate_member(
+        mysqli $conn,
+        string $runId,
+        string $periodDate,
+        string $date,
+        int $memberId,
+        string $memberNo,
+        float $requested,
+        float $available,
+        string $reason = 'adhoc',
+        string $comments = ''
+    ): array {
+        $percent = system_fix_tx_termination_fee_percent();
+        $terminationFee = round($available * ($percent / 100), 2);
+        $payout = round($available - $terminationFee, 2);
+
+        // --- Termination fee (type 12) ---------------------------------------
+        system_fix_tx_insert($conn, [
+            'date' => $date,
+            'type' => 12,
+            'member_id' => $memberId,
+            'details' => 'Termination Fee',
+            'credit' => '0',
+            'starting' => $available,
+            'amount' => $terminationFee,
+            'new_balance' => $payout,
+            'comments' => $comments,
+        ]);
+
+        // --- Final transaction / payout (type 11) ----------------------------
+        system_fix_tx_insert($conn, [
+            'date' => $date,
+            'type' => 11,
+            'member_id' => $memberId,
+            'details' => 'Final Transaction',
+            'credit' => '0',
+            'starting' => $payout,
+            'amount' => $payout,
+            'new_balance' => 0.00,
+            'comments' => $comments,
+        ]);
+
+        return system_fix_tx_record_termination(
+            $conn,
+            system_fix_tx_period_key($periodDate),
+            $date,
+            $memberId,
+            $memberNo,
+            $requested,
+            $available,
+            $payout,
+            $terminationFee,
+            $reason
+        );
     }
 }
 
@@ -950,6 +1145,117 @@ if (!function_exists('system_fix_tx_running_balances')) {
         $stmt->close();
 
         return $balances;
+    }
+}
+
+if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
+    /**
+     * Stage regular payments (type 3) from the regulars spreadsheet rows, plus
+     * the transaction fee (type 5) at the member's TransactionPercent.
+     *
+     * Only rows falling inside the given period are posted, so the same parsed
+     * spreadsheet can be walked month by month.
+     *
+     * @param array<int,array> $rows Output of system_fix_tx_parse_csv().
+     * @return array{posted:int, skipped:array<int,string>, total_amount:float, total_fee:float}
+     */
+    function system_fix_tx_stage_regular_from_rows(mysqli $conn, string $runId, array $rows, string $periodDate): array
+    {
+        $posted = 0;
+        $skipped = [];
+        $totalAmount = 0.0;
+        $totalFee = 0.0;
+        $bounds = system_fix_tx_period_bounds($periodDate);
+
+        $balances = system_fix_tx_running_balances($conn, $runId);
+
+        foreach ($rows as $row) {
+            $date = $row['date'] ?? null;
+            if ($date === null) {
+                continue;
+            }
+            // Only the month being rebuilt.
+            if ($date < $bounds['start'] || $date > $bounds['end']) {
+                continue;
+            }
+
+            $member = system_fix_tx_resolve_member($conn, (string) $row['member_no']);
+            if ($member === null) {
+                $skipped[] = "Line {$row['line']}: member {$row['member_no']} was not found in tblmembers.";
+                continue;
+            }
+
+            $memberId = (int) $member['MemberID'];
+            $amount = (float) $row['amount'];
+            if ($amount <= 0) {
+                continue;
+            }
+
+            $percent = system_fix_tx_member_transaction_percent($conn, $memberId);
+            $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
+
+            // A regular payment can never take the balance below zero; if the
+            // member cannot cover it, the shortfall is reported and skipped.
+            if ($amount > $starting) {
+                $skipped[] = "Line {$row['line']}: member {$row['member_no']} regular payment {$amount} exceeds balance {$starting}.";
+                continue;
+            }
+
+            $afterPayment = round($starting - $amount, 2);
+            system_fix_tx_insert($conn, [
+                'date' => $date,
+                'type' => 3,
+                'member_id' => $memberId,
+                'details' => system_fix_tx_transaction_type_name($conn, 3),
+                'credit' => '0',
+                'starting' => $starting,
+                'amount' => $amount,
+                'new_balance' => $afterPayment,
+                'comments' => (string) ($row['comments'] ?? ''),
+            ]);
+
+            $fee = round($amount * ($percent / 100), 2);
+            $afterFee = round($afterPayment - $fee, 2);
+            system_fix_tx_insert($conn, [
+                'date' => $date,
+                'type' => 5,
+                'member_id' => $memberId,
+                'details' => system_fix_tx_transaction_type_name($conn, 5),
+                'credit' => '0',
+                'starting' => $afterPayment,
+                'amount' => $fee,
+                'new_balance' => $afterFee,
+                'comments' => (string) ($row['comments'] ?? ''),
+            ]);
+
+            $balances[$memberId] = $afterFee;
+            $posted++;
+            $totalAmount += $amount;
+            $totalFee += $fee;
+        }
+
+        return [
+            'posted' => $posted,
+            'skipped' => $skipped,
+            'total_amount' => round($totalAmount, 2),
+            'total_fee' => round($totalFee, 2),
+        ];
+    }
+}
+
+if (!function_exists('system_fix_tx_member_transaction_percent')) {
+    /**
+     * Transaction fee percentage for a member (member_fees.TransactionPercent).
+     */
+    function system_fix_tx_member_transaction_percent(mysqli $conn, int $memberId): float
+    {
+        $stmt = $conn->prepare("SELECT `TransactionPercent` FROM `member_fees` WHERE `MemberID` = ? LIMIT 1");
+        $stmt->bind_param('i', $memberId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+
+        return $row && $row['TransactionPercent'] !== null ? (float) $row['TransactionPercent'] : 0.0;
     }
 }
 
@@ -1502,6 +1808,72 @@ if (!function_exists('system_fix_tx_in_scope')) {
 
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         return [' AND `MemberID` IN (' . $placeholders . ')', str_repeat('i', count($ids)), $ids];
+    }
+}
+
+if (!function_exists('system_fix_tx_months_between')) {
+    /**
+     * List of YYYY-MM-01 periods between two dates (inclusive), used to walk the
+     * rebuild month by month.
+     *
+     * @return array<int,string>
+     */
+    function system_fix_tx_months_between(string $from, string $to): array
+    {
+        $months = [];
+        $cursor = strtotime(date('Y-m-01', strtotime($from)));
+        $end = strtotime(date('Y-m-01', strtotime($to)));
+
+        while ($cursor <= $end) {
+            $months[] = date('Y-m-01', $cursor);
+            $cursor = strtotime('+1 month', $cursor);
+        }
+
+        return $months;
+    }
+}
+
+if (!function_exists('system_fix_tx_run_month')) {
+    /**
+     * Run one month end to end for the period supplied:
+     *   adhocs (with terminations) -> regulars from spreadsheet -> admin ->
+     *   fixed -> interest.
+     *
+     * Balances carry forward automatically because each stage reads the running
+     * balances already in the sandbox for the period.
+     *
+     * @param array<int,array> $adhocRows
+     * @param array<int,array> $regularRows
+     * @return array<string,mixed>
+     */
+    function system_fix_tx_run_month(
+        mysqli $conn,
+        string $periodDate,
+        array $adhocRows,
+        array $regularRows,
+        bool $updateRoster = true
+    ): array {
+        $runId = system_fix_tx_period_key($periodDate);
+
+        $result = [
+            'period' => $runId,
+            'adhoc' => system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate),
+            'regular' => system_fix_tx_stage_regular_from_rows($conn, $runId, $regularRows, $periodDate),
+            'admin' => system_fix_tx_stage_admin_fees($conn, $runId, $periodDate),
+            'fixed' => system_fix_tx_stage_fixed_fees($conn, $runId, $periodDate),
+            'interest' => system_fix_tx_stage_interest($conn, $runId, $periodDate),
+        ];
+
+        if ($updateRoster) {
+            $result['roster'] = system_fix_tx_roster_add(
+                $conn,
+                $runId,
+                system_fix_tx_scope_ids($conn, $runId),
+                'monthrun'
+            );
+        }
+
+        return $result;
     }
 }
 
