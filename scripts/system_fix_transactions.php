@@ -816,6 +816,65 @@ if (!function_exists('system_fix_tx_record_termination')) {
     }
 }
 
+if (!function_exists('system_fix_tx_terminated_ids')) {
+    /**
+     * Members already terminated in the sandbox (they have a type 11
+     * "Final Transaction" row). Termination is a ONE-TIME event: production has
+     * 159 members terminated exactly once, so once a member is terminated they
+     * are excluded from all later adhocs and month-end stages.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_terminated_ids(mysqli $conn): array
+    {
+        $table = system_fix_tx_table();
+        $ids = [];
+
+        $result = $conn->query("SELECT DISTINCT `memberID` FROM `{$table}` WHERE `TransactionTypeID` = 11 AND `memberID` > 0");
+        while ($result && $row = $result->fetch_assoc()) {
+            $ids[] = (int) $row['memberID'];
+        }
+
+        return $ids;
+    }
+}
+
+if (!function_exists('system_fix_tx_is_terminated')) {
+    /**
+     * Has this member already been terminated in the sandbox?
+     */
+    function system_fix_tx_is_terminated(mysqli $conn, int $memberId): bool
+    {
+        $table = system_fix_tx_table();
+        $stmt = $conn->prepare("SELECT 1 FROM `{$table}` WHERE `TransactionTypeID` = 11 AND `memberID` = ? LIMIT 1");
+        $stmt->bind_param('i', $memberId);
+        $stmt->execute();
+        $found = $stmt->get_result()->fetch_row() !== null;
+        $stmt->close();
+
+        return $found;
+    }
+}
+
+if (!function_exists('system_fix_tx_filter_active')) {
+    /**
+     * Remove terminated members from a list of member IDs, so only members still
+     * active for the period are processed by the month-end stages.
+     *
+     * @param array<int,int> $ids
+     * @return array<int,int>
+     */
+    function system_fix_tx_filter_active(mysqli $conn, array $ids): array
+    {
+        $terminated = system_fix_tx_terminated_ids($conn);
+        if (empty($terminated)) {
+            return $ids;
+        }
+
+        return array_values(array_diff($ids, $terminated));
+    }
+}
+
 if (!function_exists('system_fix_tx_stage_adhocs')) {
     /**
      * STAGE 1 — Read the adhocs CSV, resolve each MemberNo and write both the
@@ -832,12 +891,23 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
         $totalFee = 0.0;
         $terminations = 0;
         $terminationFeeTotal = 0.0;
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $alreadyTerminated = [];
 
         // Seed running balances from the run, then resolve each member's opening
         // balance (run balance, else previous-month closing balance) as we go.
         $balances = system_fix_tx_running_balances($conn, $runId);
 
         foreach ($rows as $row) {
+            $date = $row['date'] ?? null;
+
+            // Only rows that fall inside the month being rebuilt. The same parsed
+            // spreadsheet is reused for every month, so this filter is essential —
+            // without it each month would re-post the entire file.
+            if ($date === null || $date < $bounds['start'] || $date > $bounds['end']) {
+                continue;
+            }
+
             $member = system_fix_tx_resolve_member($conn, (string) $row['member_no']);
             if ($member === null) {
                 $skipped[] = "Line {$row['line']}: member {$row['member_no']} was not found in tblmembers.";
@@ -846,10 +916,32 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
 
             $memberId = (int) $member['MemberID'];
             $memberNo = (string) $member['MemberNo'];
-            $date = $row['date'] ?: $periodDate;
             $requested = (float) $row['amount'];
             // Type comes from the spreadsheet when present, else Ad Hoc Payment (4).
             $type = (int) ($row['type'] ?? 4);
+
+            // --- Already terminated? Record only, never post a transaction. ----
+            // Termination happens ONCE. Any later adhoc for that member is logged
+            // in the termination table for review and nothing is written to the
+            // transaction ledger.
+            if ($alreadyTerminated[$memberId] ?? system_fix_tx_is_terminated($conn, $memberId)) {
+                $alreadyTerminated[$memberId] = true;
+                system_fix_tx_record_termination(
+                    $conn,
+                    system_fix_tx_period_key($periodDate),
+                    $date,
+                    $memberId,
+                    $memberNo,
+                    $requested,
+                    0.00,
+                    0.00,
+                    0.00,
+                    'after_termination',
+                    'adhoc'
+                );
+                continue;
+            }
+
             $available = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
             // A request that meets or exceeds the balance terminates the member.
@@ -1304,9 +1396,9 @@ if (!function_exists('system_fix_tx_stage_regular')) {
         $totalFee = 0.0;
 
         $period = system_fix_tx_period_key($periodDate);
-        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
         if (empty($ids)) {
-            return ['posted' => 0, 'skipped' => ['No members on the roster or in scope — import the adhocs CSV and update the roster first.'], 'total_amount' => 0.0, 'total_fee' => 0.0];
+            return ['posted' => 0, 'skipped' => [], 'total_amount' => 0.0, 'total_fee' => 0.0];
         }
 
         [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($ids);
@@ -1396,7 +1488,7 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
         $month = (int) date('n', strtotime($periodDate));
         $days = system_fix_tx_days_in_month($month);
 
-        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
         if (empty($ids)) {
             return ['posted' => 0, 'total_amount' => 0.0];
         }
@@ -1455,7 +1547,7 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
         $total = 0.0;
         $cocaColaFundId = system_fix_tx_cocacola_fund_id();
 
-        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
         if (empty($ids)) {
             return ['posted' => 0, 'exempt' => 0, 'total_amount' => 0.0];
         }
@@ -2077,8 +2169,12 @@ if (!function_exists('system_fix_tx_stage_interest')) {
             return ['posted' => 0, 'pool' => 0.0, 'source_rows' => $sourceRows, 'total_amount' => 0.0];
         }
 
-        // Denominator and beneficiaries are limited to members in scope.
+        // Denominator and beneficiaries are limited to members still active.
         $balances = system_fix_tx_balance_denominator($conn, $runId, $periodDate);
+        $terminated = system_fix_tx_terminated_ids($conn);
+        foreach ($terminated as $memberId) {
+            unset($balances[$memberId]);
+        }
         $totalFunds = array_sum($balances);
 
         if ($totalFunds <= 0) {
@@ -2163,10 +2259,18 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
         $stmt->close();
 
         // Members with no rows in this run: use their previous-month close.
-        foreach (system_fix_tx_month_end_ids($conn, $runId, $periodDate) as $memberId) {
-            if (!array_key_exists($memberId, $balances)) {
+        // Terminated members are excluded so the interest denominator only ever
+        // contains members who were still in the fund for the period.
+        $active = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
+        foreach ($active as $memberId) {
+            if (!array_key_exists($memberId, $balances) && !isset($balances[$memberId])) {
                 $balances[$memberId] = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             }
+        }
+
+        // Drop any terminated member that may have been picked up from the ledger.
+        foreach (system_fix_tx_terminated_ids($conn) as $memberId) {
+            unset($balances[$memberId]);
         }
 
         return $balances;
