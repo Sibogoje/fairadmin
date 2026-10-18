@@ -875,57 +875,6 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
       </div>
     </div>
 
-    <?php if ($sandboxTableReady && !empty($sandboxTerminationRows)): ?>
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">
-              Latest Terminations
-              <small class="text-muted">
-                — <?= (int) $sandboxTerminationCount ?> recorded ·
-                discrepancy E <?= htmlspecialchars(number_format($sandboxTerminationDiscrepancy, 2)) ?> ·
-                fees E <?= htmlspecialchars(number_format($sandboxTerminationFees, 2)) ?>
-              </small>
-            </h5>
-            <div class="table-responsive">
-              <table class="table table-sm table-striped datatable nowrap" style="width:100%">
-                <thead>
-                  <tr>
-                    <th>Period</th>
-                    <th>Date</th>
-                    <th>Member No</th>
-                    <th>Requested</th>
-                    <th>Available</th>
-                    <th>Given</th>
-                    <th>Discrepancy</th>
-                    <th>Term Fee</th>
-                    <th>Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php foreach ($sandboxTerminationRows as $tRow): ?>
-                  <tr>
-                    <td><?= htmlspecialchars((string) $tRow['Period']) ?></td>
-                    <td><?= htmlspecialchars((string) $tRow['TransactionDate']) ?></td>
-                    <td><?= htmlspecialchars((string) $tRow['MemberNo']) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $tRow['AmountRequested'], 2)) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $tRow['AmountAvailable'], 2)) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $tRow['AmountGiven'], 2)) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $tRow['Discrepancy'], 2)) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $tRow['TerminationFee'], 2)) ?></td>
-                    <td><?= htmlspecialchars((string) $tRow['Reason']) ?></td>
-                  </tr>
-<?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <?php endif; ?>
-
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
