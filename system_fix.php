@@ -900,6 +900,16 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
               </div>
             </form>
 
+<?php if ($statementMemberId > 0): ?>
+            <div class="mt-3">
+              <a class="btn btn-outline-dark btn-sm"
+                 href="<?= app_url('system_fix_print.php') ?>?MemberID=<?= (int) $statementMemberId ?>"
+                 target="_blank" rel="noopener">
+                <i class="bi bi-printer me-1"></i>Print Statement (A4)
+              </a>
+            </div>
+<?php endif; ?>
+
 <?php if ($statementError !== ''): ?>
             <div class="alert alert-danger mt-3 mb-0" role="alert"><?= htmlspecialchars($statementError) ?></div>
 <?php endif; ?>
