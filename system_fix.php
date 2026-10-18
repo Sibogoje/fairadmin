@@ -754,48 +754,14 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Month-End Sandbox</h5>
+            <h5 class="card-title">Run All Months</h5>
 
-            <form method="post" enctype="multipart/form-data" id="adhocForm" class="row g-3 align-items-end mb-3">
-              <div class="col-md-3">
-                <label class="form-label" for="period">Period end date</label>
-                <input type="date" class="form-control" id="period" name="period" value="<?= htmlspecialchars($sandboxPeriod) ?>" required>
-                <div class="form-text">Drives the day-count used by admin fees.</div>
-              </div>
-
-              <div class="col-md-4">
-                <label class="form-label" for="adhoc_csv">Adhocs file (CSV or Excel)</label>
-                <input type="file" class="form-control" id="adhoc_csv" name="adhoc_csv" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-              </div>
-
-              <div class="col-md-3">
-                <label class="form-label" for="existing_csv">…or use a file on the server</label>
-                <select class="form-select" id="existing_csv" name="existing_csv">
-                  <option value="">— none —</option>
-                  <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>"><?= htmlspecialchars($csvFile) ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-
-              <div class="col-md-2 d-grid gap-2">
-                <button type="submit" name="action" value="preview_adhocs" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-search me-1"></i>Preview Mapping
-                </button>
-                <button type="submit" name="action" value="stage_adhocs" class="btn btn-warning" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-upload me-1"></i>Stage Adhocs
-                </button>
-              </div>
-            </form>
-
-            <hr>
-
-            <form method="post" enctype="multipart/form-data" id="runAllForm" class="row g-3 align-items-end mb-3">
+            <form method="post" enctype="multipart/form-data" id="runAllForm" class="row g-3 align-items-end">
               <div class="col-md-4">
                 <label class="form-label" for="adhoc_csv_run">Adhocs spreadsheet (upload)</label>
                 <input type="file" class="form-control" id="adhoc_csv_run" name="adhoc_csv" accept=".csv,.xlsx">
               </div>
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <label class="form-label" for="existing_csv2">…or adhocs on the server</label>
                 <select class="form-select" id="existing_csv2" name="existing_csv">
                   <option value="">— none —</option>
@@ -804,11 +770,16 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                   <?php endforeach; ?>
                 </select>
               </div>
-              <div class="col-md-3">
+              <div class="col-md-4">
+                <label class="form-label" for="run_from_month">Start from month <span class="text-muted">(optional)</span></label>
+                <input type="month" class="form-control" id="run_from_month" name="run_from_month" value="">
+              </div>
+
+              <div class="col-md-4">
                 <label class="form-label" for="regular_xlsx">Regulars spreadsheet (upload)</label>
                 <input type="file" class="form-control" id="regular_xlsx" name="regular_xlsx" accept=".csv,.xlsx">
               </div>
-              <div class="col-md-3">
+              <div class="col-md-4">
                 <label class="form-label" for="existing_regular">…or regulars on the server</label>
                 <select class="form-select" id="existing_regular" name="existing_regular">
                   <option value="">— none —</option>
@@ -817,226 +788,39 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
                   <?php endforeach; ?>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label class="form-label" for="run_from_month">Start from month</label>
-                <input type="month" class="form-control" id="run_from_month" name="run_from_month" value="">
-                <div class="form-text">Leave blank to start at the first month in the files.</div>
-              </div>
-              <div class="col-md-3 d-grid">
+              <div class="col-md-4 d-grid">
                 <button type="submit" name="action" value="run_all_months" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-play-circle me-1"></i>Run All Months
                 </button>
               </div>
+
               <div class="col-12">
                 <div class="form-text">
-                  Walks every month between the two spreadsheets, running adhocs → regulars → admin → fixed → interest
-                  and carrying balances forward. Terminations are recorded, not applied to members.
+                  Walks every month between the two spreadsheets, running each member's month end in order:
+                  adhocs &amp; terminations → regular payments → interest → fixed monthly fee → admin fees,
+                  carrying balances forward. Members without adhocs are included automatically, and any debit
+                  the funds cannot cover terminates the member instead of going negative.
                 </div>
               </div>
             </form>
-
-            <p class="text-muted small mb-0">
-              <i class="bi bi-info-circle me-1"></i>
-              The CSV identifies members by <strong>Member No</strong>. Every transaction is keyed on
-              <code>memberID</code>, so each Member No is looked up in <code>tblmembers</code> first.
-              Use <em>Preview Mapping</em> to confirm the match before staging.
-            </p>
-
-            <div class="alert <?= $sandboxScopeCount > 0 ? 'alert-secondary' : 'alert-warning' ?> d-flex align-items-start mt-3 mb-0" role="alert">
-              <i class="bi bi-people me-2 fs-5"></i>
-              <div>
-                <strong>Scope:</strong>
-                <?php if ($sandboxScopeCount > 0): ?>
-                  this run covers <strong><?= (int) $sandboxScopeCount ?></strong> member(s) imported from the adhocs CSV.
-                <?php else: ?>
-                  no members in scope yet. <strong>Stage an adhocs CSV first</strong> — the other stages will do
-                  nothing until the member list is defined by the import.
-                <?php endif; ?>
-                <br>
-                <strong>Schedule:</strong>
-                <?php if ($sandboxScheduleCount > 0): ?>
-                  <strong><?= (int) $sandboxScheduleCount ?></strong> member(s) existed in the fund by <?= htmlspecialchars($sandboxPeriodKey) ?>.
-                  Members without adhocs are still included in the month runs.
-                <?php else: ?>
-                  <span class="text-danger">not built yet — click <em>Build Member Schedule</em> so members without adhocs are included.</span>
-                <?php endif; ?>
-                <br>
-                <strong>Roster (<?= htmlspecialchars($sandboxPeriodKey) ?>):</strong>
-                <strong><?= (int) $sandboxRosterCount ?></strong> member(s) exist in the fund for this period.
-                Month-end stages (regular, admin, fixed, interest) run for these members.
-                <?php if ($sandboxCapturedCount > 0): ?>
-                <br><strong>Regular payments captured:</strong> <strong><?= (int) $sandboxCapturedCount ?></strong> member(s)
-                for <?= htmlspecialchars($sandboxPeriodKey) ?>.
-                <?php else: ?>
-                <br><span class="text-danger">Regular payments not captured yet — click <em>Capture Regular Payments</em> before running them.</span>
-                <?php endif; ?>
-              </div>
-            </div>
-
-            <hr>
-
-            <hr>
-
-            <div class="row g-2 mb-3">
-              <div class="col-md-3">
-                <label class="form-label" for="seed_before">Seed history before</label>
-                <input type="date" class="form-control" id="seed_before" name="seed_before" form="stageForm" value="2014-05-01">
-              </div>
-              <div class="col-md-3 d-grid align-self-end">
-                <button type="submit" form="stageForm" name="action" value="seed_history" class="btn btn-outline-dark" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-box-arrow-in-down me-1"></i>Seed History
-                </button>
-              </div>
-              <div class="col-md-3 d-grid align-self-end">
-                <button type="submit" form="stageForm" name="action" value="build_schedule" class="btn btn-outline-info" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-calendar3 me-1"></i>Build Member Schedule
-                </button>
-              </div>
-              <div class="col-md-3 d-grid align-self-end">
-                <button type="submit" form="stageForm" name="action" value="sync_members" class="btn btn-outline-info" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-arrow-left-right me-1"></i>Sync Members for Period
-                </button>
-              </div>
-            </div>
-
-            <div class="row g-2 mb-3">
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="update_roster" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-people me-1"></i>Update Roster
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="capture_regular" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-download me-1"></i>Capture Regular Payments
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="build_interest_pool" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-cash-stack me-1"></i>Build Interest Pool
-                </button>
-              </div>
-            </div>
-
-            <div class="row g-2 mb-3">
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="stage_openings" class="btn btn-outline-dark" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-person-plus me-1"></i>Process Openings (New Members)
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="stage_regular" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-arrow-repeat me-1"></i>Run Regular Payments
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="stage_admin_fees" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-percent me-1"></i>Run Admin Fees
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="stage_fixed_fees" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-calendar-check me-1"></i>Run Fixed Monthly Fees
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" form="stageForm" name="action" value="stage_interest" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-cash-coin me-1"></i>Run Interest
-                </button>
-              </div>
-            </div>
-
-            <form method="post" id="stageForm" class="d-flex flex-wrap gap-2 align-items-center">
-              <input type="hidden" name="period" value="<?= htmlspecialchars($sandboxPeriod) ?>">
-              <span class="text-muted small me-2">
-                Period: <code><?= htmlspecialchars($sandboxRunId) ?></code>
-              </span>
-              <button type="submit" name="action" value="clear_run" class="btn btn-sm btn-outline-danger" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                <i class="bi bi-trash me-1"></i>Clear This Period
-              </button>
-            </form>
-
-            <div class="table-responsive mt-3">
-              <table class="table table-sm table-striped align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Period</th>
-                    <th>Rows</th>
-                    <th>Date Range in Sandbox</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php if (!empty($sandboxSummary['last_run'])): ?>
-<?php $lastRun = $sandboxSummary['last_run']; ?>
-                  <tr>
-                    <td><code><?= htmlspecialchars((string) $lastRun['RunID']) ?></code></td>
-                    <td><?= (int) $lastRun['rows'] ?></td>
-                    <td>
-                      <?= htmlspecialchars((string) ($lastRun['period_start'] ?? '')) ?>
-                      &rarr;
-                      <?= htmlspecialchars((string) ($lastRun['period_end'] ?? '')) ?>
-                    </td>
-                  </tr>
-<?php else: ?>
-                  <tr><td colspan="3" class="text-muted">No sandbox rows yet.</td></tr>
-<?php endif; ?>
-                </tbody>
-              </table>
-            </div>
           </div>
         </div>
       </div>
     </div>
 
-<?php if ($sandboxTableReady && !empty($sandboxInterestPools)): ?>
+    <?php if ($sandboxTableReady && !empty($sandboxTerminationRows)): ?>
     <div class="row">
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">
-              Interest Pool <small class="text-muted">(interestfix — <?= (int) $sandboxInterestMonths ?> month(s) stored)</small>
-            </h5>
-            <div class="table-responsive">
-              <table class="table table-sm table-striped align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Month</th>
-                    <th>Pool Amount</th>
-                    <th>Source Rows in tblmemberaccounts</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php foreach ($sandboxInterestPools as $poolRow): ?>
-                  <tr>
-                    <td><code><?= htmlspecialchars((string) $poolRow['Period']) ?></code></td>
-                    <td>E <?= htmlspecialchars(number_format((float) $poolRow['Amount'], 2)) ?></td>
-                    <td><?= (int) $poolRow['SourceRows'] ?></td>
-                  </tr>
-<?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-<?php endif; ?>
-
-<?php if ($sandboxTableReady && !empty($sandboxTerminationRows)): ?>
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">
-              Terminations
+              Latest Terminations
               <small class="text-muted">
                 — <?= (int) $sandboxTerminationCount ?> recorded ·
                 discrepancy E <?= htmlspecialchars(number_format($sandboxTerminationDiscrepancy, 2)) ?> ·
                 fees E <?= htmlspecialchars(number_format($sandboxTerminationFees, 2)) ?>
               </small>
             </h5>
-            <p class="text-muted small">
-              Decisions are recorded here only — <code>tblmembers</code> is not modified by this fix.
-            </p>
             <div class="table-responsive">
               <table class="table table-sm table-striped datatable nowrap" style="width:100%">
                 <thead>
@@ -1073,256 +857,7 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
         </div>
       </div>
     </div>
-<?php endif; ?>
-
-<?php if ($sandboxPreview !== null): ?>
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">
-              Member No &rarr; Member ID mapping
-              <small class="text-muted">— <?= htmlspecialchars($sandboxPreviewLabel) ?></small>
-            </h5>
-            <p class="mb-2">
-              <span class="badge bg-success"><?= (int) $sandboxPreview['matched'] ?> matched</span>
-              <?php if ($sandboxPreview['unmatched'] > 0): ?>
-              <span class="badge bg-danger"><?= (int) $sandboxPreview['unmatched'] ?> unmatched</span>
-              <?php endif; ?>
-              <span class="badge bg-secondary">Total E <?= htmlspecialchars(number_format($sandboxPreview['total_amount'], 2)) ?></span>
-            </p>
-            <div class="table-responsive">
-              <table class="table table-sm table-striped datatable nowrap" style="width:100%">
-                <thead>
-                  <tr>
-                    <th>Line</th>
-                    <th>Member No (CSV)</th>
-                    <th>Member ID (tblmembers)</th>
-                    <th>Name</th>
-                    <th>Terminated</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php foreach ($sandboxPreview['lines'] as $line): ?>
-                  <tr>
-                    <td><?= (int) $line['line'] ?></td>
-                    <td><?= htmlspecialchars((string) $line['member_no']) ?></td>
-                    <td><?= $line['member_id'] === null ? '—' : (int) $line['member_id'] ?></td>
-                    <td><?= htmlspecialchars((string) $line['name']) ?></td>
-                    <td><?= $line['terminated'] === null ? '—' : ((int) $line['terminated'] === 1 ? 'Yes' : 'No') ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $line['amount'], 2)) ?></td>
-                    <td>
-<?php if ($line['resolved']): ?>
-                      <span class="badge bg-success">Resolved</span>
-<?php else: ?>
-                      <span class="badge bg-danger">Not found</span>
-<?php endif; ?>
-                    </td>
-                  </tr>
-<?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-<?php endif; ?>
-
-<?php if ($sandboxRunId !== '' && !empty($sandboxStageTotals)): ?>
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Stages in run <code><?= htmlspecialchars($sandboxRunId) ?></code></h5>
-            <div class="table-responsive">
-              <table class="table table-striped align-middle">
-                <thead>
-                  <tr>
-                    <th>Stage</th>
-                    <th>TransactionTypeID</th>
-                    <th>Rows</th>
-                    <th>Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php foreach ($sandboxStageTotals as $stage): ?>
-                  <tr>
-                    <td><?= htmlspecialchars(system_fix_tx_transaction_type_name($conn, (int) $stage['TransactionTypeID'])) ?></td>
-                    <td><?= (int) $stage['TransactionTypeID'] ?></td>
-                    <td><?= (int) $stage['rows_count'] ?></td>
-                    <td>E <?= htmlspecialchars(number_format((float) $stage['total'], 2)) ?></td>
-                  </tr>
-<?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-<?php endif; ?>
-
-<?php if (!empty($sandboxRunRows)): ?>
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Sandbox Rows <small class="text-muted">(first 300 for <?= htmlspecialchars($sandboxRunId) ?>)</small></h5>
-            <div class="table-responsive">
-              <table class="table table-striped datatable nowrap" style="width:100%">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Member ID</th>
-                    <th>Details</th>
-                    <th>Cr</th>
-                    <th>Starting</th>
-                    <th>Amount</th>
-                    <th>New Balance</th>
-                    <th>Comments</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php foreach ($sandboxRunRows as $row): ?>
-                  <tr>
-                    <td><?= (int) $row['accountsID'] ?></td>
-                    <td><?= htmlspecialchars((string) $row['TransactionDate']) ?></td>
-                    <td><?= (int) $row['TransactionTypeID'] ?></td>
-                    <td><?= htmlspecialchars((string) $row['memberID']) ?></td>
-                    <td><?= htmlspecialchars((string) $row['Details']) ?></td>
-                    <td><?= htmlspecialchars((string) $row['Credit']) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $row['StartingBalance'], 2)) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $row['Amount'], 2)) ?></td>
-                    <td><?= htmlspecialchars(number_format((float) $row['NewBalance'], 2)) ?></td>
-                    <td><?= htmlspecialchars((string) $row['Comments']) ?></td>
-                  </tr>
-<?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-<?php endif; ?>
-
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Environment</h5>
-            <table class="table table-sm mb-0">
-              <tbody>
-                <tr>
-                  <th style="width: 240px;">Connected database</th>
-                  <td><?= htmlspecialchars($dbName ?? '(unknown)') ?></td>
-                </tr>
-                <tr>
-                  <th>Server</th>
-                  <td><?= htmlspecialchars($conn->host_info ?? '') ?></td>
-                </tr>
-                <tr>
-                  <th>Signed in as</th>
-                  <td><?= htmlspecialchars((string) $gg) ?> (<?= htmlspecialchars($role) ?>)</td>
-                </tr>
-                <tr>
-                  <th>Checked at</th>
-                  <td><?= htmlspecialchars(date('Y-m-d H:i:s')) ?></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Integrity Checks</h5>
-            <div class="table-responsive">
-              <table class="table table-striped align-middle">
-                <thead>
-                  <tr>
-                    <th>Check</th>
-                    <th>Result</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-<?php foreach ($checks as $key => $check): ?>
-<?php
-    $meta = $checkMeta[$key] ?? ['label' => $key, 'help' => ''];
-    $isError = $check['status'] === 'error';
-    $value = $check['value'];
-    $flagZero = in_array($key, ['members_without_balance', 'orphan_balances', 'orphan_accounts', 'negative_balances', 'duplicate_member_numbers'], true);
-    $isWarning = !$isError && $flagZero && (int) $value > 0;
-?>
-                  <tr>
-                    <td>
-                      <strong><?= htmlspecialchars($meta['label']) ?></strong>
-                    </td>
-                    <td>
-<?php if ($isError): ?>
-                      <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Error</span>
-<?php elseif ($isWarning): ?>
-                      <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i><?= htmlspecialchars((string) $value) ?></span>
-<?php else: ?>
-                      <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i><?= htmlspecialchars((string) $value) ?></span>
-<?php endif; ?>
-                    </td>
-                    <td class="text-muted small">
-                      <?= htmlspecialchars($isError ? $check['message'] : $meta['help']) ?>
-                    </td>
-                  </tr>
-<?php endforeach; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Tables (<?= count($tables) ?>)</h5>
-<?php if (empty($tables)): ?>
-            <p class="text-muted mb-0">No tables found or the list could not be read.</p>
-<?php else: ?>
-            <div class="d-flex flex-wrap gap-1">
-<?php foreach ($tables as $table): ?>
-              <span class="badge bg-secondary"><?= htmlspecialchars($table) ?></span>
-<?php endforeach; ?>
-            </div>
-<?php endif; ?>
-          </div>
-        </div>
-      </div>
-    </div>
-
-<?php if (!empty($errors)): ?>
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="alert alert-danger" role="alert">
-          <strong>Diagnostics reported problems:</strong>
-          <ul class="mb-0">
-<?php foreach ($errors as $error): ?>
-            <li><?= htmlspecialchars($error) ?></li>
-<?php endforeach; ?>
-          </ul>
-        </div>
-      </div>
-    </div>
-<?php endif; ?>
+    <?php endif; ?>
   </section>
 </main>
 
