@@ -1295,6 +1295,49 @@ if (!function_exists('system_fix_tx_running_balances')) {
     }
 }
 
+if (!function_exists('system_fix_tx_debit_or_terminate')) {
+    /**
+     * Apply a debit, or terminate the member when they cannot afford it.
+     *
+     * Used by every debit stage (regular, fixed, admin) so no transaction can
+     * ever push a balance negative. When the amount exceeds the available
+     * balance the member is terminated: the 1% termination fee is charged from
+     * what remains and the rest is paid out, exactly as the adhoc rule does.
+     *
+     * @return array{terminated:bool, new_balance:float}
+     */
+    function system_fix_tx_debit_or_terminate(
+        mysqli $conn,
+        string $runId,
+        string $periodDate,
+        string $date,
+        int $memberId,
+        string $memberNo,
+        float $amount,
+        float $available,
+        string $reason
+    ): array {
+        if ($amount > $available) {
+            system_fix_tx_terminate_member(
+                $conn,
+                $runId,
+                $periodDate,
+                $date,
+                $memberId,
+                $memberNo,
+                $amount,
+                $available,
+                $reason,
+                ''
+            );
+
+            return ['terminated' => true, 'new_balance' => 0.0];
+        }
+
+        return ['terminated' => false, 'new_balance' => round($available - $amount, 2)];
+    }
+}
+
 if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
     /**
      * Stage regular payments (type 3) from the regulars spreadsheet rows, plus
@@ -1312,6 +1355,7 @@ if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
         $skipped = [];
         $totalAmount = 0.0;
         $totalFee = 0.0;
+        $terminations = 0;
         $bounds = system_fix_tx_period_bounds($periodDate);
 
         $balances = system_fix_tx_running_balances($conn, $runId);
@@ -1333,22 +1377,55 @@ if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
             }
 
             $memberId = (int) $member['MemberID'];
+            $memberNo = (string) $member['MemberNo'];
             $amount = (float) $row['amount'];
             if ($amount <= 0) {
+                continue;
+            }
+
+            // Already terminated earlier in the run? Record only, never post.
+            if (system_fix_tx_is_terminated($conn, $memberId)) {
+                system_fix_tx_record_termination(
+                    $conn,
+                    system_fix_tx_period_key($periodDate),
+                    $date,
+                    $memberId,
+                    $memberNo,
+                    $amount,
+                    0.00,
+                    0.00,
+                    0.00,
+                    'after_termination',
+                    'regular'
+                );
+                $terminations++;
                 continue;
             }
 
             $percent = system_fix_tx_member_transaction_percent($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
-            // A regular payment can never take the balance below zero; if the
-            // member cannot cover it, the shortfall is reported and skipped.
-            if ($amount > $starting) {
-                $skipped[] = "Line {$row['line']}: member {$row['member_no']} regular payment {$amount} exceeds balance {$starting}.";
+            // A debit that exceeds the balance terminates the member instead of
+            // pushing the account negative.
+            $debit = system_fix_tx_debit_or_terminate(
+                $conn,
+                $runId,
+                $periodDate,
+                $date,
+                $memberId,
+                $memberNo,
+                $amount,
+                $starting,
+                'regular'
+            );
+
+            if ($debit['terminated']) {
+                $balances[$memberId] = 0.0;
+                $terminations++;
                 continue;
             }
 
-            $afterPayment = round($starting - $amount, 2);
+            $afterPayment = $debit['new_balance'];
             system_fix_tx_insert($conn, [
                 'date' => $date,
                 'type' => 3,
@@ -1386,6 +1463,7 @@ if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
             'skipped' => $skipped,
             'total_amount' => round($totalAmount, 2),
             'total_fee' => round($totalFee, 2),
+            'terminations' => $terminations,
         ];
     }
 }
@@ -1501,25 +1579,29 @@ if (!function_exists('system_fix_tx_stage_regular')) {
 
 if (!function_exists('system_fix_tx_stage_admin_fees')) {
     /**
-     * STAGE 3 — Admin fees (type 7) for every member on the roster.
+     * STAGE — Admin fees (type 7) for every member on the roster.
      *
      *   fee = (1.5% * balance / 365) * days
      *
      * where `days` is 31 for Jan/Mar/May/Jul/Aug/Oct/Dec and 30 otherwise —
      * identical to Transactions/mprocess.php's day count.
      *
-     * @return array{posted:int, total_amount:float}
+     * If the fee cannot be covered the member is terminated (1% fee + payout),
+     * so the balance never goes negative.
+     *
+     * @return array{posted:int, total_amount:float, terminations:int}
      */
     function system_fix_tx_stage_admin_fees(mysqli $conn, string $runId, string $periodDate): array
     {
         $posted = 0;
         $total = 0.0;
+        $terminations = 0;
         $month = (int) date('n', strtotime($periodDate));
         $days = system_fix_tx_days_in_month($month);
 
         $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
         if (empty($ids)) {
-            return ['posted' => 0, 'total_amount' => 0.0];
+            return ['posted' => 0, 'total_amount' => 0.0, 'terminations' => 0];
         }
 
         [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($ids);
@@ -1534,9 +1616,28 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
 
         while ($row = $result->fetch_assoc()) {
             $memberId = (int) $row['MemberID'];
+            $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
             $fee = round(((1.5 / 100) * $starting / 365) * $days, 2);
+
+            $debit = system_fix_tx_debit_or_terminate(
+                $conn,
+                $runId,
+                $periodDate,
+                $periodDate,
+                $memberId,
+                $memberNo,
+                $fee,
+                $starting,
+                'admin'
+            );
+
+            if ($debit['terminated']) {
+                $balances[$memberId] = 0.0;
+                $terminations++;
+                continue;
+            }
 
             system_fix_tx_insert($conn, [
                 'date' => $periodDate,
@@ -1546,39 +1647,44 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
                 'credit' => '0',
                 'starting' => $starting,
                 'amount' => $fee,
-                'new_balance' => round($starting - $fee, 2),
+                'new_balance' => $debit['new_balance'],
                 'comments' => '',
             ]);
 
+            $balances[$memberId] = $debit['new_balance'];
             $posted++;
             $total += $fee;
         }
         $stmt->close();
 
-        return ['posted' => $posted, 'total_amount' => round($total, 2)];
+        return ['posted' => $posted, 'total_amount' => round($total, 2), 'terminations' => $terminations];
     }
 }
 
 if (!function_exists('system_fix_tx_stage_fixed_fees')) {
     /**
-     * STAGE 4 — Fixed monthly fee (type 6): a flat 10.00 per member per month.
+     * STAGE — Fixed monthly fee (type 6): a flat 10.00 per member per month.
      *
      * Members belong to the fund via member -> deceased -> retirement fund,
      * surfaced by `member_fees.F_ID`. Members of the Coca-Cola fund
      * (RetirementFundID 27) are EXEMPT and receive no fixed monthly fee.
      *
-     * @return array{posted:int, exempt:int, total_amount:float}
+     * If the fee cannot be covered the member is terminated, so the balance
+     * never goes negative.
+     *
+     * @return array{posted:int, exempt:int, total_amount:float, terminations:int}
      */
     function system_fix_tx_stage_fixed_fees(mysqli $conn, string $runId, string $periodDate): array
     {
         $posted = 0;
         $exempt = 0;
         $total = 0.0;
+        $terminations = 0;
         $cocaColaFundId = system_fix_tx_cocacola_fund_id();
 
         $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
         if (empty($ids)) {
-            return ['posted' => 0, 'exempt' => 0, 'total_amount' => 0.0];
+            return ['posted' => 0, 'exempt' => 0, 'total_amount' => 0.0, 'terminations' => 0];
         }
 
         [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($ids);
@@ -1602,7 +1708,26 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
             }
 
             $amount = 10.00; // flat monthly fee
+            $memberNo = system_fix_tx_member_no($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
+
+            $debit = system_fix_tx_debit_or_terminate(
+                $conn,
+                $runId,
+                $periodDate,
+                $periodDate,
+                $memberId,
+                $memberNo,
+                $amount,
+                $starting,
+                'fixed'
+            );
+
+            if ($debit['terminated']) {
+                $balances[$memberId] = 0.0;
+                $terminations++;
+                continue;
+            }
 
             system_fix_tx_insert($conn, [
                 'date' => $periodDate,
@@ -1612,16 +1737,17 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
                 'credit' => '0',
                 'starting' => $starting,
                 'amount' => $amount,
-                'new_balance' => round($starting - $amount, 2),
+                'new_balance' => $debit['new_balance'],
                 'comments' => '',
             ]);
 
+            $balances[$memberId] = $debit['new_balance'];
             $posted++;
             $total += $amount;
         }
         $stmt->close();
 
-        return ['posted' => $posted, 'exempt' => $exempt, 'total_amount' => round($total, 2)];
+        return ['posted' => $posted, 'exempt' => $exempt, 'total_amount' => round($total, 2), 'terminations' => $terminations];
     }
 }
 
