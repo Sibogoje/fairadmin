@@ -163,6 +163,11 @@ if ($action !== '' && $sandboxTableReady) {
 
     try {
         switch ($action) {
+            case 'view_statement':
+                // Read-only: nothing to do here, the statement is rendered below
+                // from the selected member's `transactionsfix` rows.
+                break;
+
             case 'clear_run':
                 $runId = (string) ($_POST['run_id'] ?? system_fix_tx_current_run());
                 $deleted = system_fix_tx_clear_run($conn, $runId);
@@ -595,6 +600,68 @@ if ($sandboxTableReady) {
     }
 }
 
+// --- Member statement ---------------------------------------------------------
+// Emulates membership/profileaccount.php, but every figure is read from the
+// sandbox `transactionsfix` table instead of `tblmemberaccounts`.
+
+$statementMemberId = (int) ($_POST['statement_member'] ?? 0);
+$statementMember = null;
+$statementRows = [];
+$statementError = '';
+
+if ($statementMemberId > 0) {
+    // Member details, same fields the profile statement shows.
+    $stmt = $conn->prepare(
+        "SELECT `MemberNo`, `MemberSurname`, `MemberFirstname`, `DateOfBirth`, `Gender`,
+                `ApprovedBenefit`, `DateAccountOpened`, `Terminated`, `FundName`
+         FROM `memberz2` WHERE `MemberID` = ? LIMIT 1"
+    );
+    $stmt->bind_param('i', $statementMemberId);
+    $stmt->execute();
+    $statementMember = $stmt->get_result()->fetch_assoc() ?: null;
+    $stmt->close();
+
+    if ($statementMember === null) {
+        $statementError = 'No member details found for that member.';
+    }
+
+    // Latest sandbox balance (instead of `balances`).
+    $stmt = $conn->prepare(
+        "SELECT `NewBalance` FROM `transactionsfix`
+         WHERE `memberID` = ?
+         ORDER BY `TransactionDate` DESC, `accountsID` DESC LIMIT 1"
+    );
+    $stmt->bind_param('i', $statementMemberId);
+    $stmt->execute();
+    $statementBalance = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+
+    // The statement itself — newest first, exactly like the profile.
+    $stmt = $conn->prepare(
+        "SELECT `accountsID`, `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`,
+                `Credit`, `StartingBalance`, `Amount`, `NewBalance`, `Comments`
+         FROM `transactionsfix`
+         WHERE `memberID` = ?
+         ORDER BY `TransactionDate` DESC, `accountsID` DESC"
+    );
+    $stmt->bind_param('i', $statementMemberId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $statementRows[] = $row;
+    }
+    $stmt->close();
+}
+
+$statementMembers = [];
+if ($sandboxTableReady) {
+    if ($result = $conn->query("SELECT `MemberID`, `MemberNo`, `MemberSurname`, `MemberFirstname` FROM `memberz2` ORDER BY `MemberNo` ASC")) {
+        while ($row = $result->fetch_assoc()) {
+            $statementMembers[] = $row;
+        }
+    }
+}
+
 $existingCsvFiles = [];
 foreach ($sandboxSpreadsheetFolders as $folder) {
     $pattern = $folder === '' ? __DIR__ . '/*' : __DIR__ . '/' . $folder . '/*';
@@ -858,11 +925,134 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
       </div>
     </div>
     <?php endif; ?>
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Member Statement <small class="text-muted">(from <code>transactionsfix</code>)</small></h5>
+
+            <form method="post" class="row g-3 align-items-end" id="statementForm">
+              <div class="col-md-8">
+                <label class="form-label" for="statement_member">Choose Member</label>
+                <select class="form-select" id="statement_member" name="statement_member">
+                  <option value="">— none —</option>
+                  <?php foreach ($statementMembers as $m): ?>
+                  <option value="<?= (int) $m['MemberID'] ?>" <?= $statementMemberId === (int) $m['MemberID'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($m['MemberNo'] . ' - ' . $m['MemberSurname'] . ' ' . $m['MemberFirstname']) ?>
+                  </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-4 d-grid">
+                <button type="submit" name="action" value="view_statement" class="btn btn-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-file-earmark-text me-1"></i>Preview Statement
+                </button>
+              </div>
+            </form>
+
+<?php if ($statementError !== ''): ?>
+            <div class="alert alert-danger mt-3 mb-0" role="alert"><?= htmlspecialchars($statementError) ?></div>
+<?php endif; ?>
+
+<?php if ($statementMember !== null): ?>
+            <table class="table datatable mt-3" style="width:100%">
+              <thead>
+                <tr>
+                  <th scope="col" colspan="6"><img src="header.PNG" width="100%"></th>
+                </tr>
+                <tr style="text-align: center; background: black; color: white;">
+                  <th scope="col" colspan="6">MEMBER DETAILS</th>
+                </tr>
+                <tr>
+                  <th scope="col" style="vertical-align: top;">Full Name</th>
+                  <td scope="col"><?= htmlspecialchars($statementMember['MemberFirstname'] . ' ' . $statementMember['MemberSurname']) ?></td>
+                  <th scope="col" style="vertical-align: top;">MemberNo</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['MemberNo']) ?></td>
+                  <th scope="col" style="vertical-align: top;">FundName</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['FundName']) ?></td>
+                </tr>
+                <tr>
+                  <th scope="col" style="vertical-align: top;">Date of Birth</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['DateOfBirth']) ?></td>
+                  <th scope="col" style="vertical-align: top;">Account Opened</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['DateAccountOpened']) ?></td>
+                  <th scope="col" style="vertical-align: top;">Gender</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['Gender']) ?></td>
+                </tr>
+                <tr>
+                  <th scope="col" style="vertical-align: top;">Approved Benefit</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['ApprovedBenefit']) ?></td>
+                  <th scope="col" style="vertical-align: top;">Terminated</th>
+                  <td scope="col"><?= htmlspecialchars((string) $statementMember['Terminated']) ?></td>
+                  <th scope="col" style="vertical-align: top;">Balance</th>
+                  <td scope="col" style="font-weight: bold;">
+                    <?= $statementBalance ? 'E ' . htmlspecialchars(number_format((float) $statementBalance['NewBalance'], 2)) : 'No data' ?>
+                  </td>
+                </tr>
+                <tr style="text-align: center; background: black; color: white;">
+                  <th scope="col" colspan="6">Transaction Statement</th>
+                </tr>
+              </thead>
+            </table>
+
+<?php if (!empty($statementRows)): ?>
+            <table class="table datatable mt-3" style="width:100%">
+              <thead>
+                <tr>
+                  <th scope="col">TransactionDate</th>
+                  <th scope="col">Details</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Comments</th>
+                  <th scope="col">Prev balance</th>
+                  <th scope="col">Amount</th>
+                  <th scope="col">NewBalance</th>
+                </tr>
+              </thead>
+              <tbody>
+<?php foreach ($statementRows as $tRow): ?>
+<?php $tType = ((string) $tRow['Credit'] === '1') ? 'Credit' : 'Debit'; ?>
+                <tr>
+                  <th scope="row"><?= htmlspecialchars((string) $tRow['TransactionDate']) ?></th>
+                  <td><?= htmlspecialchars((string) $tRow['Details']) ?></td>
+                  <td><?= htmlspecialchars($tType) ?></td>
+                  <td><?= htmlspecialchars((string) $tRow['Comments']) ?></td>
+                  <td><?= htmlspecialchars(number_format((float) $tRow['StartingBalance'], 2)) ?></td>
+                  <td><?= htmlspecialchars(number_format((float) $tRow['Amount'], 2)) ?></td>
+                  <td><?= htmlspecialchars(number_format((float) $tRow['NewBalance'], 2)) ?></td>
+                </tr>
+<?php endforeach; ?>
+              </tbody>
+            </table>
+<?php else: ?>
+            <p class="text-muted mt-3 mb-0">No transactions found in <code>transactionsfix</code> for this member.</p>
+<?php endif; ?>
+<?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </main>
 
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
+<script>
+// Initialise the statement tables (search / sort / paging), the same way the
+// beneficiary profile preview does.
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof simpleDatatables === 'undefined') { return; }
+  document.querySelectorAll('table.datatable').forEach(function (table) {
+    if (table.datatableInitialised) { return; }
+    try {
+      new simpleDatatables.DataTable(table);
+      table.datatableInitialised = true;
+    } catch (e) {
+      /* leave the plain table if initialisation fails */
+    }
+  });
+});
+</script>
 </body>
 
 </html>
