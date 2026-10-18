@@ -2051,6 +2051,27 @@ if (!function_exists('system_fix_tx_run_month')) {
     }
 }
 
+if (!function_exists('system_fix_tx_run_month_auto')) {
+    /**
+     * Run a month with the schedule/backfill handled for you, so every member who
+     * existed in the fund that month is included even without adhocs.
+     */
+    function system_fix_tx_run_month_auto(
+        mysqli $conn,
+        string $periodDate,
+        array $adhocRows,
+        array $regularRows
+    ): array {
+        // Build the schedule on first use so join dates are known.
+        $schedule = $conn->query("SELECT COUNT(*) AS c FROM `" . system_fix_tx_schedule_table() . "`")->fetch_assoc();
+        if ((int) ($schedule['c'] ?? 0) === 0) {
+            system_fix_tx_build_schedule($conn);
+        }
+
+        return system_fix_tx_run_month($conn, $periodDate, $adhocRows, $regularRows, true);
+    }
+}
+
 if (!function_exists('system_fix_tx_build_schedule')) {
     /**
      * Build the member schedule: one row per member recording WHEN they joined
@@ -2131,19 +2152,20 @@ if (!function_exists('system_fix_tx_schedule_member_ids')) {
 
 if (!function_exists('system_fix_tx_backfill_from_production')) {
     /**
-     * Pull each scheduled member's ENTIRE production history up to the run date
-     * into the sandbox, so members with no adhocs or regulars still appear in the
-     * month runs.
+     * Give every scheduled member their COMPLETE history up to the run date.
      *
-     * This is deliberately careful:
-     *   - it only runs when the sandbox has NO rows for that member at all, so a
-     *     member already rebuilt by the fix is never overwritten or duplicated;
-     *   - it copies rows dated strictly BEFORE the month being run (the current
-     *     month is rebuilt by the stages), which also establishes the opening
-     *     balance for the first month they are included.
+     * Members with no sandbox history at all are not covered by the spreadsheets,
+     * so production is their source of truth: their whole ledger up to the end of
+     * the period is copied in. That includes new joiners, whose opening balance and
+     * transfer-in fee (and any reversal of it) live in production — and whose
+     * `tblmembers.ApprovedBenefit` can be 0 or out of date, so it must not be
+     * synthesised from that column.
+     *
+     * Members already carrying sandbox history are left untouched, so a month that
+     * the fix has already rebuilt is never overwritten or duplicated.
      *
      * @param array<int,int>|null $memberIds Defaults to the whole schedule.
-     * @return array{members:int, rows:int}
+     * @return array{members:int, rows:int, openings:int}
      */
     function system_fix_tx_backfill_from_production(mysqli $conn, string $periodDate, ?array $memberIds = null): array
     {
@@ -2154,11 +2176,12 @@ if (!function_exists('system_fix_tx_backfill_from_production')) {
             $memberIds = system_fix_tx_schedule_member_ids($conn, $periodDate);
         }
         if (empty($memberIds)) {
-            return ['members' => 0, 'rows' => 0];
+            return ['members' => 0, 'rows' => 0, 'openings' => 0];
         }
 
-        // Exclude members that already have any sandbox history.
+        // Members who already have sandbox history own their own months.
         $existing = system_fix_tx_running_balances($conn, $periodDate);
+
         $missing = [];
         foreach ($memberIds as $id) {
             $id = (int) $id;
@@ -2166,30 +2189,219 @@ if (!function_exists('system_fix_tx_backfill_from_production')) {
                 $missing[] = $id;
             }
         }
-        if (empty($missing)) {
-            return ['members' => 0, 'rows' => 0];
-        }
 
-        $in = system_fix_tx_in_scope($missing);
-        [$scopeSql, $scopeTypes, $scopeParams] = $in;
+        $rows = 0;
+        $openings = 0;
 
-        $sql = "INSERT INTO `{$table}`
+        if (!empty($missing)) {
+            [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($missing);
+            $types = 's' . $scopeTypes;
+            $end = $bounds['end'];
+
+            // 1. Everything before the period: history (and the opening balance).
+            $stmt = $conn->prepare(
+                "INSERT INTO `{$table}`
                     (`TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
                      `StartingBalance`, `Amount`, `NewBalance`, `Comments`)
-                SELECT `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
-                       `StartingBalance`, `Amount`, `NewBalance`, `Comments`
-                FROM `tblmemberaccounts`
-                WHERE `TransactionDate` < ?" . $scopeSql;
+                 SELECT `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                        `StartingBalance`, `Amount`, `NewBalance`, `Comments`
+                 FROM `tblmemberaccounts`
+                 WHERE `TransactionDate` < ?" . $scopeSql
+            );
+            $stmt->bind_param($types, ...array_merge([$bounds['start']], $scopeParams));
+            $stmt->execute();
+            $rows += $stmt->affected_rows;
+            $stmt->close();
 
-        $stmt = $conn->prepare($sql);
-        $types = 's' . $scopeTypes;
-        $params = array_merge([$bounds['start']], $scopeParams);
-        $stmt->bind_param($types, ...$params);
+            // 2. Structural events inside the period for members production has
+            //    never recorded before — brand-new joiners whose opening balance,
+            //    transfer-in fee and any reversal exist only in production.
+            //
+            //    Only structural types are copied (opening 1, transfer-in 2,
+            //    capital 9, other/reversal 10, termination 11/12). The operational
+            //    entries (regular 3, adhoc 4, fees 5, fixed 6, admin 7, interest 8)
+            //    are generated by the month-end stages, so copying them here would
+            //    duplicate them.
+            $newJoiners = system_fix_tx_members_without_history_before($conn, $missing, $bounds['start']);
+            if (!empty($newJoiners)) {
+                [$nScopeSql, $nScopeTypes, $nScopeParams] = system_fix_tx_in_scope($newJoiners);
+                $stmt = $conn->prepare(
+                    "INSERT INTO `{$table}`
+                        (`TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                         `StartingBalance`, `Amount`, `NewBalance`, `Comments`)
+                     SELECT `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
+                            `StartingBalance`, `Amount`, `NewBalance`, `Comments`
+                     FROM `tblmemberaccounts`
+                     WHERE `TransactionDate` BETWEEN ? AND ?
+                       AND `TransactionTypeID` IN (1, 2, 9, 10, 11, 12)" . $nScopeSql
+                );
+                $stmt->bind_param('ss' . $nScopeTypes, ...array_merge([$bounds['start'], $end], $nScopeParams));
+                $stmt->execute();
+                $rows += $stmt->affected_rows;
+                $stmt->close();
+            }
+        }
+
+        // Safety net: anyone still without an opening balance in the sandbox gets a
+        // synthetic one (used only when production has no record at all).
+        $openings = system_fix_tx_ensure_openings($conn, $periodDate, $missing);
+
+        return [
+            'members' => count($missing),
+            'rows' => $rows,
+            'openings' => $openings,
+        ];
+    }
+}
+
+if (!function_exists('system_fix_tx_members_without_history_before')) {
+    /**
+     * Of the given member IDs, those with NO production transaction before the
+     * supplied date (i.e. members who joined at or after that date).
+     *
+     * @param array<int,int> $memberIds
+     * @return array<int,int>
+     */
+    function system_fix_tx_members_without_history_before(mysqli $conn, array $memberIds, string $beforeDate): array
+    {
+        if (empty($memberIds)) {
+            return [];
+        }
+
+        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($memberIds);
+
+        $stmt = $conn->prepare(
+            "SELECT `memberID` FROM `tblmemberaccounts`
+             WHERE `TransactionDate` < ?" . $scopeSql . "
+             GROUP BY `memberID`"
+        );
+        $stmt->bind_param('s' . $scopeTypes, ...array_merge([$beforeDate], $scopeParams));
         $stmt->execute();
-        $rows = $stmt->affected_rows;
+        $result = $stmt->get_result();
+
+        $hasHistory = [];
+        while ($row = $result->fetch_assoc()) {
+            $hasHistory[(int) $row['memberID']] = true;
+        }
         $stmt->close();
 
-        return ['members' => count($missing), 'rows' => $rows];
+        $newJoiners = [];
+        foreach ($memberIds as $id) {
+            $id = (int) $id;
+            if (!isset($hasHistory[$id])) {
+                $newJoiners[] = $id;
+            }
+        }
+
+        return $newJoiners;
+    }
+}
+
+if (!function_exists('system_fix_tx_ensure_openings')) {
+    /**
+     * Create a type-1 opening balance for any of the supplied members who still
+     * have no opening entry in the sandbox. Uses `tblmembers.ApprovedBenefit` when
+     * it is positive; otherwise it derives the opening from their production
+     * ledger so the balance is never wrongly left at zero.
+     *
+     * @param array<int,int> $memberIds
+     * @return int Number of openings created.
+     */
+    function system_fix_tx_ensure_openings(mysqli $conn, string $periodDate, array $memberIds): int
+    {
+        if (empty($memberIds)) {
+            return 0;
+        }
+
+        $table = system_fix_tx_table();
+        [$scopeSql, $scopeTypes, $scopeParams] = system_fix_tx_in_scope($memberIds);
+        $created = 0;
+
+        $stmt = $conn->
+            prepare(
+                "SELECT m.`MemberID`, m.`ApprovedBenefit`, m.`DateAccountOpened`,
+                        (SELECT COUNT(*) FROM `{$table}` t
+                          WHERE t.`memberID` = m.`MemberID` AND t.`TransactionTypeID` = 1) AS has_opening
+                 FROM `tblmembers` m
+                 WHERE 1 = 1" . $scopeSql
+            );
+        $stmt->bind_param($scopeTypes, ...$scopeParams);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        $rows = [];
+        while ($row = $result->fetch_assoc()) {
+            if ((int) $row['has_opening'] > 0) {
+                continue;
+            }
+            $rows[] = $row;
+        }
+        $stmt->close();
+
+        foreach ($rows as $row) {
+            $memberId = (int) $row['MemberID'];
+            $approved = (float) $row['ApprovedBenefit'];
+
+            // Fall back to production when ApprovedBenefit is zero/unset.
+            if ($approved <= 0) {
+                $approved = system_fix_tx_production_opening($conn, $memberId);
+            }
+            if ($approved <= 0) {
+                continue; // nothing to open with
+            }
+
+            $openingDate = system_fix_tx_normalise_date((string) $row['DateAccountOpened']) ?: $periodDate;
+
+            system_fix_tx_insert($conn, [
+                'date' => $openingDate,
+                'type' => 1,
+                'member_id' => $memberId,
+                'details' => system_fix_tx_transaction_type_name($conn, 1),
+                'credit' => '1',
+                'starting' => 0.00,
+                'amount' => round($approved, 2),
+                'new_balance' => round($approved, 2),
+                'comments' => '',
+            ]);
+
+            $fee = $approved < 20000 ? 0.00 : round($approved * 0.01, 2);
+            system_fix_tx_insert($conn, [
+                'date' => $openingDate,
+                'type' => 2,
+                'member_id' => $memberId,
+                'details' => system_fix_tx_transaction_type_name($conn, 2),
+                'credit' => '0',
+                'starting' => round($approved, 2),
+                'amount' => $fee,
+                'new_balance' => round($approved - $fee, 2),
+                'comments' => $fee == 0.00 ? 'No charge (below 20,000)' : '',
+            ]);
+
+            $created++;
+        }
+
+        return $created;
+    }
+}
+
+if (!function_exists('system_fix_tx_production_opening')) {
+    /**
+     * The opening amount production recorded for a member (their type-1 entry).
+     * Used when `tblmembers.ApprovedBenefit` is zero or stale.
+     */
+    function system_fix_tx_production_opening(mysqli $conn, int $memberId): float
+    {
+        $stmt = $conn->prepare(
+            "SELECT `NewBalance` FROM `tblmemberaccounts`
+             WHERE `memberID` = ? AND `TransactionTypeID` = 1
+             ORDER BY `accountsID` ASC LIMIT 1"
+        );
+        $stmt->bind_param('i', $memberId);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+
+        return $row ? (float) $row['NewBalance'] : 0.0;
     }
 }
 

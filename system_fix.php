@@ -339,10 +339,12 @@ if ($action !== '' && $sandboxTableReady) {
                 $totalAdmin = 0.0;
                 $totalFixed = 0.0;
                 $totalInterest = 0.0;
+                $totalSynced = 0;
+                $totalOpenings = 0;
 
                 foreach ($months as $monthStart) {
                     $monthEnd = date('Y-m-t', strtotime($monthStart));
-                    $m = system_fix_tx_run_month($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows'], true);
+                    $m = system_fix_tx_run_month_auto($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows']);
                     $processed++;
                     $totalTerminations += $m['adhoc']['terminations'] ?? 0;
                     $totalTermFee += $m['adhoc']['termination_fee'] ?? 0;
@@ -351,22 +353,26 @@ if ($action !== '' && $sandboxTableReady) {
                     $totalAdmin += $m['admin']['total_amount'] ?? 0;
                     $totalFixed += $m['fixed']['total_amount'] ?? 0;
                     $totalInterest += $m['interest']['total_amount'] ?? 0;
+                    $totalSynced += $m['sync']['members'] ?? 0;
+                    $totalOpenings += $m['sync']['openings'] ?? 0;
                 }
 
                 $sandboxMessages[] = sprintf(
-                    'Ran %d month(s) from %s to %s. Adhocs E %s, regulars E %s, admin E %s, fixed E %s, interest E %s. %d termination(s), termination fees E %s.',
+                    'Ran %d month(s) from %s to %s. Adhocs E %s, regulars E %s, interest E %s, fixed E %s, admin E %s. %d termination(s), fees E %s. Members synced from production: %d; new opening balances created: %d.',
                     $processed,
                     date('F Y', strtotime($fromMonth)),
                     date('F Y', strtotime($toMonth)),
                     number_format($totalAdhoc, 2),
                     number_format($totalRegular, 2),
-                    number_format($totalAdmin, 2),
-                    number_format($totalFixed, 2),
                     number_format($totalInterest, 2),
+                    number_format($totalFixed, 2),
+                    number_format($totalAdmin, 2),
                     $totalTerminations,
-                    number_format($totalTermFee, 2)
+                    number_format($totalTermFee, 2),
+                    $totalSynced,
+                    $totalOpenings
                 );
-                audit_trail_log($conn, 'system_fix_run_all_months', "Ran {$processed} months {$fromMonth}..{$toMonth}");
+                audit_trail_log($conn, 'system_fix_run_all_months', "Ran {$processed} months {$fromMonth}..{$toMonth}, synced {$totalSynced} members");
                 break;
 
             case 'build_interest_pool':
