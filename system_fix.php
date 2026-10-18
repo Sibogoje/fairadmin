@@ -766,6 +766,9 @@ $checkMeta = [
 ];
 
 audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
+
+// Which tab to show: the statement tab when previewing a statement, else the run tab.
+$activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'statement' : 'run';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -816,6 +819,29 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
       The <code>transactionsfix</code> sandbox table could not be prepared, so the rebuild tools are disabled.
     </div>
     <?php endif; ?>
+
+    <ul class="nav nav-tabs nav-tabs-bordered" id="systemFixTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $activeTab === 'run' ? 'active' : '' ?>" id="tab-run-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-run" type="button" role="tab"
+                aria-controls="tab-run" aria-selected="<?= $activeTab === 'run' ? 'true' : 'false' ?>">
+          <i class="bi bi-play-circle me-1"></i>Runs
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $activeTab === 'statement' ? 'active' : '' ?>" id="tab-statement-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-statement" type="button" role="tab"
+                aria-controls="tab-statement" aria-selected="<?= $activeTab === 'statement' ? 'true' : 'false' ?>">
+          <i class="bi bi-file-earmark-text me-1"></i>Statements
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content pt-3" id="systemFixTabsContent">
+
+      <!-- ============ TAB: RUNS ============ -->
+      <div class="tab-pane fade <?= $activeTab === 'run' ? 'show active' : '' ?>" id="tab-run"
+           role="tabpanel" aria-labelledby="tab-run-btn" tabindex="0">
 
     <div class="row">
       <div class="col-lg-12">
@@ -874,6 +900,12 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
         </div>
       </div>
     </div>
+
+      </div><!-- /#tab-run -->
+
+      <!-- ============ TAB: STATEMENTS ============ -->
+      <div class="tab-pane fade <?= $activeTab === 'statement' ? 'show active' : '' ?>" id="tab-statement"
+           role="tabpanel" aria-labelledby="tab-statement-btn" tabindex="0">
 
     <div class="row">
       <div class="col-lg-12">
@@ -991,17 +1023,21 @@ audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
         </div>
       </div>
     </div>
+
+      </div><!-- /#tab-statement -->
+
+    </div><!-- /#systemFixTabsContent -->
   </section>
 </main>
 
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
 <script>
-// Initialise the statement tables (search / sort / paging), the same way the
-// beneficiary profile preview does.
-document.addEventListener('DOMContentLoaded', function () {
+// Initialise statement tables (search / sort / paging). Tables inside a hidden
+// tab have no width yet, so we initialise when their tab is first shown.
+function initDataTables(scope) {
   if (typeof simpleDatatables === 'undefined') { return; }
-  document.querySelectorAll('table.datatable').forEach(function (table) {
+  scope.querySelectorAll('table.datatable').forEach(function (table) {
     if (table.datatableInitialised) { return; }
     try {
       new simpleDatatables.DataTable(table);
@@ -1009,6 +1045,21 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (e) {
       /* leave the plain table if initialisation fails */
     }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Initialise whatever is visible on load.
+  document.querySelectorAll('.tab-pane').forEach(function (pane) {
+    if (pane.classList.contains('active')) { initDataTables(pane); }
+  });
+
+  // Re-initialise when a tab is shown (covers newly rendered hidden tables).
+  document.querySelectorAll('#systemFixTabs button[data-bs-toggle="tab"]').forEach(function (btn) {
+    btn.addEventListener('shown.bs.tab', function (event) {
+      var pane = document.querySelector(event.target.getAttribute('data-bs-target'));
+      if (pane) { initDataTables(pane); }
+    });
   });
 });
 </script>
