@@ -783,6 +783,11 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
   <link href="assets/vendor/remixicon/remixicon.css" rel="stylesheet">
   <link href="assets/vendor/simple-datatables/style.css" rel="stylesheet">
   <link href="assets/css/style.css" rel="stylesheet">
+
+  <!-- Searchable member picker -->
+  <script src="jquery-3.2.1.min.js"></script>
+  <link href="select2/dist/css/select2.min.css" rel="stylesheet">
+  <script src="select2/dist/js/select2.min.js"></script>
 </head>
 
 <body>
@@ -1049,16 +1054,37 @@ function initDataTables(scope) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  // Searchable "Choose Member" picker (select2).
+  if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+    jQuery('#statement_member').select2({
+      width: '100%',
+      placeholder: 'Search by member no, surname or first name…',
+      allowClear: true
+    });
+  }
+
   // Initialise whatever is visible on load.
   document.querySelectorAll('.tab-pane').forEach(function (pane) {
     if (pane.classList.contains('active')) { initDataTables(pane); }
   });
 
-  // Re-initialise when a tab is shown (covers newly rendered hidden tables).
+  // Re-initialise when a tab is shown (covers newly rendered hidden tables,
+  // and re-measures the searchable picker which needs a visible width).
   document.querySelectorAll('#systemFixTabs button[data-bs-toggle="tab"]').forEach(function (btn) {
     btn.addEventListener('shown.bs.tab', function (event) {
       var pane = document.querySelector(event.target.getAttribute('data-bs-target'));
-      if (pane) { initDataTables(pane); }
+      if (pane) {
+        initDataTables(pane);
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+          jQuery(pane).find('select.select2-hidden-accessible').each(function () {
+            jQuery(this).select2('destroy').select2({
+              width: '100%',
+              placeholder: 'Search by member no, surname or first name…',
+              allowClear: true
+            });
+          });
+        }
+      }
     });
   });
 });
