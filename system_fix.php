@@ -178,6 +178,214 @@ $resolveCapitalSource = static function () use ($findSpreadsheet): array {
     return ['', '', ''];
 };
 
+/**
+ * ---------------------------------------------------------------------------
+ * CHUNKED MONTH RUNNER (gateway-timeout safe)
+ * ---------------------------------------------------------------------------
+ * A full rebuild (26 months) inside ONE request exceeds nginx's
+ * fastcgi_read_timeout, so the browser gets a 504 while PHP is still working.
+ * `set_time_limit(0)` cannot help — nginx stops waiting for the response
+ * regardless of what PHP allows itself.
+ *
+ * Instead the work is split into short requests:
+ *
+ *   start_job      parse the spreadsheets ONCE and remember the month plan in
+ *                  the session (files are uploads, so they must be read now —
+ *                  the temp file is gone after this request).
+ *   run_job_step   rebuild exactly ONE month, report progress, keep going.
+ *
+ * Each step clears its own month first, so a step is idempotent and a failed
+ * or timed-out month can simply be retried without double-posting.
+ */
+$systemFixJobActions = ['start_job', 'run_job_step', 'cancel_job'];
+
+if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $respond = static function (array $payload): void {
+        echo json_encode($payload);
+        exit;
+    };
+
+    // If nginx gives up on the connection, finish the month anyway instead of
+    // abandoning the sandbox half-written.
+    ignore_user_abort(true);
+
+    try {
+        switch ($action) {
+            case 'start_job':
+                [$adhocSource, $adhocLabel, $adhocError] = $resolveAdhocSource();
+                if ($adhocSource === '') {
+                    $respond(['ok' => false, 'error' => $adhocError !== '' ? $adhocError : 'Choose the adhocs spreadsheet first.']);
+                }
+
+                [$regularSource, $regularLabel, $regularError] = $resolveRegularSource();
+                if ($regularSource === '') {
+                    $respond(['ok' => false, 'error' => $regularError !== '' ? $regularError : 'Choose the regulars spreadsheet first.']);
+                }
+
+                $capitalRows = [];
+                $capitalLabel = '';
+                [$capitalSource, $capitalLabel, $capitalError] = $resolveCapitalSource();
+                if ($capitalSource !== '') {
+                    $parsedCapital = system_fix_tx_parse_capital($capitalSource);
+                    $capitalRows = $parsedCapital['rows'];
+                }
+
+                $adhocParsed = system_fix_tx_parse_csv($adhocSource);
+                $regularParsed = system_fix_tx_parse_csv($regularSource);
+
+                if (empty($adhocParsed['rows']) && empty($regularParsed['rows']) && empty($capitalRows)) {
+                    $respond(['ok' => false, 'error' => 'Neither spreadsheet produced any rows.']);
+                }
+
+                $allDates = [];
+                foreach ($adhocParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
+                foreach ($regularParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
+                foreach ($capitalRows as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
+                if (empty($allDates)) {
+                    $respond(['ok' => false, 'error' => 'No usable dates found in the spreadsheets.']);
+                }
+                sort($allDates);
+
+                $fromMonth = substr($allDates[0], 0, 7) . '-01';
+                $toMonth = substr(end($allDates), 0, 7) . '-01';
+
+                $fromOverride = trim((string) ($_POST['run_from_month'] ?? ''));
+                if (preg_match('#^\d{4}-\d{2}$#', $fromOverride) && $fromOverride > substr($fromMonth, 0, 7)) {
+                    $fromMonth = $fromOverride . '-01';
+                }
+
+                $months = system_fix_tx_months_between($fromMonth, $toMonth);
+                if (empty($months)) {
+                    $respond(['ok' => false, 'error' => 'No months to process — the start month is after the last month in the files.']);
+                }
+
+                $_SESSION['system_fix_job'] = [
+                    'adhoc' => $adhocParsed['rows'],
+                    'regular' => $regularParsed['rows'],
+                    'capital' => $capitalRows,
+                    'months' => $months,
+                    'index' => 0,
+                    'totals' => [
+                        'terminations' => 0,
+                        'termination_fee' => 0.0,
+                        'adhoc' => 0.0,
+                        'regular' => 0.0,
+                        'capital' => 0.0,
+                        'capital_fee' => 0.0,
+                        'capital_duplicates' => 0,
+                        'admin' => 0.0,
+                        'fixed' => 0.0,
+                        'interest' => 0.0,
+                        'synced' => 0,
+                        'openings' => 0,
+                    ],
+                    'started' => date('Y-m-d H:i:s'),
+                ];
+
+                audit_trail_log($conn, 'system_fix_start_job', 'Chunked job started: ' . count($months) . " months {$fromMonth}..{$toMonth}");
+
+                $respond([
+                    'ok' => true,
+                    'total' => count($months),
+                    'index' => 0,
+                    'labels' => array_map(static fn(string $m): string => date('F Y', strtotime($m)), $months),
+                    'adhoc_rows' => count($adhocParsed['rows']),
+                    'regular_rows' => count($regularParsed['rows']),
+                    'capital_rows' => count($capitalRows),
+                    'adhoc_file' => $adhocLabel,
+                    'regular_file' => $regularLabel,
+                    'capital_file' => $capitalLabel,
+                ]);
+                break;
+
+            case 'run_job_step':
+                $job = $_SESSION['system_fix_job'] ?? null;
+                if (!is_array($job) || empty($job['months'])) {
+                    $respond(['ok' => false, 'error' => 'No job is running. Start it again.']);
+                }
+
+                $index = (int) $job['index'];
+                $total = count($job['months']);
+
+                if ($index >= $total) {
+                    unset($_SESSION['system_fix_job']);
+                    $respond(['ok' => true, 'done' => true, 'index' => $total, 'total' => $total, 'totals' => $job['totals']]);
+                }
+
+                // Give PHP room, but the real limit is the short request itself.
+                @set_time_limit(120);
+
+                $monthStart = (string) $job['months'][$index];
+                $monthEnd = date('Y-m-t', strtotime($monthStart));
+                $monthKey = date('Y-m', strtotime($monthStart));
+
+                // Make the step repeatable: rebuild this month from scratch so a
+                // retry after a timeout cannot double-post its transactions.
+                system_fix_tx_clear_run($conn, $monthKey);
+
+                $m = system_fix_tx_run_month_auto(
+                    $conn,
+                    $monthEnd,
+                    $job['adhoc'],
+                    $job['regular'],
+                    $job['capital']
+                );
+
+                $totals = $job['totals'];
+                $totals['terminations'] += $m['adhoc']['terminations'] ?? 0;
+                $totals['termination_fee'] += $m['adhoc']['termination_fee'] ?? 0;
+                $totals['adhoc'] += $m['adhoc']['total_amount'] ?? 0;
+                $totals['regular'] += $m['regular']['total_amount'] ?? 0;
+                $totals['capital'] += $m['capital']['total_amount'] ?? 0;
+                $totals['capital_fee'] += $m['capital']['total_fee'] ?? 0;
+                $totals['capital_duplicates'] += $m['capital']['duplicates'] ?? 0;
+                $totals['admin'] += $m['admin']['total_amount'] ?? 0;
+                $totals['fixed'] += $m['fixed']['total_amount'] ?? 0;
+                $totals['interest'] += $m['interest']['total_amount'] ?? 0;
+                $totals['synced'] += $m['sync']['members'] ?? 0;
+                $totals['openings'] += $m['sync']['openings'] ?? 0;
+
+                $job['index'] = $index + 1;
+                $job['totals'] = $totals;
+                $_SESSION['system_fix_job'] = $job;
+
+                if ($job['index'] >= $total) {
+                    unset($_SESSION['system_fix_job']);
+                    audit_trail_log($conn, 'system_fix_run_all_months', 'Chunked job finished: ' . $total . ' months');
+                }
+
+                $respond([
+                    'ok' => true,
+                    'done' => $job['index'] >= $total,
+                    'index' => $job['index'],
+                    'total' => $total,
+                    'month' => date('F Y', strtotime($monthStart)),
+                    'month_key' => $monthKey,
+                    'step' => [
+                        'adhoc' => $m['adhoc']['total_amount'] ?? 0,
+                        'capital' => $m['capital']['total_amount'] ?? 0,
+                        'regular' => $m['regular']['total_amount'] ?? 0,
+                        'interest' => $m['interest']['total_amount'] ?? 0,
+                        'terminations' => $m['adhoc']['terminations'] ?? 0,
+                    ],
+                    'totals' => $totals,
+                ]);
+                break;
+
+            case 'cancel_job':
+                unset($_SESSION['system_fix_job']);
+                audit_trail_log($conn, 'system_fix_cancel_job', 'Chunked job cancelled');
+                $respond(['ok' => true, 'cancelled' => true]);
+                break;
+        }
+    } catch (Throwable $e) {
+        error_log('System Fix job error (' . $action . '): ' . $e->getMessage());
+        $respond(['ok' => false, 'error' => $e->getMessage()]);
+    }
+}
+
 if ($action !== '' && $sandboxTableReady) {
     $periodField = $action === 'stage_capital' ? 'capital_period' : 'period';
     $period = system_fix_tx_normalise_date((string) ($_POST[$periodField] ?? '')) ?: $_SESSION['system_fix_period'];
@@ -971,8 +1179,13 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
                 </select>
               </div>
               <div class="col-md-4 d-grid">
-                <button type="submit" name="action" value="run_all_months" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                <button type="button" id="startJobBtn" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-play-circle me-1"></i>Run All Months
+                </button>
+              </div>
+              <div class="col-md-4 d-grid">
+                <button type="submit" name="action" value="run_all_months" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-hourglass-split me-1"></i>Run All Months (single request)
                 </button>
               </div>
 
@@ -1012,9 +1225,28 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
                   The additional capital sheet is optional and covers all members for all periods: on every run only the
                   rows dated inside the month are posted (type 9), each carrying a 1% fee (type 5) that is waived below 20,000.
                   <strong>Capital Only</strong> posts that one month without touching any other stage.
+                  <br>
+                  <strong>Run All Months</strong> rebuilds one month per HTTP request, so a long rebuild cannot hit the
+                  nginx 504 gateway timeout; leave the page open until it reports it has finished.
+                  The <em>single request</em> variant is kept only for small ranges.
                 </div>
               </div>
             </form>
+
+            <div id="jobPanel" class="mt-4 d-none">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong id="jobStatus">Starting…</strong>
+                <button type="button" id="cancelJobBtn" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-x-circle me-1"></i>Stop
+                </button>
+              </div>
+              <div class="progress" style="height: 22px;">
+                <div id="jobBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar" style="width: 0%">0%</div>
+              </div>
+              <div class="mt-2 small text-muted" id="jobDetail"></div>
+              <div class="mt-2 small" id="jobTotals"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1185,6 +1417,164 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
 
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="assets/vendor/simple-datatables/simple-datatables.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// Chunked month runner.
+//
+// A 26-month rebuild in a single request exceeds nginx's proxy read timeout and
+// the browser receives a 504 while PHP is still working. `set_time_limit(0)`
+// does not help — nginx has already stopped waiting for the response.
+//
+// So the rebuild is driven from here: `start_job` parses the spreadsheets once,
+// then `run_job_step` is called repeatedly, rebuilding exactly ONE month per
+// HTTP request. Each request stays far below the gateway timeout, and progress
+// is visible while it works.
+// ---------------------------------------------------------------------------
+(function () {
+  var startBtn = document.getElementById('startJobBtn');
+  var cancelBtn = document.getElementById('cancelJobBtn');
+  var panel = document.getElementById('jobPanel');
+  var bar = document.getElementById('jobBar');
+  var statusEl = document.getElementById('jobStatus');
+  var detailEl = document.getElementById('jobDetail');
+  var totalsEl = document.getElementById('jobTotals');
+  var form = document.getElementById('runAllForm');
+
+  if (!startBtn || !form) { return; }
+
+  var cancelled = false;
+  var failures = 0;
+
+  function money(n) {
+    return 'E ' + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function setProgress(index, total) {
+    var pct = total > 0 ? Math.round((index / total) * 100) : 0;
+    bar.style.width = pct + '%';
+    bar.textContent = pct + '%';
+    return pct;
+  }
+
+  function renderTotals(t) {
+    if (!t) { return; }
+    totalsEl.innerHTML =
+      '<strong>Running totals</strong> — adhocs ' + money(t.adhoc) +
+      ', capital ' + money(t.capital) + ' (fees ' + money(t.capital_fee) + ')' +
+      ', regulars ' + money(t.regular) +
+      ', interest ' + money(t.interest) +
+      ', fixed ' + money(t.fixed) +
+      ', admin ' + money(t.admin) +
+      ', terminations ' + (t.terminations || 0) +
+      ' (fees ' + money(t.termination_fee) + ')';
+  }
+
+  function post(action, extra, withFiles) {
+    // Only the first request needs the spreadsheets — the server remembers the
+    // parsed rows in the session, so the step requests stay tiny.
+    var data = withFiles === false ? new FormData() : new FormData(form);
+    data.set('action', action);
+    if (extra) {
+      Object.keys(extra).forEach(function (k) { data.set(k, extra[k]); });
+    }
+    return fetch(window.location.pathname, {
+      method: 'POST',
+      body: data,
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (r) {
+      if (!r.ok) { throw new Error('HTTP ' + r.status + ' ' + r.statusText); }
+      return r.json();
+    });
+  }
+
+  function step(total) {
+    if (cancelled) { return; }
+
+    post('run_job_step', null, false).then(function (res) {
+      if (!res.ok) { throw new Error(res.error || 'Step failed.'); }
+
+      failures = 0;
+      setProgress(res.index, res.total);
+      if (res.month) {
+        statusEl.textContent = 'Month ' + res.index + ' of ' + res.total + ' — ' + res.month;
+      }
+
+      if (res.step) {
+        detailEl.textContent =
+          'This month: adhocs ' + money(res.step.adhoc) +
+          ', capital ' + money(res.step.capital) +
+          ', regulars ' + money(res.step.regular) +
+          ', interest ' + money(res.step.interest) +
+          ', terminations ' + (res.step.terminations || 0);
+      }
+      renderTotals(res.totals);
+
+      if (res.done) {
+        bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        bar.classList.add('bg-success');
+        statusEl.textContent = 'Finished — ' + res.total + ' month(s) rebuilt.';
+        startBtn.disabled = false;
+        cancelBtn.classList.add('d-none');
+        return;
+      }
+
+      // Small gap so the browser can paint the progress between requests.
+      setTimeout(function () { step(res.total); }, 150);
+    }).catch(function (err) {
+      failures++;
+      if (failures > 3) {
+        bar.classList.add('bg-danger');
+        statusEl.textContent = 'Stopped after repeated failures: ' + err.message;
+        detailEl.textContent = 'Fix the error above, then resume — each month is cleared and rebuilt, so retrying a month is safe.';
+        startBtn.disabled = false;
+        return;
+      }
+      statusEl.textContent = 'Retrying month after error (' + failures + '/3): ' + err.message;
+      setTimeout(function () { step(total); }, 2000);
+    });
+  }
+
+  startBtn.addEventListener('click', function () {
+    cancelled = false;
+    failures = 0;
+    startBtn.disabled = true;
+    cancelBtn.classList.remove('d-none');
+    panel.classList.remove('d-none');
+    bar.className = 'progress-bar progress-bar-striped progress-bar-animated';
+    bar.style.width = '0%';
+    bar.textContent = '0%';
+    statusEl.textContent = 'Reading spreadsheets…';
+    detailEl.textContent = '';
+    totalsEl.textContent = '';
+
+    post('start_job').then(function (res) {
+      if (!res.ok) { throw new Error(res.error || 'Could not start the job.'); }
+
+      detailEl.textContent =
+        res.total + ' month(s) queued, ' + res.labels[0] + ' to ' + res.labels[res.labels.length - 1] +
+        '. Adhoc rows ' + res.adhoc_rows + ', regular rows ' + res.regular_rows +
+        ', capital rows ' + res.capital_rows + '.';
+      setProgress(0, res.total);
+      step(res.total);
+    }).catch(function (err) {
+      bar.classList.add('bg-danger');
+      statusEl.textContent = 'Could not start: ' + err.message;
+      startBtn.disabled = false;
+      cancelBtn.classList.add('d-none');
+    });
+  });
+
+  cancelBtn.addEventListener('click', function () {
+    cancelled = true;
+    startBtn.disabled = false;
+    cancelBtn.classList.add('d-none');
+    statusEl.textContent = 'Stopped. Months already rebuilt are kept.';
+    post('cancel_job', null, false).catch(function () { /* best effort */ });
+  });
+})();
+
+</script>
 <script>
 // Initialise statement tables (search / sort / paging). Tables inside a hidden
 // tab have no width yet, so we initialise when their tab is first shown.
