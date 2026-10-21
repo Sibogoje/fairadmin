@@ -157,8 +157,30 @@ $resolveRegularSource = static function () use ($findSpreadsheet, $findSpreadshe
     return ['', '', 'Choose a regulars file to upload, or pick one of the existing files.'];
 };
 
+/**
+ * Pick the additional CAPITAL source.
+ *
+ * The capital sheet is OPTIONAL: it only adds money, so when nothing is chosen
+ * the run simply proceeds without a capital stage. It is never guessed from a
+ * filename keyword, because a wrong guess would credit real money.
+ *
+ * @return array{0:string, 1:string, 2:string} [path, label, error]
+ */
+$resolveCapitalSource = static function () use ($findSpreadsheet): array {
+    if (!empty($_FILES['capital_csv']['tmp_name']) && is_uploaded_file($_FILES['capital_csv']['tmp_name'])) {
+        return [$_FILES['capital_csv']['tmp_name'], (string) ($_FILES['capital_csv']['name'] ?? 'uploaded capital file'), ''];
+    }
+
+    if (!empty($_POST['existing_capital'])) {
+        return $findSpreadsheet((string) $_POST['existing_capital']);
+    }
+
+    return ['', '', ''];
+};
+
 if ($action !== '' && $sandboxTableReady) {
-    $period = system_fix_tx_normalise_date((string) ($_POST['period'] ?? '')) ?: $_SESSION['system_fix_period'];
+    $periodField = $action === 'stage_capital' ? 'capital_period' : 'period';
+    $period = system_fix_tx_normalise_date((string) ($_POST[$periodField] ?? '')) ?: $_SESSION['system_fix_period'];
     $_SESSION['system_fix_period'] = $period;
 
     try {
@@ -253,6 +275,39 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_capture_regular', "Captured {$capture['rows']} regular payments for " . system_fix_tx_period_key($period));
                 break;
 
+            case 'stage_capital':
+                // Post ONLY the additional-capital rows dated inside the selected
+                // period. Safe to repeat: identical rows already in the sandbox
+                // are skipped instead of credited twice.
+                [$capitalSource, $capitalLabel, $capitalError] = $resolveCapitalSource();
+                if ($capitalSource === '') {
+                    $sandboxErrors[] = $capitalError !== '' ? $capitalError : 'Choose the additional capital spreadsheet to upload, or pick one of the existing files.';
+                    break;
+                }
+
+                $capitalParsed = system_fix_tx_parse_capital($capitalSource);
+                foreach ($capitalParsed['errors'] as $parseError) {
+                    $sandboxErrors[] = $parseError;
+                }
+
+                $runId = system_fix_tx_current_run();
+                $result = system_fix_tx_stage_capital($conn, $runId, $capitalParsed['rows'], $period);
+                foreach ($result['skipped'] as $skipped) {
+                    $sandboxErrors[] = $skipped;
+                }
+
+                $sandboxMessages[] = sprintf(
+                    'Additional capital staged from %s for %s: %d row(s), total E %s, fees E %s, %d duplicate row(s) skipped.',
+                    htmlspecialchars($capitalLabel),
+                    system_fix_tx_period_key($period),
+                    $result['posted'],
+                    number_format($result['total_amount'], 2),
+                    number_format($result['total_fee'], 2),
+                    $result['duplicates']
+                );
+                audit_trail_log($conn, 'system_fix_stage_capital', "Staged {$result['posted']} capital rows for {$period}");
+                break;
+
             case 'seed_history':
                 // Copy production history before 2014-05 into the sandbox baseline.
                 $seedBefore = system_fix_tx_normalise_date((string) ($_POST['seed_before'] ?? '')) ?: '2014-05-01';
@@ -300,6 +355,25 @@ if ($action !== '' && $sandboxTableReady) {
                 }
                 $sandboxMessages[] = 'Regulars loaded from: ' . htmlspecialchars($regularLabel);
 
+                // Additional capital is OPTIONAL — it only ever adds money, so a
+                // missing file simply means no capital rows for this run.
+                $capitalParsed = ['rows' => [], 'errors' => []];
+                $capitalLabel = '';
+                [$capitalSource, $capitalLabel, $capitalError] = $resolveCapitalSource();
+                if ($capitalSource !== '') {
+                    $capitalParsed = system_fix_tx_parse_capital($capitalSource);
+                    foreach ($capitalParsed['errors'] as $parseError) {
+                        $sandboxErrors[] = $parseError;
+                    }
+                    $sandboxMessages[] = sprintf(
+                        'Additional capital loaded from: %s (%d row(s)).',
+                        htmlspecialchars($capitalLabel),
+                        count($capitalParsed['rows'])
+                    );
+                } elseif ($capitalError !== '') {
+                    $sandboxErrors[] = $capitalError;
+                }
+
                 $adhocParsed = system_fix_tx_parse_csv($adhocSource);
                 $regularParsed = system_fix_tx_parse_csv($regularSource);
                 foreach (array_merge($adhocParsed['errors'], $regularParsed['errors']) as $parseError) {
@@ -315,6 +389,7 @@ if ($action !== '' && $sandboxTableReady) {
                 $allDates = [];
                 foreach ($adhocParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
                 foreach ($regularParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
+                foreach ($capitalParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
                 if (empty($allDates)) {
                     $sandboxErrors[] = 'No usable dates found in the spreadsheets.';
                     break;
@@ -341,6 +416,9 @@ if ($action !== '' && $sandboxTableReady) {
                 $totalTermFee = 0.0;
                 $totalAdhoc = 0.0;
                 $totalRegular = 0.0;
+                $totalCapital = 0.0;
+                $totalCapitalFee = 0.0;
+                $totalCapitalSkipped = 0;
                 $totalAdmin = 0.0;
                 $totalFixed = 0.0;
                 $totalInterest = 0.0;
@@ -349,12 +427,15 @@ if ($action !== '' && $sandboxTableReady) {
 
                 foreach ($months as $monthStart) {
                     $monthEnd = date('Y-m-t', strtotime($monthStart));
-                    $m = system_fix_tx_run_month_auto($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows']);
+                    $m = system_fix_tx_run_month_auto($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows'], $capitalParsed['rows']);
                     $processed++;
                     $totalTerminations += $m['adhoc']['terminations'] ?? 0;
                     $totalTermFee += $m['adhoc']['termination_fee'] ?? 0;
                     $totalAdhoc += $m['adhoc']['total_amount'] ?? 0;
                     $totalRegular += $m['regular']['total_amount'] ?? 0;
+                    $totalCapital += $m['capital']['total_amount'] ?? 0;
+                    $totalCapitalFee += $m['capital']['total_fee'] ?? 0;
+                    $totalCapitalSkipped += $m['capital']['duplicates'] ?? 0;
                     $totalAdmin += $m['admin']['total_amount'] ?? 0;
                     $totalFixed += $m['fixed']['total_amount'] ?? 0;
                     $totalInterest += $m['interest']['total_amount'] ?? 0;
@@ -363,12 +444,15 @@ if ($action !== '' && $sandboxTableReady) {
                 }
 
                 $sandboxMessages[] = sprintf(
-                    'Ran %d month(s) from %s to %s. Adhocs E %s, regulars E %s, interest E %s, fixed E %s, admin E %s. %d termination(s), fees E %s. Members synced from production: %d; new opening balances created: %d.',
+                    'Ran %d month(s) from %s to %s. Adhocs E %s, regulars E %s, additional capital E %s (fees E %s, %d already-present row(s) skipped), interest E %s, fixed E %s, admin E %s. %d termination(s), fees E %s. Members synced from production: %d; new opening balances created: %d.',
                     $processed,
                     date('F Y', strtotime($fromMonth)),
                     date('F Y', strtotime($toMonth)),
                     number_format($totalAdhoc, 2),
                     number_format($totalRegular, 2),
+                    number_format($totalCapital, 2),
+                    number_format($totalCapitalFee, 2),
+                    $totalCapitalSkipped,
                     number_format($totalInterest, 2),
                     number_format($totalFixed, 2),
                     number_format($totalAdmin, 2),
@@ -377,7 +461,7 @@ if ($action !== '' && $sandboxTableReady) {
                     $totalSynced,
                     $totalOpenings
                 );
-                audit_trail_log($conn, 'system_fix_run_all_months', "Ran {$processed} months {$fromMonth}..{$toMonth}, synced {$totalSynced} members");
+                audit_trail_log($conn, 'system_fix_run_all_months', "Ran {$processed} months {$fromMonth}..{$toMonth}, capital {$totalCapital}, synced {$totalSynced} members");
                 break;
 
             case 'build_interest_pool':
@@ -892,12 +976,42 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
                 </button>
               </div>
 
+              <div class="col-md-4">
+                <label class="form-label" for="capital_csv">Additional capital spreadsheet <span class="text-muted">(optional)</span></label>
+                <input type="file" class="form-control" id="capital_csv" name="capital_csv" accept=".csv,.xlsx">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="existing_capital">…or capital file on the server</label>
+                <select class="form-select" id="existing_capital" name="existing_capital">
+                  <option value="">— none —</option>
+                  <?php foreach ($existingCsvFiles as $csvFile): ?>
+                  <option value="<?= htmlspecialchars($csvFile) ?>" <?= stripos($csvFile, 'capital') !== false ? 'selected' : '' ?>><?= htmlspecialchars($csvFile) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <label class="form-label" for="capital_period">Period <span class="text-muted">(for capital only)</span></label>
+                <input type="month" class="form-control" id="capital_period" name="capital_period"
+                       value="<?= htmlspecialchars(substr($sandboxPeriod, 0, 7)) ?>">
+              </div>
+              <div class="col-md-2 d-grid">
+                <button type="submit" name="action" value="stage_capital" class="btn btn-outline-success"
+                        <?= $sandboxTableReady ? '' : 'disabled' ?>
+                        formnovalidate>
+                  <i class="bi bi-cash-coin me-1"></i>Capital Only
+                </button>
+              </div>
+
               <div class="col-12">
                 <div class="form-text">
                   Walks every month between the two spreadsheets, running each member's month end in order:
-                  adhocs &amp; terminations → regular payments → interest → fixed monthly fee → admin fees,
+                  additional capital → adhocs &amp; terminations → regular payments → interest → fixed monthly fee → admin fees,
                   carrying balances forward. Members without adhocs are included automatically, and any debit
                   the funds cannot cover terminates the member instead of going negative.
+                  <br>
+                  The additional capital sheet is optional and covers all members for all periods: on every run only the
+                  rows dated inside the month are posted (type 9), each carrying a 1% fee (type 5) that is waived below 20,000.
+                  <strong>Capital Only</strong> posts that one month without touching any other stage.
                 </div>
               </div>
             </form>

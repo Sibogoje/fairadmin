@@ -21,6 +21,9 @@
  *   - Regular transaction fee: TransactionTypeID 5, amount * TransactionPercent%
  *   - Adhoc payment          : TransactionTypeID 4, amount from CSV.
  *   - Adhoc transaction fee  : TransactionTypeID 5, amount * 2%      (adhocprocessall.php)
+ *   - Additional capital     : TransactionTypeID 9, amount from the capital sheet, posted on
+ *                              the spreadsheet date; fee type 5 = 1%, waived below 20,000
+ *                              (capitalprocess.php charges 1%, the waiver mirrors type 1)
  *   - Fixed monthly fee      : TransactionTypeID 6, flat 10.00 per member; Coca-Cola fund
  *                              (RetirementFundID 27) members are EXEMPT
  *   - Admin fees             : TransactionTypeID 7, (1.5% * balance / 365) * days (mprocess.php)
@@ -435,16 +438,19 @@ if (!function_exists('system_fix_tx_parse_csv')) {
      * Expected headers: Member No, Transaction Date, Comments, Amount
      * An optional Transaction Type / Type ID column is also honoured.
      *
+     * The default type is Ad Hoc Payment (4); the additional-capital reader
+     * passes 9 so rows without a type column are treated as capital.
+     *
      * @return array{rows:array<int,array>, errors:array<int,string>}
      */
-    function system_fix_tx_parse_csv(string $filePath): array
+    function system_fix_tx_parse_csv(string $filePath, int $defaultType = 4): array
     {
         // Detect the format from the NAME or the CONTENT. Uploaded files arrive
         // with an extensionless temp name (e.g. phpA1B2.tmp), so the content sniff
         // is essential — otherwise an .xlsx would be parsed as CSV and every row
         // would fail.
         if (preg_match('/\.xlsx$/i', $filePath) || system_fix_tx_looks_like_xlsx($filePath)) {
-            return system_fix_tx_parse_xlsx($filePath);
+            return system_fix_tx_parse_xlsx($filePath, $defaultType);
         }
 
         $rows = [];
@@ -461,7 +467,24 @@ if (!function_exists('system_fix_tx_parse_csv')) {
         }
         fclose($handle);
 
-        return system_fix_tx_rows_to_adhocs($header ?: [], $dataRows);
+        return system_fix_tx_rows_to_adhocs($header ?: [], $dataRows, $defaultType);
+    }
+}
+
+if (!function_exists('system_fix_tx_parse_capital')) {
+    /**
+     * Parse the ADDITIONAL CAPITAL spreadsheet.
+     *
+     * The sheet has the same layout as the adhocs file
+     * (`Member No | Transaction Date | Details | Amount`) but every row is
+     * Additional Capital (TransactionTypeID 9) unless the file carries its own
+     * type column.
+     *
+     * @return array{rows:array<int,array>, errors:array<int,string>}
+     */
+    function system_fix_tx_parse_capital(string $filePath): array
+    {
+        return system_fix_tx_parse_csv($filePath, 9);
     }
 }
 
@@ -493,7 +516,7 @@ if (!function_exists('system_fix_tx_parse_xlsx')) {
      *
      * @return array{rows:array<int,array>, errors:array<int,string>}
      */
-    function system_fix_tx_parse_xlsx(string $filePath): array
+    function system_fix_tx_parse_xlsx(string $filePath, int $defaultType = 4): array
     {
         $read = system_fix_tx_xlsx_rows($filePath);
         if (!empty($read['errors'])) {
@@ -506,7 +529,7 @@ if (!function_exists('system_fix_tx_parse_xlsx')) {
         }
 
         $header = array_shift($all);
-        return system_fix_tx_rows_to_adhocs($header, $all);
+        return system_fix_tx_rows_to_adhocs($header, $all, $defaultType);
     }
 }
 
@@ -517,9 +540,10 @@ if (!function_exists('system_fix_tx_rows_to_adhocs')) {
      *
      * @param array<int,string> $header
      * @param array<int,array>  $dataRows
+     * @param int               $defaultType Type used when the row has no type column.
      * @return array{rows:array<int,array>, errors:array<int,string>}
      */
-    function system_fix_tx_rows_to_adhocs(array $header, array $dataRows): array
+    function system_fix_tx_rows_to_adhocs(array $header, array $dataRows, int $defaultType = 4): array
     {
         $rows = [];
         $errors = [];
@@ -547,7 +571,7 @@ if (!function_exists('system_fix_tx_rows_to_adhocs')) {
             // Strip currency symbols, thousands separators and spaces.
             $rawAmount = preg_replace('/[^0-9.\-]/', '', (string) ($data[$amountIdx] ?? ''));
 
-            $type = 4; // default adhoc payment
+            $type = $defaultType;
             if ($typeIdx !== null && isset($data[$typeIdx]) && trim((string) $data[$typeIdx]) !== '') {
                 $type = (int) $data[$typeIdx];
             }
@@ -691,6 +715,12 @@ if (!function_exists('system_fix_tx_normalise_date')) {
 
         if (preg_match('#^(\d{4})-(\d{1,2})-(\d{1,2})$#', $value, $m)) {
             return sprintf('%04d-%02d-%02d', (int) $m[1], (int) $m[2], (int) $m[3]);
+        }
+
+        // Month picker value (YYYY-MM) — the period is the END of that month.
+        if (preg_match('#^(\d{4})-(\d{1,2})$#', $value, $m)) {
+            $monthStart = sprintf('%04d-%02d-01', (int) $m[1], (int) $m[2]);
+            return date('Y-m-t', strtotime($monthStart));
         }
 
         // Excel serial date (days since 1899-12-30), typically 20000–60000.
@@ -900,10 +930,20 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
      * STAGE 1 — Read the adhocs CSV, resolve each MemberNo and write both the
      * adhoc payment (type 4) and its 2% transaction fee (type 5) to the sandbox.
      *
-     * @param array<int,array> $rows Output of system_fix_tx_parse_csv().
-     * @return array{posted:int, skipped:array<int,string>, total_amount:float, total_fee:float}
+     * Additional capital rows (type 9, from the capital sheet) are accepted here
+     * as well so the two sources are posted in DATE ORDER within the month: the
+     * sandbox chains NewBalance by insertion order, so posting every capital row
+     * before every adhoc row would give a member a balance that never actually
+     * existed on the adhoc's date. On the same date capital is posted first
+     * (money in before money out).
+     *
+     * @param array<int,array> $rows        Output of system_fix_tx_parse_csv().
+     * @param array<int,array> $capitalRows Output of system_fix_tx_parse_capital().
+     * @return array{posted:int, skipped:array<int,string>, total_amount:float, total_fee:float,
+     *               terminations:int, termination_fee:float, capital_amount:float,
+     *               capital_fee:float, capital_posted:int, capital_duplicates:int}
      */
-    function system_fix_tx_stage_adhocs(mysqli $conn, string $runId, array $rows, string $periodDate): array
+    function system_fix_tx_stage_adhocs(mysqli $conn, string $runId, array $rows, string $periodDate, array $capitalRows = []): array
     {
         $posted = 0;
         $skipped = [];
@@ -911,6 +951,11 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
         $totalFee = 0.0;
         $terminations = 0;
         $terminationFeeTotal = 0.0;
+        $capitalPosted = 0;
+        $capitalAmount = 0.0;
+        $capitalFeeTotal = 0.0;
+        $capitalDuplicates = 0;
+        $capitalMemo = [];
         $bounds = system_fix_tx_period_bounds($periodDate);
         $alreadyTerminated = [];
 
@@ -918,13 +963,59 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
         // balance (run balance, else previous-month closing balance) as we go.
         $balances = system_fix_tx_running_balances($conn, $runId);
 
+        // Merge both sources into one date-ordered list for this month.
+        $flows = [];
         foreach ($rows as $row) {
             $date = $row['date'] ?? null;
-
-            // Only rows that fall inside the month being rebuilt. The same parsed
-            // spreadsheet is reused for every month, so this filter is essential —
-            // without it each month would re-post the entire file.
             if ($date === null || $date < $bounds['start'] || $date > $bounds['end']) {
+                continue;
+            }
+            $flows[] = ['kind' => 'adhoc', 'date' => $date, 'line' => (int) ($row['line'] ?? 0), 'row' => $row];
+        }
+        foreach ($capitalRows as $row) {
+            $date = $row['date'] ?? null;
+            if ($date === null || $date < $bounds['start'] || $date > $bounds['end']) {
+                continue;
+            }
+            $flows[] = ['kind' => 'capital', 'date' => $date, 'line' => (int) ($row['line'] ?? 0), 'row' => $row];
+        }
+
+        // Date first; on the same date capital (money in) is applied before
+        // adhocs (money out). The line number keeps it deterministic.
+        usort($flows, static function (array $a, array $b): int {
+            $byDate = strcmp($a['date'], $b['date']);
+            if ($byDate !== 0) {
+                return $byDate;
+            }
+            $aRank = $a['kind'] === 'capital' ? 0 : 1;
+            $bRank = $b['kind'] === 'capital' ? 0 : 1;
+            if ($aRank !== $bRank) {
+                return $aRank <=> $bRank;
+            }
+            return $a['line'] <=> $b['line'];
+        });
+
+        foreach ($flows as $flow) {
+            $row = $flow['row'];
+            $date = $flow['date'];
+
+            // --- Additional capital (type 9) ---------------------------------
+            if ($flow['kind'] === 'capital') {
+                $result = system_fix_tx_post_capital_row($conn, $runId, $periodDate, $row, $balances, $alreadyTerminated, $capitalMemo);
+                if ($result['skipped'] !== null) {
+                    $skipped[] = $result['skipped'];
+                    continue;
+                }
+                if ($result['duplicate']) {
+                    $capitalDuplicates++;
+                    continue;
+                }
+                if ($result['posted']) {
+                    $capitalPosted++;
+                    $posted++;
+                    $capitalAmount += $result['amount'];
+                    $capitalFeeTotal += $result['fee'];
+                }
                 continue;
             }
 
@@ -1032,7 +1123,248 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             'total_fee' => round($totalFee, 2),
             'terminations' => $terminations,
             'termination_fee' => round($terminationFeeTotal, 2),
+            'capital_posted' => $capitalPosted,
+            'capital_amount' => round($capitalAmount, 2),
+            'capital_fee' => round($capitalFeeTotal, 2),
+            'capital_duplicates' => $capitalDuplicates,
         ];
+    }
+}
+
+if (!function_exists('system_fix_tx_post_capital_row')) {
+    /**
+     * Post one additional-capital row (type 9) plus its fee (type 5).
+     *
+     * Shared by the month run (where capital is interleaved with the adhocs in
+     * date order) and by the standalone "capital only" action.
+     *
+     * Fee rule confirmed for the rebuild: 1% of the amount, WAIVED when the
+     * amount is below 20,000 — the same waiver an opening balance (type 1) gets.
+     *
+     * Capital is money IN, so it can never terminate a member. A member already
+     * terminated in the run is logged in the termination table (Reason
+     * "after_termination") instead of receiving a new ledger row.
+     *
+     * @param array<int,float> $balances Running balances, updated in place.
+     * @param array<int,bool>  $terminatedCache Cache of terminated members, updated in place.
+     * @param array<string,array{baseline:int,seen:int}> $capitalMemo Per-row duplicate bookkeeping.
+     * @return array{posted:bool, skipped:?string, duplicate:bool, amount:float, fee:float}
+     */
+    function system_fix_tx_post_capital_row(
+        mysqli $conn,
+        string $runId,
+        string $periodDate,
+        array $row,
+        array &$balances,
+        array &$terminatedCache,
+        array &$capitalMemo
+    ): array {
+        $result = ['posted' => false, 'skipped' => null, 'duplicate' => false, 'amount' => 0.0, 'fee' => 0.0];
+
+        $date = $row['date'] ?? null;
+        if ($date === null) {
+            return $result;
+        }
+
+        $member = system_fix_tx_resolve_member($conn, (string) $row['member_no']);
+        if ($member === null) {
+            $result['skipped'] = "Line {$row['line']}: member {$row['member_no']} was not found in tblmembers.";
+            return $result;
+        }
+
+        $memberId = (int) $member['MemberID'];
+        $memberNo = (string) $member['MemberNo'];
+        $amount = (float) $row['amount'];
+        if ($amount <= 0) {
+            return $result;
+        }
+
+        // --- Already terminated? Record only, never post. --------------------
+        if ($terminatedCache[$memberId] ?? system_fix_tx_is_terminated($conn, $memberId)) {
+            $terminatedCache[$memberId] = true;
+            system_fix_tx_record_termination(
+                $conn,
+                system_fix_tx_period_key($periodDate),
+                $date,
+                $memberId,
+                $memberNo,
+                $amount,
+                0.00,
+                0.00,
+                0.00,
+                'after_termination',
+                'capital'
+            );
+            return $result;
+        }
+
+        // Idempotency: never credit the same row twice when the sheet is re-run.
+        //
+        // Matching on member/date/amount alone would swallow a member who
+        // legitimately has two identical capital rows in one month, so the
+        // sandbox count is compared with how many identical rows this run has
+        // already handled: the first N post (N = what the sheet contains) and
+        // anything beyond that is an already-staged row from an earlier run.
+        $key = $memberId . '|' . $date . '|' . number_format($amount, 2, '.', '');
+        if (!isset($capitalMemo[$key])) {
+            $capitalMemo[$key] = [
+                'baseline' => system_fix_tx_capital_row_count($conn, $memberId, $date, $amount),
+                'seen' => 0,
+            ];
+        }
+        $alreadyStaged = $capitalMemo[$key]['baseline'];
+        $seenThisRun = $capitalMemo[$key]['seen'];
+        $capitalMemo[$key]['seen'] = $seenThisRun + 1;
+
+        if ($seenThisRun < $alreadyStaged) {
+            $result['duplicate'] = true;
+            return $result;
+        }
+
+        $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
+
+        // --- Additional Capital (type 9), Credit = 1 -------------------------
+        $afterCapital = round($starting + $amount, 2);
+        system_fix_tx_insert($conn, [
+            'date' => $date,
+            'type' => 9,
+            'member_id' => $memberId,
+            'details' => system_fix_tx_transaction_type_name($conn, 9),
+            'credit' => '1',
+            'starting' => $starting,
+            'amount' => $amount,
+            'new_balance' => $afterCapital,
+            'comments' => (string) $row['comments'],
+        ]);
+
+        // --- Additional Capital Fee (type 5): 1%, waived below 20,000 --------
+        $fee = $amount < 20000 ? 0.00 : round($amount * 0.01, 2);
+        $afterFee = round($afterCapital - $fee, 2);
+        system_fix_tx_insert($conn, [
+            'date' => $date,
+            'type' => 5,
+            'member_id' => $memberId,
+            'details' => 'Additional Capital Fee',
+            'credit' => '0',
+            'starting' => $afterCapital,
+            'amount' => $fee,
+            'new_balance' => $afterFee,
+            'comments' => $fee == 0.00 ? 'No charge (below 20,000)' : (string) $row['comments'],
+        ]);
+
+        $balances[$memberId] = $afterFee;
+
+        return ['posted' => true, 'skipped' => null, 'duplicate' => false, 'amount' => $amount, 'fee' => $fee];
+    }
+}
+
+if (!function_exists('system_fix_tx_stage_capital')) {
+    /**
+     * STAGE — Additional capital (type 9) on its own (the "Capital Only" action).
+     *
+     * The capital sheet has the same columns as the adhocs sheet
+     * (`Member No | Transaction Date | Details | Amount`) and covers all members
+     * for all time, so the same file is reused for every month and only the rows
+     * dated inside the month being rebuilt are posted.
+     *
+     * Mirrors Transactions/capitalprocess.php, with the fee rule confirmed for
+     * the rebuild:
+     *   - Type 9 "Additional Capital": Credit = 1, posted on the SPREADSHEET date.
+     *   - Type 5 "Additional Capital Fee": 1% of the amount, waived when the
+     *     amount is below 20,000 (same waiver as an opening balance / type 1).
+     *
+     * During a full month run this is folded into system_fix_tx_stage_adhocs so
+     * capital and adhocs are posted in date order.
+     *
+     * @param array<int,array> $rows Output of system_fix_tx_parse_capital().
+     * @return array{posted:int, skipped:array<int,string>, total_amount:float, total_fee:float, duplicates:int}
+     */
+    function system_fix_tx_stage_capital(mysqli $conn, string $runId, array $rows, string $periodDate): array
+    {
+        $posted = 0;
+        $skipped = [];
+        $totalAmount = 0.0;
+        $totalFee = 0.0;
+        $duplicates = 0;
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $alreadyTerminated = [];
+        $capitalMemo = [];
+
+        $balances = system_fix_tx_running_balances($conn, $runId);
+
+        foreach ($rows as $row) {
+            $date = $row['date'] ?? null;
+
+            // Only the month being rebuilt — the file spans all periods.
+            if ($date === null || $date < $bounds['start'] || $date > $bounds['end']) {
+                continue;
+            }
+
+            $result = system_fix_tx_post_capital_row($conn, $runId, $periodDate, $row, $balances, $alreadyTerminated, $capitalMemo);
+
+            if ($result['skipped'] !== null) {
+                $skipped[] = $result['skipped'];
+                continue;
+            }
+            if ($result['duplicate']) {
+                $duplicates++;
+                continue;
+            }
+            if (!$result['posted']) {
+                continue;
+            }
+
+            $posted++;
+            $totalAmount += $result['amount'];
+            $totalFee += $result['fee'];
+        }
+
+        return [
+            'posted' => $posted,
+            'skipped' => $skipped,
+            'total_amount' => round($totalAmount, 2),
+            'total_fee' => round($totalFee, 2),
+            'duplicates' => $duplicates,
+        ];
+    }
+}
+
+if (!function_exists('system_fix_tx_capital_row_count')) {
+    /**
+     * How many times this exact additional-capital row already exists in the
+     * sandbox (member + date + amount).
+     *
+     * Used so re-running the same capital spreadsheet (which spans all periods)
+     * never credits a member twice, while still allowing a member who really does
+     * have repeated identical capital rows in one month.
+     */
+    function system_fix_tx_capital_row_count(mysqli $conn, int $memberId, string $date, float $amount): int
+    {
+        $table = system_fix_tx_table();
+        $stmt = $conn->prepare(
+            "SELECT COUNT(*) AS c FROM `{$table}`
+             WHERE `memberID` = ? AND `TransactionTypeID` = 9
+               AND `TransactionDate` = ? AND ROUND(`Amount`, 2) = ?"
+        );
+        $amount = round($amount, 2);
+        $stmt->bind_param('isd', $memberId, $date, $amount);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+
+        return (int) ($row['c'] ?? 0);
+    }
+}
+
+if (!function_exists('system_fix_tx_has_capital_row')) {
+    /**
+     * Is at least one copy of this exact additional-capital row already in the
+     * sandbox? Kept for simple yes/no checks; the stage uses the count above so
+     * repeated identical rows are not lost.
+     */
+    function system_fix_tx_has_capital_row(mysqli $conn, int $memberId, string $date, float $amount): bool
+    {
+        return system_fix_tx_capital_row_count($conn, $memberId, $date, $amount) > 0;
     }
 }
 
@@ -2129,8 +2461,14 @@ if (!function_exists('system_fix_tx_run_month')) {
      * Balances carry forward automatically because each stage reads the running
      * balances already in the sandbox for the period.
      *
+     * Additional capital (type 9) is posted BEFORE the adhocs so money that came
+     * in during the month is available before any withdrawal is judged against
+     * the balance — a member must never be terminated simply because the capital
+     * row is staged later than the adhoc row.
+     *
      * @param array<int,array> $adhocRows
      * @param array<int,array> $regularRows
+     * @param array<int,array> $capitalRows Output of system_fix_tx_parse_capital().
      * @return array<string,mixed>
      */
     function system_fix_tx_run_month(
@@ -2138,6 +2476,7 @@ if (!function_exists('system_fix_tx_run_month')) {
         string $periodDate,
         array $adhocRows,
         array $regularRows,
+        array $capitalRows = [],
         bool $updateRoster = true
     ): array {
         $runId = system_fix_tx_period_key($periodDate);
@@ -2149,8 +2488,17 @@ if (!function_exists('system_fix_tx_run_month')) {
         //    history is pulled from production once, before the month is rebuilt.
         $result['sync'] = system_fix_tx_backfill_from_production($conn, $periodDate);
 
-        // 1. Adhocs, terminations and capital movements.
-        $result['adhoc'] = system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate);
+        // 1. Adhocs, terminations and additional capital, posted in DATE ORDER
+        //    so a member's running balance always reflects what existed on the
+        //    date of each transaction.
+        $result['adhoc'] = system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate, $capitalRows);
+        // Capital figures are reported separately for clarity.
+        $result['capital'] = [
+            'posted' => $result['adhoc']['capital_posted'] ?? 0,
+            'total_amount' => $result['adhoc']['capital_amount'] ?? 0.0,
+            'total_fee' => $result['adhoc']['capital_fee'] ?? 0.0,
+            'duplicates' => $result['adhoc']['capital_duplicates'] ?? 0,
+        ];
 
         // 2. Regular payments.
         $result['regular'] = system_fix_tx_stage_regular_from_rows($conn, $runId, $regularRows, $periodDate);
@@ -2186,7 +2534,8 @@ if (!function_exists('system_fix_tx_run_month_auto')) {
         mysqli $conn,
         string $periodDate,
         array $adhocRows,
-        array $regularRows
+        array $regularRows,
+        array $capitalRows = []
     ): array {
         // Build the schedule on first use so join dates are known.
         $schedule = $conn->query("SELECT COUNT(*) AS c FROM `" . system_fix_tx_schedule_table() . "`")->fetch_assoc();
@@ -2194,7 +2543,7 @@ if (!function_exists('system_fix_tx_run_month_auto')) {
             system_fix_tx_build_schedule($conn);
         }
 
-        return system_fix_tx_run_month($conn, $periodDate, $adhocRows, $regularRows, true);
+        return system_fix_tx_run_month($conn, $periodDate, $adhocRows, $regularRows, $capitalRows, true);
     }
 }
 
@@ -2344,10 +2693,13 @@ if (!function_exists('system_fix_tx_backfill_from_production')) {
             //    transfer-in fee and any reversal exist only in production.
             //
             //    Only structural types are copied (opening 1, transfer-in 2,
-            //    capital 9, other/reversal 10, termination 11/12). The operational
-            //    entries (regular 3, adhoc 4, fees 5, fixed 6, admin 7, interest 8)
-            //    are generated by the month-end stages, so copying them here would
-            //    duplicate them.
+            //    other/reversal 10, termination 11/12). The operational entries
+            //    (regular 3, adhoc 4, fees 5, fixed 6, admin 7, interest 8) are
+            //    generated by the month-end stages, so copying them here would
+            //    duplicate them. Additional capital (9) is likewise NOT copied —
+            //    it is posted from the capital spreadsheet by
+            //    system_fix_tx_stage_capital(), so copying it would double-credit
+            //    the member (and its fee would be charged twice).
             $newJoiners = system_fix_tx_members_without_history_before($conn, $missing, $bounds['start']);
             if (!empty($newJoiners)) {
                 [$nScopeSql, $nScopeTypes, $nScopeParams] = system_fix_tx_in_scope($newJoiners);
@@ -2359,7 +2711,7 @@ if (!function_exists('system_fix_tx_backfill_from_production')) {
                             `StartingBalance`, `Amount`, `NewBalance`, `Comments`
                      FROM `tblmemberaccounts`
                      WHERE `TransactionDate` BETWEEN ? AND ?
-                       AND `TransactionTypeID` IN (1, 2, 9, 10, 11, 12)" . $nScopeSql
+                       AND `TransactionTypeID` IN (1, 2, 10, 11, 12)" . $nScopeSql
                 );
                 $stmt->bind_param('ss' . $nScopeTypes, ...array_merge([$bounds['start'], $end], $nScopeParams));
                 $stmt->execute();
