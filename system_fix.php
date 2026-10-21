@@ -1020,6 +1020,40 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
       </div>
     </div>
 
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Seed History Baseline</h5>
+
+            <form method="post" class="row g-3 align-items-end" id="seedForm">
+              <div class="col-md-4">
+                <label class="form-label" for="seed_before">Seed history before</label>
+                <input type="date" class="form-control" id="seed_before" name="seed_before"
+                       value="2014-05-01">
+              </div>
+              <div class="col-md-3 d-grid">
+                <button type="submit" name="action" value="seed_history" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-database-add me-1"></i>Seed History
+                </button>
+              </div>
+
+              <div class="col-12">
+                <div class="form-text">
+                  Copies every <code>tblmemberaccounts</code> row dated <strong>before</strong> the date above into
+                  <code>transactionsfix</code> and adds those members to the roster for the month before it, giving the
+                  rebuild a known-good starting balance. Reads production only — nothing is written back.
+                  <br>
+                  Idempotent: any previous seed for the same window is replaced, so it is safe to re-run. Seed first, then
+                  start the month run at the seed month (<strong>2014-05-01</strong> is the usual baseline).
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
       </div><!-- /#tab-run -->
 
       <!-- ============ TAB: STATEMENTS ============ -->
