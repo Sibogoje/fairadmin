@@ -239,26 +239,35 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
                     $respond(['ok' => false, 'error' => 'Neither spreadsheet produced any rows.']);
                 }
 
-                $allDates = [];
-                foreach ($adhocParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
-                foreach ($regularParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
-                foreach ($capitalRows as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
-                if (empty($allDates)) {
-                    $respond(['ok' => false, 'error' => 'No usable dates found in the spreadsheets.']);
-                }
-                sort($allDates);
-
-                $fromMonth = substr($allDates[0], 0, 7) . '-01';
-                $toMonth = substr(end($allDates), 0, 7) . '-01';
-
-                $fromOverride = trim((string) ($_POST['run_from_month'] ?? ''));
-                if (preg_match('#^\d{4}-\d{2}$#', $fromOverride) && $fromOverride > substr($fromMonth, 0, 7)) {
-                    $fromMonth = $fromOverride . '-01';
+                // The run window comes from the adhocs/regulars ONLY. The capital
+                // sheet spans all periods, so including it would stretch the run
+                // past the months actually being repaired.
+                $window = system_fix_tx_run_window(
+                    $adhocParsed['rows'],
+                    $regularParsed['rows'],
+                    (string) ($_POST['run_from_month'] ?? '')
+                );
+                if (empty($window['months'])) {
+                    $respond(['ok' => false, 'error' => 'No usable dates found in the adhocs/regulars spreadsheets.']);
                 }
 
-                $months = system_fix_tx_months_between($fromMonth, $toMonth);
-                if (empty($months)) {
-                    $respond(['ok' => false, 'error' => 'No months to process — the start month is after the last month in the files.']);
+                $months = $window['months'];
+                $fromMonth = $window['from'];
+                $toMonth = $window['to'];
+
+                // How much capital falls inside the window (the rest is ignored).
+                $capitalInWindow = 0;
+                $capitalOutside = 0;
+                foreach ($capitalRows as $r) {
+                    $d = $r['date'] ?? null;
+                    if ($d === null) {
+                        continue;
+                    }
+                    if ($d >= $fromMonth && $d <= date('Y-m-t', strtotime($toMonth))) {
+                        $capitalInWindow++;
+                    } else {
+                        $capitalOutside++;
+                    }
                 }
 
                 $_SESSION['system_fix_job'] = [
@@ -294,6 +303,10 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
                     'adhoc_rows' => count($adhocParsed['rows']),
                     'regular_rows' => count($regularParsed['rows']),
                     'capital_rows' => count($capitalRows),
+                    'capital_in_window' => $capitalInWindow,
+                    'capital_outside' => $capitalOutside,
+                    'window_from' => date('F Y', strtotime($fromMonth)),
+                    'window_to' => date('F Y', strtotime($toMonth)),
                     'adhoc_file' => $adhocLabel,
                     'regular_file' => $regularLabel,
                     'capital_file' => $capitalLabel,
@@ -593,31 +606,21 @@ if ($action !== '' && $sandboxTableReady) {
                     break;
                 }
 
-                // Determine the month range from the rows themselves.
-                $allDates = [];
-                foreach ($adhocParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
-                foreach ($regularParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
-                foreach ($capitalParsed['rows'] as $r) { if (!empty($r['date'])) { $allDates[] = $r['date']; } }
-                if (empty($allDates)) {
-                    $sandboxErrors[] = 'No usable dates found in the spreadsheets.';
+                // The window comes from the adhocs/regulars ONLY — the capital
+                // sheet spans all periods and must not stretch the run.
+                $window = system_fix_tx_run_window(
+                    $adhocParsed['rows'],
+                    $regularParsed['rows'],
+                    (string) ($_POST['run_from_month'] ?? '')
+                );
+                if (empty($window['months'])) {
+                    $sandboxErrors[] = 'No usable dates found in the adhocs/regulars spreadsheets.';
                     break;
                 }
-                sort($allDates);
 
-                $fromMonth = substr($allDates[0], 0, 7) . '-01';
-                $toMonth = substr(end($allDates), 0, 7) . '-01';
-
-                // Optional override so a seeded month is not processed twice.
-                $fromOverride = trim((string) ($_POST['run_from_month'] ?? ''));
-                if (preg_match('#^\d{4}-\d{2}$#', $fromOverride) && $fromOverride > substr($fromMonth, 0, 7)) {
-                    $fromMonth = $fromOverride . '-01';
-                }
-
-                $months = system_fix_tx_months_between($fromMonth, $toMonth);
-                if (empty($months)) {
-                    $sandboxErrors[] = 'No months to process — the start month is after the last month in the files.';
-                    break;
-                }
+                $fromMonth = $window['from'];
+                $toMonth = $window['to'];
+                $months = $window['months'];
 
                 $processed = 0;
                 $totalTerminations = 0;
@@ -1552,9 +1555,10 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
       if (!res.ok) { throw new Error(res.error || 'Could not start the job.'); }
 
       detailEl.textContent =
-        res.total + ' month(s) queued, ' + res.labels[0] + ' to ' + res.labels[res.labels.length - 1] +
+        res.total + ' month(s) queued, ' + res.window_from + ' to ' + res.window_to +
         '. Adhoc rows ' + res.adhoc_rows + ', regular rows ' + res.regular_rows +
-        ', capital rows ' + res.capital_rows + '.';
+        ', capital rows in range ' + res.capital_in_window +
+        (res.capital_outside ? ' (' + res.capital_outside + ' outside the adhocs period ignored)' : '') + '.';
       setProgress(0, res.total);
       step(res.total);
     }).catch(function (err) {

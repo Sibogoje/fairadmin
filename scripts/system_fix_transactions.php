@@ -2447,6 +2447,63 @@ if (!function_exists('system_fix_tx_months_between')) {
     }
 }
 
+if (!function_exists('system_fix_tx_run_window')) {
+    /**
+     * The month range a rebuild should cover.
+     *
+     * The window comes from the ADHOCS and REGULARS rows only. The additional
+     * capital spreadsheet covers all members for ALL periods, so including its
+     * dates would silently stretch the run far past the period being repaired
+     * (e.g. adhocs for 2014-05..2016-06 would drag the run to 2026-09).
+     *
+     * Capital rows dated outside the window are therefore ignored by the run —
+     * they are not yet part of the period being rebuilt.
+     *
+     * @param array<int,array> $adhocRows
+     * @param array<int,array> $regularRows
+     * @param string           $fromOverride Optional YYYY-MM floor (start month).
+     * @return array{from:string, to:string, months:array<int,string>, first_date:?string, last_date:?string}
+     */
+    function system_fix_tx_run_window(array $adhocRows, array $regularRows, string $fromOverride = ''): array
+    {
+        $dates = [];
+        foreach ($adhocRows as $r) {
+            if (!empty($r['date'])) {
+                $dates[] = (string) $r['date'];
+            }
+        }
+        foreach ($regularRows as $r) {
+            if (!empty($r['date'])) {
+                $dates[] = (string) $r['date'];
+            }
+        }
+
+        if (empty($dates)) {
+            return ['from' => '', 'to' => '', 'months' => [], 'first_date' => null, 'last_date' => null];
+        }
+
+        sort($dates);
+        $first = $dates[0];
+        $last = end($dates);
+
+        $fromMonth = substr($first, 0, 7) . '-01';
+        $toMonth = substr($last, 0, 7) . '-01';
+
+        // Optional floor so an already-seeded month is not processed twice.
+        if (preg_match('#^\d{4}-\d{2}$#', trim($fromOverride)) && trim($fromOverride) > substr($fromMonth, 0, 7)) {
+            $fromMonth = trim($fromOverride) . '-01';
+        }
+
+        return [
+            'from' => $fromMonth,
+            'to' => $toMonth,
+            'months' => system_fix_tx_months_between($fromMonth, $toMonth),
+            'first_date' => $first,
+            'last_date' => $last,
+        ];
+    }
+}
+
 if (!function_exists('system_fix_tx_run_month')) {
     /**
      * Run one month end to end for the period supplied, in the statement order
