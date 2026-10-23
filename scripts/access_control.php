@@ -126,9 +126,10 @@ if (!function_exists('access_control_permission_definitions')) {
                 'default_roles' => ['admin'],
             ],
             'admin_only_system_fix' => [
-                'label' => 'Admin Only: System Fix',
+                'label' => 'Maintenance: System Fix',
                 'patterns' => [
                     '#/system_fix\.php$#',
+                    '#/system_fix_print\.php$#',
                 ],
                 'default_roles' => ['admin'],
             ],

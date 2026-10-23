@@ -11,10 +11,11 @@ if (!isset($_SESSION['zid'])) {
     exit();
 }
 
-// System Fix is restricted to administrators via access_control.php, but we
-// double-check here so the page is safe even if the access rules change.
+// Access is governed by scripts/access_control.php (permission group
+// "Maintenance: System Fix"). Admins can grant or revoke it per role in the
+// Access Control Manager; the check here just enforces whatever is configured.
 $role = access_control_normalize_role($_SESSION['role'] ?? '');
-if (!access_control_role_in($role, ['admin'])) {
+if (!access_control_is_allowed($role, '/system_fix.php')) {
     access_control_forbidden();
 }
 

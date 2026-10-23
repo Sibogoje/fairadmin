@@ -17,7 +17,7 @@ if (!isset($_SESSION['zid'])) {
 }
 
 $role = access_control_normalize_role($_SESSION['role'] ?? '');
-if (!access_control_role_in($role, ['admin'])) {
+if (!access_control_is_allowed($role, '/system_fix_print.php')) {
     access_control_forbidden();
 }
 

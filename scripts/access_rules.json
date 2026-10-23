@@ -58,7 +58,10 @@
       "admin"
     ],
     "admin_only_system_fix": [
-      "admin"
+      "admin",
+      "clerk",
+      "Accounts",
+      "Operations"
     ],
     "transactions_adjustment": [
       "admin",
