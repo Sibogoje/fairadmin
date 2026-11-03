@@ -1064,7 +1064,7 @@ try {
 
 // --- Key integrity checks ----------------------------------------------------
 $checks['members_total'] = system_fix_check($conn, 'SELECT COUNT(*) FROM tblmembers');
-$checks['members_terminated'] = system_fix_check($conn, 'SELECT COUNT(*) FROM tblmembers WHERE Terminated = 1');
+$checks['members_terminated'] = system_fix_check($conn, 'SELECT COUNT(*) FROM tblmembers WHERE `Terminated` = 1');
 $checks['members_without_balance'] = system_fix_check(
     $conn,
     'SELECT COUNT(*) FROM tblmembers m
@@ -1142,6 +1142,70 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
   <script src="jquery-3.2.1.min.js"></script>
   <link href="select2/dist/css/select2.min.css" rel="stylesheet">
   <script src="select2/dist/js/select2.min.js"></script>
+
+  <style>
+    /*
+     * Recon table is 13 columns wide, so it must scroll sideways on narrow
+     * screens instead of stretching the page.
+     *
+     * simple-datatables wraps the <table> in .dataTable-wrapper but keeps the
+     * original parent, so .table-responsive still becomes the scroll container.
+     * The first column (MemberNo) is pinned so you always know whose row you
+     * are reading while scrolled across.
+     */
+    #reconTable {
+      white-space: nowrap;
+      min-width: 1100px;
+    }
+
+    #reconTable > thead > tr > th,
+    #reconTable > tbody > tr > th,
+    #reconTable > tbody > tr > td {
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    /* Keep MemberNo visible while scrolling horizontally. */
+    #reconTable > thead > tr > th:first-child,
+    #reconTable > tbody > tr > th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      background: #fff;
+      box-shadow: 1px 0 0 #dee2e6;
+    }
+
+    #reconTable > thead > tr > th:first-child {
+      z-index: 3;
+    }
+
+    /* The GRAND TOTAL row keeps its own dark background while pinned. */
+    #reconTable > tbody > tr.table-dark > th:first-child {
+      background: #212529;
+    }
+
+    /* zebra striping must not hide behind the sticky cell */
+    #reconTable.table-striped > tbody > tr:nth-of-type(odd) > th:first-child {
+      background: #f2f2f2;
+    }
+
+    #reconTable.table-striped > tbody > tr.table-dark > th:first-child {
+      background: #212529;
+    }
+
+    /* Recon summary cards stay readable on very small screens. */
+    @media (max-width: 575.98px) {
+      #reconTable {
+        font-size: .8rem;
+      }
+
+      #reconTable > thead > tr > th,
+      #reconTable > tbody > tr > th,
+      #reconTable > tbody > tr > td {
+        padding: 4px 6px;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -1404,19 +1468,19 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
     }
 ?>
             <div class="row mt-4 g-3">
-              <div class="col-md-3">
+              <div class="col-6 col-lg-3">
                 <div class="card border-0 bg-light h-100"><div class="card-body py-3">
                   <div class="text-muted small">Members compared</div>
                   <div class="fs-4"><?= number_format(count($reconRows) - 1) ?></div>
                 </div></div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-lg-3">
                 <div class="card border-0 bg-light h-100"><div class="card-body py-3">
                   <div class="text-muted small">With a closing difference</div>
                   <div class="fs-4 <?= $reconDiffs > 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($reconDiffs) ?></div>
                 </div></div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-lg-3">
                 <div class="card border-0 bg-light h-100"><div class="card-body py-3">
                   <div class="text-muted small">Closing difference (total)</div>
                   <div class="fs-4 <?= abs((float) ($reconGrand['ClosingDifference'] ?? 0)) > 0.005 ? 'text-danger' : 'text-success' ?>">
@@ -1424,7 +1488,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                   </div>
                 </div></div>
               </div>
-              <div class="col-md-3">
+              <div class="col-6 col-lg-3">
                 <div class="card border-0 bg-light h-100"><div class="card-body py-3">
                   <div class="text-muted small">Interest difference (total)</div>
                   <div class="fs-4 <?= abs((float) ($reconGrand['InterestDifference'] ?? 0)) > 0.005 ? 'text-danger' : 'text-success' ?>">
@@ -1434,7 +1498,8 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
               </div>
             </div>
 
-            <table class="table datatable table-sm table-striped mt-3" style="width:100%" id="reconTable">
+            <div class="table-responsive mt-3">
+            <table class="table datatable table-sm table-striped" style="width:100%" id="reconTable">
               <thead>
                 <tr>
                   <th scope="col">MemberNo</th>
@@ -1477,6 +1542,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
 <?php endforeach; ?>
               </tbody>
             </table>
+            </div><!-- /.table-responsive -->
 <?php elseif ($reconRan): ?>
             <p class="text-muted mt-3 mb-0">The reconciliation returned no rows.</p>
 <?php else: ?>

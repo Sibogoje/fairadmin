@@ -117,7 +117,7 @@ function fetchLowBalanceMembers($conn, $limit = 20) {
         INNER JOIN balances b ON m.MemberID = b.memberID
         WHERE b.NewBalance < 10000 
         AND b.Term = 0
-        AND m.Terminated = 0
+        AND m.`Terminated` = 0
         ORDER BY b.NewBalance ASC
         LIMIT $limit
     ";

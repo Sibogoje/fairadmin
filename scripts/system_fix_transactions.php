@@ -293,8 +293,9 @@ if (!function_exists('system_fix_tx_summary')) {
         $summary = ['runs' => 0, 'rows' => 0, 'last_run' => null];
 
         try {
+            // `rows` is a reserved word in MariaDB, so it must be quoted.
             if ($result = $conn->query(
-                "SELECT COUNT(DISTINCT DATE_FORMAT(`TransactionDate`, '%Y-%m')) AS runs, COUNT(*) AS rows
+                "SELECT COUNT(DISTINCT DATE_FORMAT(`TransactionDate`, '%Y-%m')) AS runs, COUNT(*) AS `rows`
                  FROM `{$table}`"
             )) {
                 $row = $result->fetch_assoc();
@@ -303,7 +304,7 @@ if (!function_exists('system_fix_tx_summary')) {
             }
 
             if ($result = $conn->query(
-                "SELECT DATE_FORMAT(`TransactionDate`, '%Y-%m') AS RunID, COUNT(*) AS rows,
+                "SELECT DATE_FORMAT(`TransactionDate`, '%Y-%m') AS RunID, COUNT(*) AS `rows`,
                         MIN(`TransactionDate`) AS period_start, MAX(`TransactionDate`) AS period_end
                  FROM `{$table}`
                  GROUP BY RunID

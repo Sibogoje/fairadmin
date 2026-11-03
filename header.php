@@ -97,7 +97,7 @@ try {
     $notificationCount = (int)($countRow['value_sum'] ?? 0);
   }
 
-  $stmt = $conn->prepare("SELECT balance, MemberNo FROM member_fees WHERE balance < 5000.00 AND Terminated = 0");
+  $stmt = $conn->prepare("SELECT balance, MemberNo FROM member_fees WHERE balance < 5000.00 AND `Terminated` = 0");
   $stmt->execute();
   $result = $stmt->get_result();
   while ($result && $row = $result->fetch_assoc()) {
