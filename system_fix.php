@@ -405,6 +405,68 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
     }
 }
 
+/**
+ * ---------------------------------------------------------------------------
+ * RECONCILIATION (production vs rebuild, both as at a chosen cutoff date)
+ * ---------------------------------------------------------------------------
+ * Handled before the normal action switch because the export streams a file and
+ * must exit before any HTML header is written.
+ */
+$reconCutoff = (string) ($_POST['recon_cutoff'] ?? '');
+$reconRows = [];
+$reconError = '';
+$reconRan = false;
+
+if (($action === 'recon' || $action === 'recon_export') && $sandboxTableReady) {
+    try {
+        // An empty cutoff means "compare every date" (null → 9999-12-31).
+        $cutoffNormalised = trim($reconCutoff) === '' ? null : system_fix_tx_normalise_date($reconCutoff);
+        if (trim($reconCutoff) !== '' && $cutoffNormalised === null) {
+            $reconError = 'That cutoff date could not be read. Use YYYY-MM-DD.';
+        } else {
+            $reconRows = system_fix_tx_recon($conn, $cutoffNormalised);
+            $reconRan = true;
+
+            if ($action === 'recon_export') {
+                $stamp = $cutoffNormalised === null ? 'all-dates' : $cutoffNormalised;
+                $filename = 'system-fix-recon-' . $stamp . '.xls';
+
+                // Excel opens an HTML table when served as .xls — the same
+                // approach used by fund/fundsummaryexcel.php.
+                header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+                header('Content-Disposition: attachment; filename="' . $filename . '"');
+                header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+                $columns = array_keys($reconRows[0] ?? []);
+                echo "\xEF\xBB\xBF"; // UTF-8 BOM so Excel reads accents correctly
+                echo '<table border="1"><thead><tr>';
+                foreach ($columns as $column) {
+                    echo '<th>' . htmlspecialchars($column) . '</th>';
+                }
+                echo '</tr></thead><tbody>';
+                foreach ($reconRows as $row) {
+                    $isTotal = ((string) ($row['MemberNo'] ?? '')) === 'GRAND TOTAL';
+                    echo $isTotal ? '<tr style="font-weight:bold;background:#eee;">' : '<tr>';
+                    foreach ($columns as $column) {
+                        $value = $row[$column] ?? '';
+                        // Money and counts right-aligned; identifiers left.
+                        $align = ($column === 'MemberNo') ? 'left' : 'right';
+                        echo '<td style="text-align:' . $align . ';">' . htmlspecialchars((string) $value) . '</td>';
+                    }
+                    echo '</tr>';
+                }
+                echo '</tbody></table>';
+
+                audit_trail_log($conn, 'system_fix_recon_export', 'Exported recon CSV as at ' . ($cutoffNormalised ?? 'all dates'));
+                exit;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('System Fix recon error: ' . $e->getMessage());
+        $reconError = 'Reconciliation failed: ' . $e->getMessage();
+    }
+}
+
 if ($action !== '' && $sandboxTableReady) {
     $periodField = $action === 'stage_capital' ? 'capital_period' : 'period';
     $period = system_fix_tx_normalise_date((string) ($_POST[$periodField] ?? '')) ?: $_SESSION['system_fix_period'];
@@ -1052,8 +1114,15 @@ $checkMeta = [
 
 audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
 
-// Which tab to show: the statement tab when previewing a statement, else the run tab.
-$activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'statement' : 'run';
+// Which tab to show: the statement tab when previewing a statement, the recon
+// tab after a recon run, else the run tab.
+if ($action === 'view_statement' || $statementMemberId > 0) {
+    $activeTab = 'statement';
+} elseif ($action === 'recon' || $action === 'recon_export') {
+    $activeTab = 'recon';
+} else {
+    $activeTab = 'run';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -1116,6 +1185,13 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
                 data-bs-toggle="tab" data-bs-target="#tab-run" type="button" role="tab"
                 aria-controls="tab-run" aria-selected="<?= $activeTab === 'run' ? 'true' : 'false' ?>">
           <i class="bi bi-play-circle me-1"></i>Runs
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $activeTab === 'recon' ? 'active' : '' ?>" id="tab-recon-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-recon" type="button" role="tab"
+                aria-controls="tab-recon" aria-selected="<?= $activeTab === 'recon' ? 'true' : 'false' ?>">
+          <i class="bi bi-clipboard-check me-1"></i>Recon
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -1266,6 +1342,152 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
     </div>
 
       </div><!-- /#tab-run -->
+
+      <!-- ============ TAB: RECON ============ -->
+      <div class="tab-pane fade <?= $activeTab === 'recon' ? 'show active' : '' ?>" id="tab-recon"
+           role="tabpanel" aria-labelledby="tab-recon-btn" tabindex="0">
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Reconciliation <small class="text-muted">(production vs <code>transactionsfix</code>)</small></h5>
+
+            <form method="post" class="row g-3 align-items-end" id="reconForm">
+              <div class="col-md-4">
+                <label class="form-label" for="recon_cutoff">Cutoff end date</label>
+                <input type="date" class="form-control" id="recon_cutoff" name="recon_cutoff"
+                       value="<?= htmlspecialchars($reconCutoff !== '' ? $reconCutoff : date('Y-m-t')) ?>">
+                <div class="form-text">Both ledgers are read up to and including this date.</div>
+              </div>
+              <div class="col-md-8 d-flex gap-2">
+                <button type="submit" name="action" value="recon" class="btn btn-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-clipboard-check me-1"></i>Run Recon
+                </button>
+                <button type="submit" name="action" value="recon_export" class="btn btn-outline-success"
+                        formnovalidate <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-file-earmark-excel me-1"></i>Download Excel
+                </button>
+              </div>
+
+              <div class="col-12">
+                <div class="form-text">
+                  Compares each member's opening balance, closing balance and interest allocation
+                  (type 8 count and total) between production and the rebuild, as at the cutoff date.
+                  <strong>Set the cutoff to the last day of the month you rebuilt</strong> — production runs to today,
+                  so comparing past the rebuilt months makes every member look different.
+                  Leave the date empty to compare all dates.
+                </div>
+              </div>
+            </form>
+
+<?php if ($reconError !== ''): ?>
+            <div class="alert alert-danger mt-3 mb-0" role="alert"><?= htmlspecialchars($reconError) ?></div>
+<?php endif; ?>
+
+<?php if ($reconRan && !empty($reconRows)): ?>
+<?php
+    $reconGrand = null;
+    foreach ($reconRows as $reconRow) {
+        if ((string) ($reconRow['MemberNo'] ?? '') === 'GRAND TOTAL') {
+            $reconGrand = $reconRow;
+        }
+    }
+    $reconDiffs = 0;
+    foreach ($reconRows as $reconRow) {
+        if ((string) ($reconRow['MemberNo'] ?? '') === 'GRAND TOTAL') {
+            continue;
+        }
+        if (abs((float) $reconRow['ClosingDifference']) > 0.005) {
+            $reconDiffs++;
+        }
+    }
+?>
+            <div class="row mt-4 g-3">
+              <div class="col-md-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">Members compared</div>
+                  <div class="fs-4"><?= number_format(count($reconRows) - 1) ?></div>
+                </div></div>
+              </div>
+              <div class="col-md-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">With a closing difference</div>
+                  <div class="fs-4 <?= $reconDiffs > 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($reconDiffs) ?></div>
+                </div></div>
+              </div>
+              <div class="col-md-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">Closing difference (total)</div>
+                  <div class="fs-4 <?= abs((float) ($reconGrand['ClosingDifference'] ?? 0)) > 0.005 ? 'text-danger' : 'text-success' ?>">
+                    <?= number_format((float) ($reconGrand['ClosingDifference'] ?? 0), 2) ?>
+                  </div>
+                </div></div>
+              </div>
+              <div class="col-md-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">Interest difference (total)</div>
+                  <div class="fs-4 <?= abs((float) ($reconGrand['InterestDifference'] ?? 0)) > 0.005 ? 'text-danger' : 'text-success' ?>">
+                    <?= number_format((float) ($reconGrand['InterestDifference'] ?? 0), 2) ?>
+                  </div>
+                </div></div>
+              </div>
+            </div>
+
+            <table class="table datatable table-sm table-striped mt-3" style="width:100%" id="reconTable">
+              <thead>
+                <tr>
+                  <th scope="col">MemberNo</th>
+                  <th scope="col" class="text-end">Old Opening</th>
+                  <th scope="col" class="text-end">Fix Opening</th>
+                  <th scope="col" class="text-end">Opening Diff</th>
+                  <th scope="col" class="text-end">Old Closing</th>
+                  <th scope="col" class="text-end">Fix Closing</th>
+                  <th scope="col" class="text-end">Closing Diff</th>
+                  <th scope="col" class="text-end">Old Int #</th>
+                  <th scope="col" class="text-end">Fix Int #</th>
+                  <th scope="col" class="text-end">Int # Diff</th>
+                  <th scope="col" class="text-end">Old Int Total</th>
+                  <th scope="col" class="text-end">Fix Int Total</th>
+                  <th scope="col" class="text-end">Int Diff</th>
+                </tr>
+              </thead>
+              <tbody>
+<?php foreach ($reconRows as $reconRow): ?>
+<?php
+    $isTotal = ((string) ($reconRow['MemberNo'] ?? '')) === 'GRAND TOTAL';
+    $closeDiff = (float) $reconRow['ClosingDifference'];
+    $intDiff = (float) $reconRow['InterestDifference'];
+?>
+                <tr<?= $isTotal ? ' class="table-dark fw-bold"' : '' ?>>
+                  <th scope="row"><?= htmlspecialchars((string) $reconRow['MemberNo']) ?></th>
+                  <td class="text-end"><?= number_format((float) $reconRow['OldOpeningBalance'], 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['FixOpeningBalance'], 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['OpeningDifference'], 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['OldClosingBalance'], 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['FixClosingBalance'], 2) ?></td>
+                  <td class="text-end <?= (!$isTotal && abs($closeDiff) > 0.005) ? 'text-danger fw-bold' : '' ?>"><?= number_format($closeDiff, 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['OldInterestCount']) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['FixInterestCount']) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['InterestCountDifference']) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['OldInterestTotal'], 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $reconRow['FixInterestTotal'], 2) ?></td>
+                  <td class="text-end <?= (!$isTotal && abs($intDiff) > 0.005) ? 'text-danger fw-bold' : '' ?>"><?= number_format($intDiff, 2) ?></td>
+                </tr>
+<?php endforeach; ?>
+              </tbody>
+            </table>
+<?php elseif ($reconRan): ?>
+            <p class="text-muted mt-3 mb-0">The reconciliation returned no rows.</p>
+<?php else: ?>
+            <p class="text-muted mt-3 mb-0">Choose a cutoff date and click <strong>Run Recon</strong>.</p>
+<?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      </div><!-- /#tab-recon -->
 
       <!-- ============ TAB: STATEMENTS ============ -->
       <div class="tab-pane fade <?= $activeTab === 'statement' ? 'show active' : '' ?>" id="tab-statement"

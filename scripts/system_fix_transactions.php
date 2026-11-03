@@ -3538,3 +3538,124 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
         return $balances;
     }
 }
+
+if (!function_exists('system_fix_tx_recon')) {
+    /**
+     * Reconciliation between production (`tblmemberaccounts`) and the rebuild
+     * (`transactionsfix`), both read AS AT the same cutoff date.
+     *
+     * Returned columns match reconciliation.sql exactly, so the page, the Excel
+     * export and the standalone script always agree:
+     *
+     *   MemberNo, OldOpeningBalance, FixOpeningBalance, OpeningDifference,
+     *   OldClosingBalance, FixClosingBalance, ClosingDifference,
+     *   OldInterestCount, FixInterestCount, InterestCountDifference,
+     *   OldInterestTotal, FixInterestTotal, InterestDifference
+     *
+     * The cutoff is essential: production may run to today while the sandbox
+     * stops at the last rebuilt month, so without it every member looks wrong.
+     *
+     * @param string|null $cutoffEnd 'YYYY-MM-DD', or null/'' to compare all dates.
+     * @return array<int,array<string,mixed>> Rows, with a "GRAND TOTAL" row last.
+     */
+    function system_fix_tx_recon(mysqli $conn, ?string $cutoffEnd): array
+    {
+        $cutoff = ($cutoffEnd === null || trim($cutoffEnd) === '') ? '9999-12-31' : (string) $cutoffEnd;
+
+        // Bind the cutoff once; the same value drives both sides.
+        $conn->query("SET @cutoff_end = '" . $conn->real_escape_string($cutoff) . "'");
+
+        $sql = "
+        SELECT
+            `r`.`MemberNo`,
+            `r`.`OldOpeningBalance`,
+            `r`.`FixOpeningBalance`,
+            `r`.`OpeningDifference`,
+            `r`.`OldClosingBalance`,
+            `r`.`FixClosingBalance`,
+            `r`.`ClosingDifference`,
+            `r`.`OldInterestCount`,
+            `r`.`FixInterestCount`,
+            `r`.`InterestCountDifference`,
+            `r`.`OldInterestTotal`,
+            `r`.`FixInterestTotal`,
+            `r`.`InterestDifference`
+        FROM (
+            SELECT
+                COALESCE(CAST(`t`.`MemberNo` AS CHAR), 'GRAND TOTAL')        AS `MemberNo`,
+                ROUND(SUM(`t`.`old_opening`), 2)                             AS `OldOpeningBalance`,
+                ROUND(SUM(`t`.`fix_opening`), 2)                             AS `FixOpeningBalance`,
+                ROUND(SUM(`t`.`fix_opening`) - SUM(`t`.`old_opening`), 2)    AS `OpeningDifference`,
+                ROUND(SUM(`t`.`old_closing`), 2)                             AS `OldClosingBalance`,
+                ROUND(SUM(`t`.`fix_closing`), 2)                             AS `FixClosingBalance`,
+                ROUND(SUM(`t`.`fix_closing`) - SUM(`t`.`old_closing`), 2)    AS `ClosingDifference`,
+                SUM(`t`.`old_int_count`)                                     AS `OldInterestCount`,
+                SUM(`t`.`fix_int_count`)                                     AS `FixInterestCount`,
+                SUM(`t`.`fix_int_count`) - SUM(`t`.`old_int_count`)          AS `InterestCountDifference`,
+                ROUND(SUM(`t`.`old_int_total`), 2)                           AS `OldInterestTotal`,
+                ROUND(SUM(`t`.`fix_int_total`), 2)                           AS `FixInterestTotal`,
+                ROUND(SUM(`t`.`fix_int_total`) - SUM(`t`.`old_int_total`), 2) AS `InterestDifference`
+            FROM (
+                SELECT
+                    `m`.`MemberID`,
+                    `m`.`MemberNo`,
+                    IFNULL((SELECT `a`.`NewBalance`
+                            FROM `tblmemberaccounts` `a`
+                            WHERE `a`.`memberID` = `m`.`MemberID`
+                              AND `a`.`TransactionTypeID` = 1
+                              AND `a`.`TransactionDate` <= @cutoff_end
+                            ORDER BY `a`.`TransactionDate` ASC, `a`.`accountsID` ASC LIMIT 1), 0) AS `old_opening`,
+                    IFNULL((SELECT `f`.`NewBalance`
+                            FROM `transactionsfix` `f`
+                            WHERE `f`.`memberID` = `m`.`MemberID`
+                              AND `f`.`TransactionTypeID` = 1
+                              AND `f`.`TransactionDate` <= @cutoff_end
+                            ORDER BY `f`.`TransactionDate` ASC, `f`.`accountsID` ASC LIMIT 1), 0) AS `fix_opening`,
+                    IFNULL((SELECT `a`.`NewBalance`
+                            FROM `tblmemberaccounts` `a`
+                            WHERE `a`.`memberID` = `m`.`MemberID`
+                              AND `a`.`TransactionDate` <= @cutoff_end
+                            ORDER BY `a`.`TransactionDate` DESC, `a`.`accountsID` DESC LIMIT 1), 0) AS `old_closing`,
+                    IFNULL((SELECT `f`.`NewBalance`
+                            FROM `transactionsfix` `f`
+                            WHERE `f`.`memberID` = `m`.`MemberID`
+                              AND `f`.`TransactionDate` <= @cutoff_end
+                            ORDER BY `f`.`TransactionDate` DESC, `f`.`accountsID` DESC LIMIT 1), 0) AS `fix_closing`,
+                    (SELECT COUNT(*)
+                       FROM `tblmemberaccounts` `a`
+                      WHERE `a`.`memberID` = `m`.`MemberID`
+                        AND `a`.`TransactionTypeID` = 8
+                        AND `a`.`TransactionDate` <= @cutoff_end)             AS `old_int_count`,
+                    (SELECT COUNT(*)
+                       FROM `transactionsfix` `f`
+                      WHERE `f`.`memberID` = `m`.`MemberID`
+                        AND `f`.`TransactionTypeID` = 8
+                        AND `f`.`TransactionDate` <= @cutoff_end)             AS `fix_int_count`,
+                    IFNULL((SELECT SUM(`a`.`Amount`)
+                              FROM `tblmemberaccounts` `a`
+                             WHERE `a`.`memberID` = `m`.`MemberID`
+                               AND `a`.`TransactionTypeID` = 8
+                               AND `a`.`TransactionDate` <= @cutoff_end), 0)   AS `old_int_total`,
+                    IFNULL((SELECT SUM(`f`.`Amount`)
+                              FROM `transactionsfix` `f`
+                             WHERE `f`.`memberID` = `m`.`MemberID`
+                               AND `f`.`TransactionTypeID` = 8
+                               AND `f`.`TransactionDate` <= @cutoff_end), 0)   AS `fix_int_total`
+                FROM `tblmembers` `m`
+            ) `t`
+            GROUP BY `t`.`MemberNo` WITH ROLLUP
+        ) `r`
+        ORDER BY
+            `r`.`MemberNo` = 'GRAND TOTAL',
+            ABS(`r`.`ClosingDifference`) DESC,
+            `r`.`MemberNo` ASC";
+
+        $rows = [];
+        $result = $conn->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = $row;
+        }
+
+        return $rows;
+    }
+}
