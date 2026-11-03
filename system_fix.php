@@ -225,24 +225,16 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
                     $respond(['ok' => false, 'error' => $regularError !== '' ? $regularError : 'Choose the regulars spreadsheet first.']);
                 }
 
-                $capitalRows = [];
-                $capitalLabel = '';
-                [$capitalSource, $capitalLabel, $capitalError] = $resolveCapitalSource();
-                if ($capitalSource !== '') {
-                    $parsedCapital = system_fix_tx_parse_capital($capitalSource);
-                    $capitalRows = $parsedCapital['rows'];
-                }
-
                 $adhocParsed = system_fix_tx_parse_csv($adhocSource);
                 $regularParsed = system_fix_tx_parse_csv($regularSource);
 
-                if (empty($adhocParsed['rows']) && empty($regularParsed['rows']) && empty($capitalRows)) {
+                // Additional capital is read from the `additional_capital` VIEW
+                // per month, so no spreadsheet is uploaded for it any more.
+                if (empty($adhocParsed['rows']) && empty($regularParsed['rows'])) {
                     $respond(['ok' => false, 'error' => 'Neither spreadsheet produced any rows.']);
                 }
 
-                // The run window comes from the adhocs/regulars ONLY. The capital
-                // sheet spans all periods, so including it would stretch the run
-                // past the months actually being repaired.
+                // The run window comes from the adhocs/regulars ONLY.
                 $window = system_fix_tx_run_window(
                     $adhocParsed['rows'],
                     $regularParsed['rows'],
@@ -256,25 +248,39 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
                 $fromMonth = $window['from'];
                 $toMonth = $window['to'];
 
-                // How much capital falls inside the window (the rest is ignored).
+                // How many capital and termination rows the views hold for the
+                // window, so the operator can confirm before the run starts.
                 $capitalInWindow = 0;
-                $capitalOutside = 0;
-                foreach ($capitalRows as $r) {
-                    $d = $r['date'] ?? null;
-                    if ($d === null) {
-                        continue;
-                    }
-                    if ($d >= $fromMonth && $d <= date('Y-m-t', strtotime($toMonth))) {
-                        $capitalInWindow++;
-                    } else {
-                        $capitalOutside++;
-                    }
+                try {
+                    $cStmt = $conn->prepare(
+                        "SELECT COUNT(*) AS c FROM `additional_capital` WHERE `TransactionDate` BETWEEN ? AND ?"
+                    );
+                    $windowEnd = date('Y-m-t', strtotime($toMonth));
+                    $cStmt->bind_param('ss', $fromMonth, $windowEnd);
+                    $cStmt->execute();
+                    $capitalInWindow = (int) ($cStmt->get_result()->fetch_assoc()['c'] ?? 0);
+                    $cStmt->close();
+                } catch (mysqli_sql_exception $e) {
+                    error_log('System Fix: additional_capital view unavailable: ' . $e->getMessage());
+                }
+
+                $terminationsInWindow = 0;
+                try {
+                    $tStmt = $conn->prepare(
+                        "SELECT COUNT(*) AS c FROM `terminations` WHERE `TerminationDate` BETWEEN ? AND ?"
+                    );
+                    $windowEnd = date('Y-m-t', strtotime($toMonth));
+                    $tStmt->bind_param('ss', $fromMonth, $windowEnd);
+                    $tStmt->execute();
+                    $terminationsInWindow = (int) ($tStmt->get_result()->fetch_assoc()['c'] ?? 0);
+                    $tStmt->close();
+                } catch (mysqli_sql_exception $e) {
+                    error_log('System Fix: terminations view unavailable: ' . $e->getMessage());
                 }
 
                 $_SESSION['system_fix_job'] = [
                     'adhoc' => $adhocParsed['rows'],
                     'regular' => $regularParsed['rows'],
-                    'capital' => $capitalRows,
                     'months' => $months,
                     'index' => 0,
                     'totals' => [
@@ -303,14 +309,13 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
                     'labels' => array_map(static fn(string $m): string => date('F Y', strtotime($m)), $months),
                     'adhoc_rows' => count($adhocParsed['rows']),
                     'regular_rows' => count($regularParsed['rows']),
-                    'capital_rows' => count($capitalRows),
+                    'capital_rows' => $capitalInWindow,
                     'capital_in_window' => $capitalInWindow,
-                    'capital_outside' => $capitalOutside,
+                    'terminations_in_window' => $terminationsInWindow,
                     'window_from' => date('F Y', strtotime($fromMonth)),
                     'window_to' => date('F Y', strtotime($toMonth)),
                     'adhoc_file' => $adhocLabel,
                     'regular_file' => $regularLabel,
-                    'capital_file' => $capitalLabel,
                 ]);
                 break;
 
@@ -344,7 +349,7 @@ if (in_array($action, $systemFixJobActions, true) && $sandboxTableReady) {
                     $monthEnd,
                     $job['adhoc'],
                     $job['regular'],
-                    $job['capital']
+                    null
                 );
 
                 $totals = $job['totals'];
@@ -577,25 +582,6 @@ if ($action !== '' && $sandboxTableReady) {
                 }
                 $sandboxMessages[] = 'Regulars loaded from: ' . htmlspecialchars($regularLabel);
 
-                // Additional capital is OPTIONAL — it only ever adds money, so a
-                // missing file simply means no capital rows for this run.
-                $capitalParsed = ['rows' => [], 'errors' => []];
-                $capitalLabel = '';
-                [$capitalSource, $capitalLabel, $capitalError] = $resolveCapitalSource();
-                if ($capitalSource !== '') {
-                    $capitalParsed = system_fix_tx_parse_capital($capitalSource);
-                    foreach ($capitalParsed['errors'] as $parseError) {
-                        $sandboxErrors[] = $parseError;
-                    }
-                    $sandboxMessages[] = sprintf(
-                        'Additional capital loaded from: %s (%d row(s)).',
-                        htmlspecialchars($capitalLabel),
-                        count($capitalParsed['rows'])
-                    );
-                } elseif ($capitalError !== '') {
-                    $sandboxErrors[] = $capitalError;
-                }
-
                 $adhocParsed = system_fix_tx_parse_csv($adhocSource);
                 $regularParsed = system_fix_tx_parse_csv($regularSource);
                 foreach (array_merge($adhocParsed['errors'], $regularParsed['errors']) as $parseError) {
@@ -607,8 +593,11 @@ if ($action !== '' && $sandboxTableReady) {
                     break;
                 }
 
-                // The window comes from the adhocs/regulars ONLY — the capital
-                // sheet spans all periods and must not stretch the run.
+                // Additional capital and terminations are read from their views
+                // for each month, so only the two spreadsheets are needed.
+                $sandboxMessages[] = 'Additional capital and terminations will be read from the <code>additional_capital</code> and <code>terminations</code> views.';
+
+                // The window comes from the adhocs/regulars ONLY.
                 $window = system_fix_tx_run_window(
                     $adhocParsed['rows'],
                     $regularParsed['rows'],
@@ -639,7 +628,7 @@ if ($action !== '' && $sandboxTableReady) {
 
                 foreach ($months as $monthStart) {
                     $monthEnd = date('Y-m-t', strtotime($monthStart));
-                    $m = system_fix_tx_run_month_auto($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows'], $capitalParsed['rows']);
+                    $m = system_fix_tx_run_month_auto($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows'], null);
                     $processed++;
                     $totalTerminations += $m['adhoc']['terminations'] ?? 0;
                     $totalTermFee += $m['adhoc']['termination_fee'] ?? 0;
@@ -1193,46 +1182,32 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
                 </button>
               </div>
 
-              <div class="col-md-4">
-                <label class="form-label" for="capital_csv">Additional capital spreadsheet <span class="text-muted">(optional)</span></label>
-                <input type="file" class="form-control" id="capital_csv" name="capital_csv" accept=".csv,.xlsx">
-              </div>
-              <div class="col-md-4">
-                <label class="form-label" for="existing_capital">…or capital file on the server</label>
-                <select class="form-select" id="existing_capital" name="existing_capital">
-                  <option value="">— none —</option>
-                  <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>" <?= stripos($csvFile, 'capital') !== false ? 'selected' : '' ?>><?= htmlspecialchars($csvFile) ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="col-md-2">
-                <label class="form-label" for="capital_period">Period <span class="text-muted">(for capital only)</span></label>
-                <input type="month" class="form-control" id="capital_period" name="capital_period"
-                       value="<?= htmlspecialchars(substr($sandboxPeriod, 0, 7)) ?>">
-              </div>
-              <div class="col-md-2 d-grid">
-                <button type="submit" name="action" value="stage_capital" class="btn btn-outline-success"
-                        <?= $sandboxTableReady ? '' : 'disabled' ?>
-                        formnovalidate>
-                  <i class="bi bi-cash-coin me-1"></i>Capital Only
-                </button>
+              <div class="col-12">
+                <div class="alert alert-info mb-0" role="alert">
+                  <i class="bi bi-info-circle me-1"></i>
+                  <strong>Only two spreadsheets to upload.</strong>
+                  Additional capital (type 9) and terminations are now read from the
+                  <code>additional_capital</code> and <code>terminations</code> views, so nothing is uploaded for them.
+                  Seed history <em>once</em>, then upload adhocs and regulars and run.
+                </div>
               </div>
 
               <div class="col-12">
                 <div class="form-text">
                   Walks every month between the two spreadsheets, running each member's month end in order:
-                  additional capital → adhocs &amp; terminations → regular payments → interest → fixed monthly fee → admin fees,
-                  carrying balances forward. Members without adhocs are included automatically, and any debit
-                  the funds cannot cover terminates the member instead of going negative.
-                  <br>
-                  The additional capital sheet is optional and covers all members for all periods: on every run only the
-                  rows dated inside the month are posted (type 9), each carrying a 1% fee (type 5) that is waived below 20,000.
-                  <strong>Capital Only</strong> posts that one month without touching any other stage.
-                  <br>
-                  <strong>Run All Months</strong> rebuilds one month per HTTP request, so a long rebuild cannot hit the
-                  nginx 504 gateway timeout; leave the page open until it reports it has finished.
-                  The <em>single request</em> variant is kept only for small ranges.
+                  additional capital → adhocs → terminations → regular payments → interest → fixed monthly fee → admin fees,
+                  carrying balances forward. Each capital/adhoc/termination row is posted on <em>its own date</em>, so a
+                  member's balance always reflects what existed on that day.
+                  <ul class="mb-0 mt-2">
+                    <li><strong>Terminations</strong> are taken from the <code>terminations</code> view (type 11) and paid out
+                        on the termination date. The payout is the balance available <em>at that moment</em>, so the account
+                        can never go negative.</li>
+                    <li><strong>Capital</strong> is credited from the <code>additional_capital</code> view (type 9), with a
+                        flat 1% fee (type 5).</li>
+                    <li>Any member who is terminated, or whose balance is zero or below, is excluded from every later run.</li>
+                    <li><strong>Run All Months</strong> rebuilds one month per HTTP request, so a long rebuild cannot hit the
+                        nginx 504 gateway timeout; leave the page open until it reports it has finished.</li>
+                  </ul>
                 </div>
               </div>
             </form>
@@ -1558,8 +1533,8 @@ $activeTab = ($action === 'view_statement' || $statementMemberId > 0) ? 'stateme
       detailEl.textContent =
         res.total + ' month(s) queued, ' + res.window_from + ' to ' + res.window_to +
         '. Adhoc rows ' + res.adhoc_rows + ', regular rows ' + res.regular_rows +
-        ', capital rows in range ' + res.capital_in_window +
-        (res.capital_outside ? ' (' + res.capital_outside + ' outside the adhocs period ignored)' : '') + '.';
+        '. From the views: ' + res.capital_in_window + ' capital row(s), ' +
+        res.terminations_in_window + ' termination(s).';
       setProgress(0, res.total);
       step(res.total);
     }).catch(function (err) {

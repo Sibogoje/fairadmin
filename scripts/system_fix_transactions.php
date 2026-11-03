@@ -868,21 +868,44 @@ if (!function_exists('system_fix_tx_record_termination')) {
 
 if (!function_exists('system_fix_tx_terminated_ids')) {
     /**
-     * Members already terminated in the sandbox (they have a type 11
-     * "Final Transaction" row). Termination is a ONE-TIME event: production has
-     * 159 members terminated exactly once, so once a member is terminated they
-     * are excluded from all later adhocs and month-end stages.
+     * Members terminated in the sandbox ON OR BEFORE the given date.
+     *
+     * Termination is a ONE-TIME event: once a member is terminated they take no
+     * further part in any run — no adhocs, no regulars, no capital, no fees and
+     * no interest. Passing the date being processed is what makes month-by-month
+     * rebuilds correct: when rebuilding an earlier month, a termination that
+     * happened later must NOT hide the member from that earlier month.
+     *
+     * Pass null for "terminated at any point" (used by reporting helpers).
      *
      * @return array<int,int>
      */
-    function system_fix_tx_terminated_ids(mysqli $conn): array
+    function system_fix_tx_terminated_ids(mysqli $conn, ?string $onOrBefore = null): array
     {
         $table = system_fix_tx_table();
         $ids = [];
 
-        $result = $conn->query("SELECT DISTINCT `memberID` FROM `{$table}` WHERE `TransactionTypeID` = 11 AND `memberID` > 0");
+        if ($onOrBefore === null) {
+            $result = $conn->query(
+                "SELECT DISTINCT `memberID` FROM `{$table}` WHERE `TransactionTypeID` = 11 AND `memberID` > 0"
+            );
+        } else {
+            $stmt = $conn->prepare(
+                "SELECT DISTINCT `memberID` FROM `{$table}`
+                 WHERE `TransactionTypeID` = 11 AND `memberID` > 0
+                   AND `TransactionDate` <= ?"
+            );
+            $stmt->bind_param('s', $onOrBefore);
+            $stmt->execute();
+            $result = $stmt->get_result();
+        }
+
         while ($result && $row = $result->fetch_assoc()) {
             $ids[] = (int) $row['memberID'];
+        }
+
+        if (isset($stmt)) {
+            $stmt->close();
         }
 
         return $ids;
@@ -891,13 +914,28 @@ if (!function_exists('system_fix_tx_terminated_ids')) {
 
 if (!function_exists('system_fix_tx_is_terminated')) {
     /**
-     * Has this member already been terminated in the sandbox?
+     * Has this member been terminated at, or before, the given date?
+     *
+     * A null date means "terminated at any point".
      */
-    function system_fix_tx_is_terminated(mysqli $conn, int $memberId): bool
+    function system_fix_tx_is_terminated(mysqli $conn, int $memberId, ?string $onOrBefore = null): bool
     {
         $table = system_fix_tx_table();
-        $stmt = $conn->prepare("SELECT 1 FROM `{$table}` WHERE `TransactionTypeID` = 11 AND `memberID` = ? LIMIT 1");
-        $stmt->bind_param('i', $memberId);
+
+        if ($onOrBefore === null) {
+            $stmt = $conn->prepare(
+                "SELECT 1 FROM `{$table}` WHERE `TransactionTypeID` = 11 AND `memberID` = ? LIMIT 1"
+            );
+            $stmt->bind_param('i', $memberId);
+        } else {
+            $stmt = $conn->prepare(
+                "SELECT 1 FROM `{$table}`
+                 WHERE `TransactionTypeID` = 11 AND `memberID` = ? AND `TransactionDate` <= ?
+                 LIMIT 1"
+            );
+            $stmt->bind_param('is', $memberId, $onOrBefore);
+        }
+
         $stmt->execute();
         $found = $stmt->get_result()->fetch_row() !== null;
         $stmt->close();
@@ -908,20 +946,126 @@ if (!function_exists('system_fix_tx_is_terminated')) {
 
 if (!function_exists('system_fix_tx_filter_active')) {
     /**
-     * Remove terminated members from a list of member IDs, so only members still
-     * active for the period are processed by the month-end stages.
+     * Remove members terminated on or before the supplied date, so only members
+     * still active for that period are processed by the month-end stages.
      *
      * @param array<int,int> $ids
      * @return array<int,int>
      */
-    function system_fix_tx_filter_active(mysqli $conn, array $ids): array
+    function system_fix_tx_filter_active(mysqli $conn, array $ids, ?string $onOrBefore = null): array
     {
-        $terminated = system_fix_tx_terminated_ids($conn);
+        $terminated = system_fix_tx_terminated_ids($conn, $onOrBefore);
         if (empty($terminated)) {
             return $ids;
         }
 
         return array_values(array_diff($ids, $terminated));
+    }
+}
+
+if (!function_exists('system_fix_tx_scheduled_termination_ids')) {
+    /**
+     * Members whose termination lands inside the given period, per the
+     * `terminations` view.
+     *
+     * Members in this list must be EXCLUDED from the month-end stages for that
+     * month (interest, admin and fixed fees): they are paid out on their
+     * termination date, so an end-of-month charge or interest credit afterwards
+     * would leave the account non-zero — or negative once the fee is deducted.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_scheduled_termination_ids(mysqli $conn, string $periodDate): array
+    {
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $ids = [];
+
+        try {
+            $stmt = $conn->prepare(
+                "SELECT DISTINCT `MemberID` FROM `terminations`
+                 WHERE `TerminationDate` BETWEEN ? AND ?"
+            );
+            $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $ids[] = (int) $row['MemberID'];
+            }
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            // The view may not have been created yet; the run still works.
+            error_log('System Fix: terminations view unavailable: ' . $e->getMessage());
+        }
+
+        return $ids;
+    }
+}
+
+if (!function_exists('system_fix_tx_termination_rows')) {
+    /**
+     * Termination rows from the `terminations` view that fall inside a period,
+     * oldest first, ready to post.
+     *
+     * @return array<int,array{MemberID:int, MemberNo:string, TerminationDate:string, Amount:float}>
+     */
+    function system_fix_tx_termination_rows(mysqli $conn, string $periodDate): array
+    {
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $rows = [];
+
+        try {
+            $stmt = $conn->prepare(
+                "SELECT `MemberID`, `MemberNo`, `TerminationDate`, `Amount`
+                 FROM `terminations`
+                 WHERE `TerminationDate` BETWEEN ? AND ?
+                 ORDER BY `TerminationDate` ASC, `MemberID` ASC"
+            );
+            $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            while ($row = $result->fetch_assoc()) {
+                $rows[] = [
+                    'MemberID' => (int) $row['MemberID'],
+                    'MemberNo' => (string) $row['MemberNo'],
+                    'TerminationDate' => (string) $row['TerminationDate'],
+                    'Amount' => (float) $row['Amount'],
+                ];
+            }
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            error_log('System Fix: terminations view unavailable: ' . $e->getMessage());
+        }
+
+        return $rows;
+    }
+}
+
+if (!function_exists('system_fix_tx_filter_dormant')) {
+    /**
+     * Drop members whose sandbox balance is zero or below.
+     *
+     * A member with nothing left in the fund can no longer transact: charging an
+     * admin or fixed fee would drive the balance negative, and interest on a zero
+     * balance is pointless. They are excluded from every run from that point on.
+     *
+     * @param array<int,int>  $ids
+     * @param array<int,float> $balances Closing balance per member.
+     * @return array<int,int>
+     */
+    function system_fix_tx_filter_dormant(array $ids, array $balances): array
+    {
+        $active = [];
+        foreach ($ids as $memberId) {
+            $memberId = (int) $memberId;
+            if ($memberId <= 0) {
+                continue;
+            }
+            if (($balances[$memberId] ?? 0.0) > 0.0) {
+                $active[] = $memberId;
+            }
+        }
+
+        return $active;
     }
 }
 
@@ -980,15 +1124,29 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             $flows[] = ['kind' => 'capital', 'date' => $date, 'line' => (int) ($row['line'] ?? 0), 'row' => $row];
         }
 
-        // Date first; on the same date capital (money in) is applied before
-        // adhocs (money out). The line number keeps it deterministic.
+        // Terminations come from the `terminations` VIEW and are posted on the
+        // date the member actually left the fund, not at month end.
+        foreach (system_fix_tx_termination_rows($conn, $periodDate) as $row) {
+            $flows[] = [
+                'kind' => 'termination',
+                'date' => $row['TerminationDate'],
+                'line' => $row['MemberID'],
+                'row' => $row,
+            ];
+        }
+
+        // Date first. On the same date the order is:
+        //   capital (money in) -> adhoc (money out) -> termination (payout)
+        // so a member who deposits, withdraws and leaves on one day is handled
+        // in the only order that cannot produce a negative balance.
         usort($flows, static function (array $a, array $b): int {
             $byDate = strcmp($a['date'], $b['date']);
             if ($byDate !== 0) {
                 return $byDate;
             }
-            $aRank = $a['kind'] === 'capital' ? 0 : 1;
-            $bRank = $b['kind'] === 'capital' ? 0 : 1;
+            $rank = ['capital' => 0, 'adhoc' => 1, 'termination' => 2];
+            $aRank = $rank[$a['kind']] ?? 3;
+            $bRank = $rank[$b['kind']] ?? 3;
             if ($aRank !== $bRank) {
                 return $aRank <=> $bRank;
             }
@@ -1019,6 +1177,55 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
                 continue;
             }
 
+            // --- Termination from the `terminations` view --------------------
+            //
+            // The member is paid out on the date they actually left the fund.
+            // The payout is whatever balance is available AT THAT MOMENT ("the
+            // amount available at the time of running will be the money
+            // deducted"), so the account can never end up negative. The view's
+            // Amount is passed as AmountRequested, which keeps the discrepancy
+            // reportable in transactionsfix_terminations.
+            if ($flow['kind'] === 'termination') {
+                $term = $flow['row'];
+                $termMemberId = (int) $term['MemberID'];
+
+                // Already paid out earlier in this run? Nothing more to do.
+                if ($alreadyTerminated[$termMemberId] ?? system_fix_tx_is_terminated($conn, $termMemberId, $date)) {
+                    $alreadyTerminated[$termMemberId] = true;
+                    continue;
+                }
+
+                $alreadyTerminated[$termMemberId] = true;
+
+                $availableNow = system_fix_tx_base_balance($conn, $runId, $termMemberId, $periodDate, $balances);
+
+                // Nothing left to pay out — the account is already empty, so
+                // there is no transaction to post and no fee to charge.
+                if ($availableNow <= 0.0) {
+                    $balances[$termMemberId] = 0.0;
+                    continue;
+                }
+
+                $termResult = system_fix_tx_terminate_member(
+                    $conn,
+                    $runId,
+                    $periodDate,
+                    $date,
+                    $termMemberId,
+                    (string) $term['MemberNo'],
+                    (float) $term['Amount'],
+                    $availableNow,
+                    'view',
+                    'Terminated per terminations view'
+                );
+
+                $balances[$termMemberId] = 0.0;
+                $terminations++;
+                $terminationFeeTotal += $termResult['TerminationFee'];
+                $posted++;
+                continue;
+            }
+
             $member = system_fix_tx_resolve_member($conn, (string) $row['member_no']);
             if ($member === null) {
                 $skipped[] = "Line {$row['line']}: member {$row['member_no']} was not found in tblmembers.";
@@ -1032,10 +1239,11 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
             $type = (int) ($row['type'] ?? 4);
 
             // --- Already terminated? Record only, never post a transaction. ----
-            // Termination happens ONCE. Any later adhoc for that member is logged
-            // in the termination table for review and nothing is written to the
-            // transaction ledger.
-            if ($alreadyTerminated[$memberId] ?? system_fix_tx_is_terminated($conn, $memberId)) {
+            // Termination happens ONCE. Any later adhoc for a terminated member
+            // is logged for review and nothing is written to the ledger. The
+            // date is passed so an adhoc that happened BEFORE the (later)
+            // termination is still posted.
+            if ($alreadyTerminated[$memberId] ?? system_fix_tx_is_terminated($conn, $memberId, $date)) {
                 $alreadyTerminated[$memberId] = true;
                 system_fix_tx_record_termination(
                     $conn,
@@ -1055,7 +1263,14 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
 
             $available = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
 
+            // A member with nothing left cannot transact at all.
+            if ($available <= 0.0) {
+                continue;
+            }
+
             // A request that meets or exceeds the balance terminates the member.
+            // The payout is the available balance, never the requested amount, so
+            // the account cannot go negative.
             if ($requested >= $available) {
                 $result = system_fix_tx_terminate_member(
                     $conn,
@@ -1179,25 +1394,6 @@ if (!function_exists('system_fix_tx_post_capital_row')) {
             return $result;
         }
 
-        // --- Already terminated? Record only, never post. --------------------
-        if ($terminatedCache[$memberId] ?? system_fix_tx_is_terminated($conn, $memberId)) {
-            $terminatedCache[$memberId] = true;
-            system_fix_tx_record_termination(
-                $conn,
-                system_fix_tx_period_key($periodDate),
-                $date,
-                $memberId,
-                $memberNo,
-                $amount,
-                0.00,
-                0.00,
-                0.00,
-                'after_termination',
-                'capital'
-            );
-            return $result;
-        }
-
         // Idempotency: never credit the same row twice when the sheet is re-run.
         //
         // Matching on member/date/amount alone would swallow a member who
@@ -1221,9 +1417,14 @@ if (!function_exists('system_fix_tx_post_capital_row')) {
             return $result;
         }
 
-        $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
-
         // --- Additional Capital (type 9), Credit = 1 -------------------------
+        //
+        // Capital is money the member deposits, so it is posted even if the
+        // member has already been terminated: the funds really did arrive and
+        // the ledger must show them. The deposit revives the balance, which in
+        // turn lets the member take part in the remaining runs (capital is a
+        // credit, never a debit, so it can never drive the account negative).
+        $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
         $afterCapital = round($starting + $amount, 2);
         system_fix_tx_insert($conn, [
             'date' => $date,
@@ -1237,8 +1438,13 @@ if (!function_exists('system_fix_tx_post_capital_row')) {
             'comments' => (string) $row['comments'],
         ]);
 
-        // --- Additional Capital Fee (type 5): 1%, waived below 20,000 --------
-        $fee = $amount < 20000 ? 0.00 : round($amount * 0.01, 2);
+        // --- Additional Capital Fee (type 5): a flat 1% ----------------------
+        //
+        // NO 20,000 waiver. Every capital row in production is charged 1%,
+        // including the 27 injections below 20,000 (smallest E 595.00 was still
+        // charged E 5.95), so the waiver that applies to an opening balance does
+        // NOT apply here.
+        $fee = round($amount * 0.01, 2);
         $afterFee = round($afterCapital - $fee, 2);
         system_fix_tx_insert($conn, [
             'date' => $date,
@@ -1249,7 +1455,7 @@ if (!function_exists('system_fix_tx_post_capital_row')) {
             'starting' => $afterCapital,
             'amount' => $fee,
             'new_balance' => $afterFee,
-            'comments' => $fee == 0.00 ? 'No charge (below 20,000)' : (string) $row['comments'],
+            'comments' => (string) $row['comments'],
         ]);
 
         $balances[$memberId] = $afterFee;
@@ -1262,19 +1468,13 @@ if (!function_exists('system_fix_tx_stage_capital')) {
     /**
      * STAGE — Additional capital (type 9) on its own (the "Capital Only" action).
      *
-     * The capital sheet has the same columns as the adhocs sheet
-     * (`Member No | Transaction Date | Details | Amount`) and covers all members
-     * for all time, so the same file is reused for every month and only the rows
-     * dated inside the month being rebuilt are posted.
+     * Kept for manual/backfill use. The normal month run takes capital from the
+     * `additional_capital` VIEW instead (see system_fix_tx_capital_rows), so no
+     * spreadsheet is uploaded for it.
      *
-     * Mirrors Transactions/capitalprocess.php, with the fee rule confirmed for
-     * the rebuild:
+     * Mirrors Transactions/capitalprocess.php / the production data:
      *   - Type 9 "Additional Capital": Credit = 1, posted on the SPREADSHEET date.
-     *   - Type 5 "Additional Capital Fee": 1% of the amount, waived when the
-     *     amount is below 20,000 (same waiver as an opening balance / type 1).
-     *
-     * During a full month run this is folded into system_fix_tx_stage_adhocs so
-     * capital and adhocs are posted in date order.
+     *   - Type 5 "Additional Capital Fee": a flat 1%, with NO 20,000 waiver.
      *
      * @param array<int,array> $rows Output of system_fix_tx_parse_capital().
      * @return array{posted:int, skipped:array<int,string>, total_amount:float, total_fee:float, duplicates:int}
@@ -1326,6 +1526,53 @@ if (!function_exists('system_fix_tx_stage_capital')) {
             'total_fee' => round($totalFee, 2),
             'duplicates' => $duplicates,
         ];
+    }
+}
+
+if (!function_exists('system_fix_tx_capital_rows')) {
+    /**
+     * Additional capital rows for a period, read from the `additional_capital`
+     * VIEW rather than from an uploaded spreadsheet.
+     *
+     * The view is the single source of truth: it already resolves MemberID and
+     * MemberNo, so no mapping or upload step is needed. Rows are returned in the
+     * same shape the capital stage expects.
+     *
+     * @return array<int,array{member_no:string, date:string, amount:float, line:int, comments:string}>
+     */
+    function system_fix_tx_capital_rows(mysqli $conn, string $periodDate): array
+    {
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $rows = [];
+
+        try {
+            $stmt = $conn->prepare(
+                "SELECT `MemberID`, `MemberNo`, `TransactionDate`, `Amount`
+                 FROM `additional_capital`
+                 WHERE `TransactionDate` BETWEEN ? AND ?
+                 ORDER BY `TransactionDate` ASC, `MemberID` ASC"
+            );
+            $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $line = 0;
+            while ($row = $result->fetch_assoc()) {
+                $line++;
+                $rows[] = [
+                    'member_no' => (string) $row['MemberNo'],
+                    'date' => (string) $row['TransactionDate'],
+                    'amount' => (float) $row['Amount'],
+                    'line' => $line,
+                    'comments' => '',
+                ];
+            }
+            $stmt->close();
+        } catch (mysqli_sql_exception $e) {
+            // The view may not exist yet; the run simply has no capital.
+            error_log('System Fix: additional_capital view unavailable: ' . $e->getMessage());
+        }
+
+        return $rows;
     }
 }
 
@@ -1715,8 +1962,10 @@ if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
                 continue;
             }
 
-            // Already terminated earlier in the run? Record only, never post.
-            if (system_fix_tx_is_terminated($conn, $memberId)) {
+            // Already terminated on or before this date? Record only, never post.
+            // The date is passed so a regular payment made BEFORE the (later)
+            // termination is still processed.
+            if (system_fix_tx_is_terminated($conn, $memberId, $date)) {
                 system_fix_tx_record_termination(
                     $conn,
                     system_fix_tx_period_key($periodDate),
@@ -1736,6 +1985,11 @@ if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
 
             $percent = system_fix_tx_member_transaction_percent($conn, $memberId);
             $starting = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
+
+            // A member with nothing left in the fund no longer transacts.
+            if ($starting <= 0.0) {
+                continue;
+            }
 
             // A debit that exceeds the balance terminates the member instead of
             // pushing the account negative.
@@ -1835,7 +2089,10 @@ if (!function_exists('system_fix_tx_stage_regular')) {
         $totalFee = 0.0;
 
         $period = system_fix_tx_period_key($periodDate);
-        $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
+        // Regular payments are debits, so members terminating this month are
+        // paid out on their termination date and must not also be debited at
+        // month end; members with a zero balance cannot pay.
+        $ids = system_fix_tx_eligible_month_end_ids($conn, $runId, $periodDate);
         if (empty($ids)) {
             return ['posted' => 0, 'skipped' => [], 'total_amount' => 0.0, 'total_fee' => 0.0];
         }
@@ -1931,7 +2188,10 @@ if (!function_exists('system_fix_tx_stage_admin_fees')) {
         $month = (int) date('n', strtotime($periodDate));
         $days = system_fix_tx_days_in_month($month);
 
-        $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
+        // Members terminating THIS month are paid out on their termination date,
+        // so they must not also receive an end-of-month admin fee. Members with
+        // a zero or negative balance cannot be charged either.
+        $ids = system_fix_tx_eligible_month_end_ids($conn, $runId, $periodDate);
         if (empty($ids)) {
             return ['posted' => 0, 'total_amount' => 0.0, 'terminations' => 0];
         }
@@ -2014,7 +2274,10 @@ if (!function_exists('system_fix_tx_stage_fixed_fees')) {
         $terminations = 0;
         $cocaColaFundId = system_fix_tx_cocacola_fund_id();
 
-        $ids = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
+        // Members terminating THIS month are paid out on their termination date,
+        // so they must not also receive an end-of-month fixed fee. Members with a
+        // zero or negative balance cannot be charged either.
+        $ids = system_fix_tx_eligible_month_end_ids($conn, $runId, $periodDate);
         if (empty($ids)) {
             return ['posted' => 0, 'exempt' => 0, 'total_amount' => 0.0, 'terminations' => 0];
         }
@@ -2370,6 +2633,51 @@ if (!function_exists('system_fix_tx_interest_pool')) {
     }
 }
 
+if (!function_exists('system_fix_tx_eligible_month_end_ids')) {
+    /**
+     * Members the month-end stages (interest, admin fees, fixed fees) may touch.
+     *
+     * A member is eligible only when ALL of these hold:
+     *   1. They existed in the fund that month (schedule / roster / run scope).
+     *   2. They were not terminated on or before the end of the month.
+     *   3. They are not scheduled to be paid out DURING the month — an
+     *      end-of-month fee or interest credit after the payout would leave the
+     *      account non-zero, or negative once the fee lands.
+     *   4. Their balance is greater than zero — an empty account cannot be
+     *      charged, and interest on zero is meaningless.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_eligible_month_end_ids(mysqli $conn, string $runId, string $periodDate): array
+    {
+        $bounds = system_fix_tx_period_bounds($periodDate);
+
+        $ids = system_fix_tx_month_end_ids($conn, $runId, $periodDate);
+        if (empty($ids)) {
+            return [];
+        }
+
+        // (2) already-paid-out members, as at the end of this month.
+        $ids = system_fix_tx_filter_active($conn, $ids, $bounds['end']);
+
+        // (3) members whose termination lands inside this month.
+        $scheduled = system_fix_tx_scheduled_termination_ids($conn, $periodDate);
+        if (!empty($scheduled)) {
+            $ids = array_values(array_diff($ids, $scheduled));
+        }
+
+        // (4) members with nothing left in the fund.
+        $balances = system_fix_tx_running_balances($conn, $runId);
+        foreach ($ids as $memberId) {
+            if (!array_key_exists($memberId, $balances)) {
+                $balances[$memberId] = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
+            }
+        }
+
+        return system_fix_tx_filter_dormant($ids, $balances);
+    }
+}
+
 if (!function_exists('system_fix_tx_month_end_ids')) {
     /**
      * Member IDs the month-end stages (regular, admin, fixed, interest) run for.
@@ -2506,26 +2814,30 @@ if (!function_exists('system_fix_tx_run_window')) {
 
 if (!function_exists('system_fix_tx_run_month')) {
     /**
-     * Run one month end to end for the period supplied, in the statement order
-     * that keeps the money flowing correctly:
+     * Run one month end to end for the period supplied, in the order that keeps
+     * the money flowing correctly:
      *
-     *   1. Adhocs / terminations / capital (money in and out)
+     *   1. Capital + adhocs + terminations (all in DATE order)
      *   2. Regular payments
      *   3. Interest            (credited on the post-regular balance)
      *   4. Fixed monthly fee   (except Coca-Cola fund members)
      *   5. Admin fees          (charged last)
      *
-     * Balances carry forward automatically because each stage reads the running
-     * balances already in the sandbox for the period.
+     * CAPITAL AND TERMINATIONS COME FROM THE VIEWS
+     *   Additional capital is read from the `additional_capital` view and
+     *   terminations from the `terminations` view, so only the adhocs and
+     *   regulars spreadsheets need to be uploaded. Seeding history once is
+     *   enough; after that the run is entirely view- and file-driven.
      *
-     * Additional capital (type 9) is posted BEFORE the adhocs so money that came
-     * in during the month is available before any withdrawal is judged against
-     * the balance — a member must never be terminated simply because the capital
-     * row is staged later than the adhoc row.
+     * NOTHING EVER GOES NEGATIVE
+     *   Every debit is capped at the balance available at that moment. A member
+     *   terminating this month is paid out on their termination date and is then
+     *   excluded from the month-end stages, so no fee or interest can land on an
+     *   account that has already been emptied.
      *
      * @param array<int,array> $adhocRows
      * @param array<int,array> $regularRows
-     * @param array<int,array> $capitalRows Output of system_fix_tx_parse_capital().
+     * @param array<int,array> $capitalRows Optional override; null = read the view.
      * @return array<string,mixed>
      */
     function system_fix_tx_run_month(
@@ -2533,21 +2845,27 @@ if (!function_exists('system_fix_tx_run_month')) {
         string $periodDate,
         array $adhocRows,
         array $regularRows,
-        array $capitalRows = [],
+        ?array $capitalRows = null,
         bool $updateRoster = true
     ): array {
         $runId = system_fix_tx_period_key($periodDate);
 
         $result = ['period' => $runId];
 
+        // Capital for this month comes from the additional_capital view unless the
+        // caller supplied rows explicitly (used by the "Capital Only" action).
+        if ($capitalRows === null) {
+            $capitalRows = system_fix_tx_capital_rows($conn, $periodDate);
+        }
+
         // 0. Make sure EVERY member who existed in the fund at this time is
         //    present in the sandbox, even those with no adhocs or regulars. Their
         //    history is pulled from production once, before the month is rebuilt.
         $result['sync'] = system_fix_tx_backfill_from_production($conn, $periodDate);
 
-        // 1. Adhocs, terminations and additional capital, posted in DATE ORDER
-        //    so a member's running balance always reflects what existed on the
-        //    date of each transaction.
+        // 1. Capital, adhocs and terminations, posted in DATE ORDER so a member's
+        //    running balance always reflects what existed on the date of each
+        //    transaction.
         $result['adhoc'] = system_fix_tx_stage_adhocs($conn, $runId, $adhocRows, $periodDate, $capitalRows);
         // Capital figures are reported separately for clarity.
         $result['capital'] = [
@@ -2592,7 +2910,7 @@ if (!function_exists('system_fix_tx_run_month_auto')) {
         string $periodDate,
         array $adhocRows,
         array $regularRows,
-        array $capitalRows = []
+        ?array $capitalRows = null
     ): array {
         // Build the schedule on first use so join dates are known.
         $schedule = $conn->query("SELECT COUNT(*) AS c FROM `" . system_fix_tx_schedule_table() . "`")->fetch_assoc();
@@ -3114,11 +3432,21 @@ if (!function_exists('system_fix_tx_stage_interest')) {
             return ['posted' => 0, 'pool' => 0.0, 'source_rows' => $sourceRows, 'total_amount' => 0.0];
         }
 
-        // Denominator and beneficiaries are limited to members still active.
+        // Denominator and beneficiaries are limited to members who are still in
+        // the fund, still have a balance, and are NOT being paid out this month.
         $balances = system_fix_tx_balance_denominator($conn, $runId, $periodDate);
-        $terminated = system_fix_tx_terminated_ids($conn);
+        $terminated = system_fix_tx_terminated_ids($conn, system_fix_tx_period_bounds($periodDate)['end']);
         foreach ($terminated as $memberId) {
             unset($balances[$memberId]);
+        }
+        foreach (system_fix_tx_scheduled_termination_ids($conn, $periodDate) as $memberId) {
+            unset($balances[$memberId]);
+        }
+        // Nothing left in the account means nothing to allocate interest on.
+        foreach (array_keys($balances) as $memberId) {
+            if ((float) $balances[$memberId] <= 0.0) {
+                unset($balances[$memberId]);
+            }
         }
         $totalFunds = array_sum($balances);
 
@@ -3187,18 +3515,24 @@ if (!function_exists('system_fix_tx_balance_denominator')) {
         // based on the true running balances.
         $balances = system_fix_tx_running_balances($conn, $runId);
 
-        // Members on the roster who have no sandbox history yet fall back to
-        // their previous-month closing balance.
-        $active = system_fix_tx_filter_active($conn, system_fix_tx_month_end_ids($conn, $runId, $periodDate));
+        // Members who can still earn interest: not terminated, not being paid out
+        // this month, and holding a positive balance.
+        $active = system_fix_tx_eligible_month_end_ids($conn, $runId, $periodDate);
+        $eligible = [];
         foreach ($active as $memberId) {
             if (!array_key_exists($memberId, $balances)) {
                 $balances[$memberId] = system_fix_tx_base_balance($conn, $runId, $memberId, $periodDate, $balances);
             }
+            if (($balances[$memberId] ?? 0.0) > 0.0) {
+                $eligible[$memberId] = true;
+            }
         }
 
-        // Drop any terminated member that may have been picked up from the ledger.
-        foreach (system_fix_tx_terminated_ids($conn) as $memberId) {
-            unset($balances[$memberId]);
+        // Keep only members actually eligible to receive interest this month.
+        foreach (array_keys($balances) as $memberId) {
+            if (!isset($eligible[$memberId])) {
+                unset($balances[$memberId]);
+            }
         }
 
         return $balances;
