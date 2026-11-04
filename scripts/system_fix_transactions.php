@@ -404,6 +404,34 @@ if (!function_exists('system_fix_tx_clear_run')) {
     }
 }
 
+if (!function_exists('system_fix_tx_clear_all')) {
+    /**
+     * Empty EVERY sandbox table, so a rebuild can start from a clean slate.
+     * Production tables are never touched.
+     *
+     * @return array<string,int> rows deleted, keyed by short table name
+     */
+    function system_fix_tx_clear_all(mysqli $conn): array
+    {
+        $tables = [
+            'transactions' => system_fix_tx_table(),
+            'roster' => system_fix_tx_running_members_table(),
+            'regular' => system_fix_tx_regular_capture_table(),
+            'interest' => system_fix_tx_interest_pool_table(),
+            'terminations' => system_fix_tx_terminations_table(),
+            'schedule' => system_fix_tx_schedule_table(),
+        ];
+
+        $cleared = [];
+        foreach ($tables as $key => $table) {
+            $conn->query("DELETE FROM `{$table}`");
+            $cleared[$key] = (int) $conn->affected_rows;
+        }
+
+        return $cleared;
+    }
+}
+
 if (!function_exists('system_fix_tx_resolve_member')) {
     /**
      * Resolve a CSV MemberNo into the internal tblmembers.MemberID.

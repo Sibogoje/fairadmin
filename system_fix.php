@@ -597,6 +597,29 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_stage_capital', "Staged {$result['posted']} capital rows for {$period}");
                 break;
 
+            case 'clear_all_seed':
+                // Full reset: empty every sandbox table, then re-seed the history
+                // baseline so the rebuild starts from production up to the seed date.
+                // Any in-flight chunked job is dropped first, otherwise its next
+                // step would post rows back into the freshly cleared tables.
+                unset($_SESSION['system_fix_job']);
+
+                $seedBefore = system_fix_tx_normalise_date((string) ($_POST['seed_before'] ?? '')) ?: '2014-05-01';
+                $cleared = system_fix_tx_clear_all($conn);
+                $seed = system_fix_tx_seed_history($conn, $seedBefore);
+
+                $sandboxMessages[] = sprintf(
+                    'Fix database cleared (%s row(s) removed from %d sandbox tables), then seeded: %d history row(s) before %s, %d member(s) on the roster for %s.',
+                    number_format(array_sum($cleared)),
+                    count($cleared),
+                    $seed['inserted'],
+                    $seedBefore,
+                    $seed['members'],
+                    $seed['roster_period']
+                );
+                audit_trail_log($conn, 'system_fix_clear_all_seed', sprintf('Cleared %d sandbox row(s) and seeded %d row(s) before %s', array_sum($cleared), $seed['inserted'], $seedBefore));
+                break;
+
             case 'seed_history':
                 // Copy production history before 2014-05 into the sandbox baseline.
                 $seedBefore = system_fix_tx_normalise_date((string) ($_POST['seed_before'] ?? '')) ?: '2014-05-01';
@@ -1388,6 +1411,13 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                   <i class="bi bi-database-add me-1"></i>Seed History
                 </button>
               </div>
+              <div class="col-md-3 d-grid">
+                <button type="submit" name="action" value="clear_all_seed" class="btn btn-outline-danger"
+                        onclick="return confirm('Clear the ENTIRE fix database (transactionsfix, roster, regulars, interest, terminations, schedule) and then re-seed history before the date selected above?\n\nProduction tables are not touched.');"
+                        <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-trash me-1"></i>Clear Fix DB &amp; Seed
+                </button>
+              </div>
 
               <div class="col-12">
                 <div class="form-text">
@@ -1397,6 +1427,11 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                   <br>
                   Idempotent: any previous seed for the same window is replaced, so it is safe to re-run. Seed first, then
                   start the month run at the seed month (<strong>2014-05-01</strong> is the usual baseline).
+                  <br>
+                  <strong>Clear Fix DB &amp; Seed</strong> does both in one step: it empties
+                  <code>transactionsfix</code>, <code>transactionsfix_members</code>, <code>transactionsfix_regular</code>,
+                  <code>interestfix</code>, <code>transactionsfix_terminations</code> and <code>transactionsfix_schedule</code>,
+                  then seeds the history baseline above. Starting a rebuild from scratch is the usual reason to use it.
                 </div>
               </div>
             </form>
