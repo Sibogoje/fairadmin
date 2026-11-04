@@ -314,6 +314,10 @@ if (!function_exists('system_fix_tx_excluded_sql')) {
      * "AND `<column>` NOT IN (...)" fragment for bulk INSERT ... SELECT and
      * aggregate queries. Returns an empty string when nothing is excluded.
      *
+     * `$column` accepts a bare column name or a qualified one ("m.MemberID");
+     * qualify it whenever the statement joins another table that also exposes
+     * the column, otherwise MySQL reports it as ambiguous.
+     *
      * `$column` is always a column name from this file, never user input.
      */
     function system_fix_tx_excluded_sql(mysqli $conn, string $column = 'memberID'): string
@@ -323,7 +327,12 @@ if (!function_exists('system_fix_tx_excluded_sql')) {
             return '';
         }
 
-        return ' AND `' . $column . '` NOT IN (' . implode(',', array_map('intval', $excluded)) . ')';
+        $qualified = implode('.', array_map(
+            static fn(string $part): string => '`' . $part . '`',
+            explode('.', $column)
+        ));
+
+        return ' AND ' . $qualified . ' NOT IN (' . implode(',', array_map('intval', $excluded)) . ')';
     }
 }
 
@@ -3245,7 +3254,7 @@ if (!function_exists('system_fix_tx_build_schedule')) {
                  WHERE `memberID` > 0
                  GROUP BY `memberID`
              ) a ON a.`memberID` = m.`MemberID`
-             WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'MemberID')
+             WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'm.MemberID')
         );
 
         $count = $conn->query("SELECT COUNT(*) AS c FROM `{$schedule}`")->fetch_assoc();
@@ -3938,7 +3947,7 @@ if (!function_exists('system_fix_tx_recon')) {
                                AND `f`.`TransactionTypeID` = 8
                                AND `f`.`TransactionDate` <= @cutoff_end), 0)   AS `fix_int_total`
                 FROM `tblmembers` `m`
-                WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'MemberID') . "
+                WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'm.MemberID') . "
             ) `t`
             GROUP BY `t`.`MemberNo` WITH ROLLUP
         ) `r`
