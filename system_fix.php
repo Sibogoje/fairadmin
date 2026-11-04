@@ -610,128 +610,6 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_clear_all_seed', sprintf('Cleared %d sandbox row(s) and seeded %d row(s) before %s', array_sum($cleared), $seed['inserted'], $seedBefore));
                 break;
 
-            case 'seed_history':
-                // Copy production history before 2014-05 into the sandbox baseline.
-                $seedBefore = system_fix_tx_normalise_date((string) ($_POST['seed_before'] ?? '')) ?: '2014-05-01';
-                $seed = system_fix_tx_seed_history($conn, $seedBefore);
-                $sandboxMessages[] = sprintf(
-                    'History seeded: %d row(s) copied from tblmemberaccounts before %s (%d previous seed row(s) replaced). %d member(s) added to the roster for %s.',
-                    $seed['inserted'],
-                    $seedBefore,
-                    $seed['deleted'],
-                    $seed['members'],
-                    $seed['roster_period']
-                );
-                audit_trail_log($conn, 'system_fix_seed_history', "Seeded {$seed['inserted']} rows before {$seedBefore}");
-                break;
-
-            case 'run_all_months':
-                // Walk every month between the spreadsheet dates, running the
-                // full month end (adhocs -> regulars -> admin -> fixed -> interest)
-                // so balances carry forward automatically.
-                [$adhocSource, $adhocLabel, $adhocError] = $resolveAdhocSource();
-                if ($adhocSource === '') {
-                    $sandboxErrors[] = $adhocError !== ''
-                        ? $adhocError
-                        : 'Adhocs spreadsheet not found. Upload it and try again.';
-                    break;
-                }
-                $sandboxMessages[] = 'Adhocs loaded from: ' . htmlspecialchars($adhocLabel);
-
-                $regularSource = '';
-                $regularLabel = '';
-                [$regularSource, $regularLabel, $regularError] = $resolveRegularSource();
-                if ($regularSource === '') {
-                    $sandboxErrors[] = $regularError !== ''
-                        ? $regularError
-                        : 'Regulars spreadsheet not found. Upload it and click Run All Months again.';
-                    break;
-                }
-                $sandboxMessages[] = 'Regulars loaded from: ' . htmlspecialchars($regularLabel);
-
-                $adhocParsed = system_fix_tx_parse_csv($adhocSource);
-                $regularParsed = system_fix_tx_parse_csv($regularSource);
-                foreach (array_merge($adhocParsed['errors'], $regularParsed['errors']) as $parseError) {
-                    $sandboxErrors[] = $parseError;
-                }
-
-                if (empty($adhocParsed['rows']) && empty($regularParsed['rows'])) {
-                    $sandboxErrors[] = 'Neither spreadsheet produced any rows.';
-                    break;
-                }
-
-                // Additional capital and terminations are read from their views
-                // for each month, so only the two spreadsheets are needed.
-                $sandboxMessages[] = 'Additional capital and terminations will be read from the <code>additional_capital</code> and <code>terminations</code> views.';
-
-                // The window comes from the adhocs/regulars ONLY.
-                $window = system_fix_tx_run_window(
-                    $adhocParsed['rows'],
-                    $regularParsed['rows'],
-                    (string) ($_POST['run_from_month'] ?? '')
-                );
-                if (empty($window['months'])) {
-                    $sandboxErrors[] = 'No usable dates found in the adhocs/regulars spreadsheets.';
-                    break;
-                }
-
-                $fromMonth = $window['from'];
-                $toMonth = $window['to'];
-                $months = $window['months'];
-
-                $processed = 0;
-                $totalTerminations = 0;
-                $totalTermFee = 0.0;
-                $totalAdhoc = 0.0;
-                $totalRegular = 0.0;
-                $totalCapital = 0.0;
-                $totalCapitalFee = 0.0;
-                $totalCapitalSkipped = 0;
-                $totalAdmin = 0.0;
-                $totalFixed = 0.0;
-                $totalInterest = 0.0;
-                $totalSynced = 0;
-                $totalOpenings = 0;
-
-                foreach ($months as $monthStart) {
-                    $monthEnd = date('Y-m-t', strtotime($monthStart));
-                    $m = system_fix_tx_run_month_auto($conn, $monthEnd, $adhocParsed['rows'], $regularParsed['rows'], null);
-                    $processed++;
-                    $totalTerminations += $m['adhoc']['terminations'] ?? 0;
-                    $totalTermFee += $m['adhoc']['termination_fee'] ?? 0;
-                    $totalAdhoc += $m['adhoc']['total_amount'] ?? 0;
-                    $totalRegular += $m['regular']['total_amount'] ?? 0;
-                    $totalCapital += $m['capital']['total_amount'] ?? 0;
-                    $totalCapitalFee += $m['capital']['total_fee'] ?? 0;
-                    $totalCapitalSkipped += $m['capital']['duplicates'] ?? 0;
-                    $totalAdmin += $m['admin']['total_amount'] ?? 0;
-                    $totalFixed += $m['fixed']['total_amount'] ?? 0;
-                    $totalInterest += $m['interest']['total_amount'] ?? 0;
-                    $totalSynced += $m['sync']['members'] ?? 0;
-                    $totalOpenings += $m['sync']['openings'] ?? 0;
-                }
-
-                $sandboxMessages[] = sprintf(
-                    'Ran %d month(s) from %s to %s. Adhocs E %s, regulars E %s, additional capital E %s (fees E %s, %d already-present row(s) skipped), interest E %s, fixed E %s, admin E %s. %d termination(s), fees E %s. Members synced from production: %d; new opening balances created: %d.',
-                    $processed,
-                    date('F Y', strtotime($fromMonth)),
-                    date('F Y', strtotime($toMonth)),
-                    number_format($totalAdhoc, 2),
-                    number_format($totalRegular, 2),
-                    number_format($totalCapital, 2),
-                    number_format($totalCapitalFee, 2),
-                    $totalCapitalSkipped,
-                    number_format($totalInterest, 2),
-                    number_format($totalFixed, 2),
-                    number_format($totalAdmin, 2),
-                    $totalTerminations,
-                    number_format($totalTermFee, 2),
-                    $totalSynced,
-                    $totalOpenings
-                );
-                audit_trail_log($conn, 'system_fix_run_all_months', "Ran {$processed} months {$fromMonth}..{$toMonth}, capital {$totalCapital}, synced {$totalSynced} members");
-                break;
-
             case 'build_interest_pool':
                 $pool = system_fix_tx_populate_interest_pool($conn, null);
                 $sandboxMessages[] = sprintf(
@@ -1282,14 +1160,9 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 <input type="file" class="form-control" id="regular_xlsx" name="regular_xlsx" accept=".csv,.xlsx">
               </div>
 
-              <div class="col-md-6 d-grid">
+              <div class="col-12 d-grid">
                 <button type="button" id="startJobBtn" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-play-circle me-1"></i>Run All Months
-                </button>
-              </div>
-              <div class="col-md-6 d-grid">
-                <button type="submit" name="action" value="run_all_months" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-hourglass-split me-1"></i>Run All Months (single request)
                 </button>
               </div>
 
@@ -1299,7 +1172,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                   <strong>Only two spreadsheets to upload.</strong>
                   Additional capital (type 9) and terminations are now read from the
                   <code>additional_capital</code> and <code>terminations</code> views, so nothing is uploaded for them.
-                  Seed history <em>once</em>, then upload adhocs and regulars and run.
+                  Clear &amp; seed <em>once</em> below, then upload adhocs and regulars and run.
                 </div>
               </div>
 
@@ -1359,12 +1232,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 <input type="date" class="form-control" id="seed_before" name="seed_before"
                        value="2014-05-01">
               </div>
-              <div class="col-md-3 d-grid">
-                <button type="submit" name="action" value="seed_history" class="btn btn-outline-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
-                  <i class="bi bi-database-add me-1"></i>Seed History
-                </button>
-              </div>
-              <div class="col-md-3 d-grid">
+              <div class="col-md-4 d-grid">
                 <button type="submit" name="action" value="clear_all_seed" class="btn btn-outline-danger"
                         onclick="return confirm('Clear the ENTIRE fix database (transactionsfix, roster, regulars, interest, terminations, schedule) and then re-seed history before the date selected above?\n\nProduction tables are not touched.');"
                         <?= $sandboxTableReady ? '' : 'disabled' ?>>
@@ -1378,8 +1246,9 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                   <code>transactionsfix</code> and adds those members to the roster for the month before it, giving the
                   rebuild a known-good starting balance. Reads production only — nothing is written back.
                   <br>
-                  Idempotent: any previous seed for the same window is replaced, so it is safe to re-run. Seed first, then
-                  start the month run at the seed month (<strong>2014-05-01</strong> is the usual baseline).
+                  Seeding is not a separate step: every full clear re-seeds automatically, and a repeat seed for the same
+                  window replaces the previous one. Start the month run at the seed month (<strong>2014-05-01</strong> is the
+                  usual baseline).
                   <br>
                   <strong>Clear Fix DB &amp; Seed</strong> does both in one step: it empties
                   <code>transactionsfix</code>, <code>transactionsfix_members</code>, <code>transactionsfix_regular</code>,
