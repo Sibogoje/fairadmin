@@ -3171,6 +3171,14 @@ if (!function_exists('system_fix_tx_run_month')) {
         $result['regular'] = system_fix_tx_stage_regular_from_rows($conn, $runId, $regularRows, $periodDate);
 
         // 3. Interest — credited before any fees are deducted.
+        //
+        //    The pool lives in `interestfix` and is derived state, so it can be
+        //    empty (a full clear wipes it, and a run may extend past the months
+        //    already built). Rebuild this month's pool from production when it is
+        //    missing, otherwise the month posts no interest at all.
+        if (system_fix_tx_interest_pool($conn, $periodDate) <= 0.0) {
+            system_fix_tx_populate_interest_pool($conn, $runId);
+        }
         $result['interest'] = system_fix_tx_stage_interest($conn, $runId, $periodDate);
 
         // 4. Fixed monthly fee (Coca-Cola fund members are exempt).

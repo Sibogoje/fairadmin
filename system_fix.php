@@ -597,17 +597,23 @@ if ($action !== '' && $sandboxTableReady) {
                 $seedBefore = system_fix_tx_normalise_date((string) ($_POST['seed_before'] ?? '')) ?: '2014-05-01';
                 $cleared = system_fix_tx_clear_all($conn);
                 $seed = system_fix_tx_seed_history($conn, $seedBefore);
+                // The clear also empties `interestfix`, which holds the interest
+                // pool each month distributes. Rebuild it straight away, otherwise
+                // every run silently posts no interest (type 8).
+                $pool = system_fix_tx_populate_interest_pool($conn, null);
 
                 $sandboxMessages[] = sprintf(
-                    'Fix database cleared (%s row(s) removed from %d sandbox tables), then seeded: %d history row(s) before %s, %d member(s) on the roster for %s.',
+                    'Fix database cleared (%s row(s) removed from %d sandbox tables), then seeded: %d history row(s) before %s, %d member(s) on the roster for %s. Interest pool rebuilt: %d month(s), total E %s.',
                     number_format(array_sum($cleared)),
                     count($cleared),
                     $seed['inserted'],
                     $seedBefore,
                     $seed['members'],
-                    $seed['roster_period']
+                    $seed['roster_period'],
+                    $pool['months'],
+                    number_format($pool['total'], 2)
                 );
-                audit_trail_log($conn, 'system_fix_clear_all_seed', sprintf('Cleared %d sandbox row(s) and seeded %d row(s) before %s', array_sum($cleared), $seed['inserted'], $seedBefore));
+                audit_trail_log($conn, 'system_fix_clear_all_seed', sprintf('Cleared %d sandbox row(s), seeded %d row(s) before %s, rebuilt interest pool: %d months', array_sum($cleared), $seed['inserted'], $seedBefore, $pool['months']));
                 break;
 
             case 'build_interest_pool':
@@ -1253,7 +1259,8 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                   <strong>Clear Fix DB &amp; Seed</strong> does both in one step: it empties
                   <code>transactionsfix</code>, <code>transactionsfix_members</code>, <code>transactionsfix_regular</code>,
                   <code>interestfix</code>, <code>transactionsfix_terminations</code> and <code>transactionsfix_schedule</code>,
-                  then seeds the history baseline above. Starting a rebuild from scratch is the usual reason to use it.
+                  then seeds the history baseline above and rebuilds the interest pool (<code>interestfix</code>) from
+                  production. Starting a rebuild from scratch is the usual reason to use it.
                 </div>
               </div>
             </form>
