@@ -114,32 +114,14 @@ $findSpreadsheetByKeyword = static function (string $keyword) use ($sandboxSprea
 };
 
 /**
- * Pick the adhocs source: an uploaded file wins, else the server dropdown, else
- * the only "adhoc" file on disk.
- *
- * The dropdown choice is cross-checked against the expected keyword: if the
- * chosen file plainly looks like the OTHER spreadsheet (e.g. a regulars file was
- * picked in the adhocs box), the correctly-named file is used instead so an
- * honest mis-selection cannot silently produce an empty stage.
+ * Pick the adhocs source: an uploaded file wins, else the only "adhoc" file on
+ * disk.
  *
  * @return array{0:string, 1:string, 2:string} [path, label, error]
  */
-$resolveAdhocSource = static function () use ($findSpreadsheet, $findSpreadsheetByKeyword): array {
+$resolveAdhocSource = static function () use ($findSpreadsheetByKeyword): array {
     if (!empty($_FILES['adhoc_csv']['tmp_name']) && is_uploaded_file($_FILES['adhoc_csv']['tmp_name'])) {
         return [$_FILES['adhoc_csv']['tmp_name'], (string) ($_FILES['adhoc_csv']['name'] ?? 'uploaded file'), ''];
-    }
-
-    if (!empty($_POST['existing_csv'])) {
-        $chosen = (string) $_POST['existing_csv'];
-        // Wrong spreadsheet in this box? Prefer the adhocs-looking file.
-        if (stripos($chosen, 'regular') !== false && stripos($chosen, 'adhoc') === false) {
-            [$path, $label] = $findSpreadsheetByKeyword('adhoc');
-            if ($path !== '') {
-                return [$path, $label, ''];
-            }
-        }
-
-        return $findSpreadsheet($chosen);
     }
 
     [$path, $label] = $findSpreadsheetByKeyword('adhoc');
@@ -147,27 +129,15 @@ $resolveAdhocSource = static function () use ($findSpreadsheet, $findSpreadsheet
         return [$path, $label, ''];
     }
 
-    return ['', '', 'Choose a CSV file to upload, or pick one of the existing files.'];
+    return ['', '', 'Upload the adhocs spreadsheet, then run again.'];
 };
 
 /**
  * Pick the regulars source the same way.
  */
-$resolveRegularSource = static function () use ($findSpreadsheet, $findSpreadsheetByKeyword): array {
+$resolveRegularSource = static function () use ($findSpreadsheetByKeyword): array {
     if (!empty($_FILES['regular_xlsx']['tmp_name']) && is_uploaded_file($_FILES['regular_xlsx']['tmp_name'])) {
         return [$_FILES['regular_xlsx']['tmp_name'], (string) ($_FILES['regular_xlsx']['name'] ?? 'uploaded regulars'), ''];
-    }
-
-    if (!empty($_POST['existing_regular'])) {
-        $chosen = (string) $_POST['existing_regular'];
-        if (stripos($chosen, 'adhoc') !== false && stripos($chosen, 'regular') === false) {
-            [$path, $label] = $findSpreadsheetByKeyword('regular');
-            if ($path !== '') {
-                return [$path, $label, ''];
-            }
-        }
-
-        return $findSpreadsheet($chosen);
     }
 
     [$path, $label] = $findSpreadsheetByKeyword('regular');
@@ -175,7 +145,7 @@ $resolveRegularSource = static function () use ($findSpreadsheet, $findSpreadshe
         return [$path, $label, ''];
     }
 
-    return ['', '', 'Choose a regulars file to upload, or pick one of the existing files.'];
+    return ['', '', 'Upload the regulars spreadsheet, then run again.'];
 };
 
 /**
@@ -661,13 +631,9 @@ if ($action !== '' && $sandboxTableReady) {
                 // so balances carry forward automatically.
                 [$adhocSource, $adhocLabel, $adhocError] = $resolveAdhocSource();
                 if ($adhocSource === '') {
-                    $adhocGot = (string) ($_POST['existing_csv'] ?? '');
-                    $adhocUpload = $_FILES['adhoc_csv']['name'] ?? '';
-                    $sandboxErrors[] = sprintf(
-                        'Adhocs spreadsheet not found (dropdown="%s", upload="%s"). Pick “JANUARY 2014 - JUNE 2016 ADHOC - done.xlsx” and try again.',
-                        $adhocGot,
-                        $adhocUpload
-                    );
+                    $sandboxErrors[] = $adhocError !== ''
+                        ? $adhocError
+                        : 'Adhocs spreadsheet not found. Upload it and try again.';
                     break;
                 }
                 $sandboxMessages[] = 'Adhocs loaded from: ' . htmlspecialchars($adhocLabel);
@@ -676,13 +642,9 @@ if ($action !== '' && $sandboxTableReady) {
                 $regularLabel = '';
                 [$regularSource, $regularLabel, $regularError] = $resolveRegularSource();
                 if ($regularSource === '') {
-                    $regularGot = (string) ($_POST['existing_regular'] ?? '');
-                    $regularUpload = $_FILES['regular_xlsx']['name'] ?? '';
-                    $sandboxErrors[] = sprintf(
-                        'Regulars spreadsheet not found (dropdown="%s", upload="%s"). Pick “JANUARY 2014 - JUNE 2016 REGULAR - done.xlsx” and click Run All Months again.',
-                        $regularGot,
-                        $regularUpload
-                    );
+                    $sandboxErrors[] = $regularError !== ''
+                        ? $regularError
+                        : 'Regulars spreadsheet not found. Upload it and click Run All Months again.';
                     break;
                 }
                 $sandboxMessages[] = 'Regulars loaded from: ' . htmlspecialchars($regularLabel);
@@ -1052,18 +1014,6 @@ if ($sandboxTableReady) {
     }
 }
 
-$existingCsvFiles = [];
-foreach ($sandboxSpreadsheetFolders as $folder) {
-    $pattern = $folder === '' ? __DIR__ . '/*' : __DIR__ . '/' . $folder . '/*';
-    foreach (glob($pattern) ?: [] as $csvPath) {
-        if (is_file($csvPath) && preg_match('/\.(csv|xlsx)$/i', $csvPath)) {
-            $existingCsvFiles[] = basename($csvPath);
-        }
-    }
-}
-$existingCsvFiles = array_values(array_unique($existingCsvFiles));
-sort($existingCsvFiles);
-
 /**
  * Run a diagnostic query and capture the result in a consistent shape.
  *
@@ -1323,43 +1273,21 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
             <h5 class="card-title">Run All Months</h5>
 
             <form method="post" enctype="multipart/form-data" id="runAllForm" class="row g-3 align-items-end">
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <label class="form-label" for="adhoc_csv_run">Adhocs spreadsheet (upload)</label>
                 <input type="file" class="form-control" id="adhoc_csv_run" name="adhoc_csv" accept=".csv,.xlsx">
               </div>
-              <div class="col-md-4">
-                <label class="form-label" for="existing_csv2">…or adhocs on the server</label>
-                <select class="form-select" id="existing_csv2" name="existing_csv">
-                  <option value="">— none —</option>
-                  <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>" <?= stripos($csvFile, 'adhoc') !== false ? 'selected' : '' ?>><?= htmlspecialchars($csvFile) ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label" for="run_from_month">Start from month <span class="text-muted">(optional)</span></label>
-                <input type="month" class="form-control" id="run_from_month" name="run_from_month" value="">
-              </div>
-
-              <div class="col-md-4">
+              <div class="col-md-6">
                 <label class="form-label" for="regular_xlsx">Regulars spreadsheet (upload)</label>
                 <input type="file" class="form-control" id="regular_xlsx" name="regular_xlsx" accept=".csv,.xlsx">
               </div>
-              <div class="col-md-4">
-                <label class="form-label" for="existing_regular">…or regulars on the server</label>
-                <select class="form-select" id="existing_regular" name="existing_regular">
-                  <option value="">— none —</option>
-                  <?php foreach ($existingCsvFiles as $csvFile): ?>
-                  <option value="<?= htmlspecialchars($csvFile) ?>" <?= stripos($csvFile, 'regular') !== false ? 'selected' : '' ?>><?= htmlspecialchars($csvFile) ?></option>
-                  <?php endforeach; ?>
-                </select>
-              </div>
-              <div class="col-md-4 d-grid">
+
+              <div class="col-md-6 d-grid">
                 <button type="button" id="startJobBtn" class="btn btn-success" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-play-circle me-1"></i>Run All Months
                 </button>
               </div>
-              <div class="col-md-4 d-grid">
+              <div class="col-md-6 d-grid">
                 <button type="submit" name="action" value="run_all_months" class="btn btn-outline-secondary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-hourglass-split me-1"></i>Run All Months (single request)
                 </button>
