@@ -39,6 +39,26 @@ try {
     $sandboxErrors[] = 'Unable to prepare the transactionsfix table: ' . $e->getMessage();
 }
 
+// Members barred from the fix (system_fix_tx_excluded_member_nos) are skipped by
+// every stage, so this only clears rows an earlier build left behind. Runs once
+// per session to avoid re-scanning the sandbox on every page load.
+if ($sandboxTableReady && empty($_SESSION['system_fix_excluded_purged'])) {
+    try {
+        $purged = system_fix_tx_purge_excluded($conn);
+        $_SESSION['system_fix_excluded_purged'] = true;
+        if (!empty($purged)) {
+            $purgedRows = array_sum($purged);
+            $sandboxMessages[] = sprintf(
+                'Removed %d leftover row(s) for the excluded member(s) %s from the fix database.',
+                $purgedRows,
+                implode(', ', system_fix_tx_excluded_member_nos())
+            );
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log('System Fix excluded member purge error: ' . $e->getMessage());
+    }
+}
+
 if (!isset($_SESSION['system_fix_period'])) {
     $_SESSION['system_fix_period'] = date('Y-m-t');
 }
@@ -1368,6 +1388,11 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                     <li><strong>Capital</strong> is credited from the <code>additional_capital</code> view (type 9), with a
                         flat 1% fee (type 5).</li>
                     <li>Any member who is terminated, or whose balance is zero or below, is excluded from every later run.</li>
+                    <li class="text-danger"><strong>Ignored in every transaction:</strong> member no
+                        <?= htmlspecialchars(implode(' and ', system_fix_tx_excluded_member_nos())) ?> — they are skipped in
+                        history seeding, adhocs, capital, terminations, regulars, interest, fees and the schedule/recon views.
+                        Leftover rows from earlier builds are purged automatically; rebuild the interest pool so their share
+                        drops out of the allocation.</li>
                     <li><strong>Run All Months</strong> rebuilds one month per HTTP request, so a long rebuild cannot hit the
                         nginx 504 gateway timeout; leave the page open until it reports it has finished.</li>
                   </ul>

@@ -167,6 +167,166 @@ if (!function_exists('system_fix_tx_cocacola_fund_id')) {
     }
 }
 
+if (!function_exists('system_fix_tx_excluded_member_nos')) {
+    /**
+     * Member numbers that are BARRED from the fix rebuild.
+     *
+     * These accounts must never appear in the sandbox — no history, no adhoc, no
+     * capital, no regular payment, no interest, no fee and no termination — so
+     * every stage skips them. Change this list to add or remove a member; the
+     * helpers below propagate it to all stages.
+     *
+     * @return array<int,string>
+     */
+    function system_fix_tx_excluded_member_nos(): array
+    {
+        return ['269', '1740'];
+    }
+}
+
+if (!function_exists('system_fix_tx_normalise_member_no')) {
+    /**
+     * Normalise a MemberNo for comparison: trim it and drop leading zeros, so
+     * "269", "0269", " 269 " and 269 all compare equal.
+     */
+    function system_fix_tx_normalise_member_no($memberNo): string
+    {
+        $memberNo = trim((string) $memberNo);
+        if ($memberNo === '') {
+            return '';
+        }
+
+        $stripped = ltrim($memberNo, '0');
+
+        // "0" or "0000" is not a member number.
+        return $stripped === '' ? '' : $stripped;
+    }
+}
+
+if (!function_exists('system_fix_tx_is_excluded_member_no')) {
+    /**
+     * Is this MemberNo on the exclusion list?
+     */
+    function system_fix_tx_is_excluded_member_no($memberNo): bool
+    {
+        $normalised = system_fix_tx_normalise_member_no($memberNo);
+        if ($normalised === '') {
+            return false;
+        }
+
+        foreach (system_fix_tx_excluded_member_nos() as $excluded) {
+            if (system_fix_tx_normalise_member_no($excluded) === $normalised) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('system_fix_tx_excluded_member_ids')) {
+    /**
+     * The excluded MemberNos resolved to tblmembers.MemberID, cached per
+     * connection. Empty when the members do not exist.
+     *
+     * @return array<int,int>
+     */
+    function system_fix_tx_excluded_member_ids(mysqli $conn): array
+    {
+        static $cache = [];
+
+        $cacheKey = spl_object_id($conn);
+        if (isset($cache[$cacheKey])) {
+            return $cache[$cacheKey];
+        }
+
+        $ids = [];
+        $numericNos = [];
+        foreach (system_fix_tx_excluded_member_nos() as $memberNo) {
+            $value = (int) system_fix_tx_normalise_member_no($memberNo);
+            if ($value > 0) {
+                $numericNos[] = $value;
+            }
+        }
+
+        if (!empty($numericNos)) {
+            // Values are cast to int above, so inlining them is safe.
+            $list = implode(',', array_unique($numericNos));
+            $result = $conn->query(
+                "SELECT `MemberID` FROM `tblmembers` WHERE CAST(`MemberNo` AS UNSIGNED) IN ({$list})"
+            );
+            if ($result) {
+                while ($row = $result->fetch_assoc()) {
+                    $memberId = (int) $row['MemberID'];
+                    if ($memberId > 0) {
+                        $ids[] = $memberId;
+                    }
+                }
+            }
+        }
+
+        return $cache[$cacheKey] = array_values(array_unique($ids));
+    }
+}
+
+if (!function_exists('system_fix_tx_is_excluded_member_id')) {
+    /**
+     * Is this tblmembers.MemberID on the exclusion list?
+     */
+    function system_fix_tx_is_excluded_member_id(mysqli $conn, int $memberId): bool
+    {
+        if ($memberId <= 0) {
+            return false;
+        }
+
+        return in_array($memberId, system_fix_tx_excluded_member_ids($conn), true);
+    }
+}
+
+if (!function_exists('system_fix_tx_filter_excluded')) {
+    /**
+     * Drop excluded members from a list of MemberIDs.
+     *
+     * @param array<int,int> $ids
+     * @return array<int,int>
+     */
+    function system_fix_tx_filter_excluded(mysqli $conn, array $ids): array
+    {
+        $excluded = system_fix_tx_excluded_member_ids($conn);
+        if (empty($excluded)) {
+            return array_values($ids);
+        }
+
+        $kept = [];
+        foreach ($ids as $memberId) {
+            $memberId = (int) $memberId;
+            if ($memberId > 0 && !in_array($memberId, $excluded, true)) {
+                $kept[] = $memberId;
+            }
+        }
+
+        return $kept;
+    }
+}
+
+if (!function_exists('system_fix_tx_excluded_sql')) {
+    /**
+     * "AND `<column>` NOT IN (...)" fragment for bulk INSERT ... SELECT and
+     * aggregate queries. Returns an empty string when nothing is excluded.
+     *
+     * `$column` is always a column name from this file, never user input.
+     */
+    function system_fix_tx_excluded_sql(mysqli $conn, string $column = 'memberID'): string
+    {
+        $excluded = system_fix_tx_excluded_member_ids($conn);
+        if (empty($excluded)) {
+            return '';
+        }
+
+        return ' AND `' . $column . '` NOT IN (' . implode(',', array_map('intval', $excluded)) . ')';
+    }
+}
+
 if (!function_exists('system_fix_tx_ensure_table')) {
     /**
      * Create the sandbox tables if they do not exist yet.
@@ -349,7 +509,7 @@ if (!function_exists('system_fix_tx_seed_history')) {
              SELECT `TransactionDate`, `TransactionTypeID`, `memberID`, `Details`, `Credit`,
                     `StartingBalance`, `Amount`, `NewBalance`, `Comments`
              FROM `tblmemberaccounts`
-             WHERE `TransactionDate` < ?"
+             WHERE `TransactionDate` < ?" . system_fix_tx_excluded_sql($conn)
         );
         $stmt->bind_param('s', $beforeDate);
         $stmt->execute();
@@ -369,6 +529,7 @@ if (!function_exists('system_fix_tx_seed_history')) {
             $memberIds[] = (int) $row['memberID'];
         }
         $idStmt->close();
+        $memberIds = system_fix_tx_filter_excluded($conn, $memberIds);
         $rosterAdded = system_fix_tx_roster_add($conn, $rosterPeriod, $memberIds, 'seed');
 
         return [
@@ -432,6 +593,49 @@ if (!function_exists('system_fix_tx_clear_all')) {
     }
 }
 
+if (!function_exists('system_fix_tx_purge_excluded')) {
+    /**
+     * Remove any sandbox trace of the excluded members left by an earlier run.
+     *
+     * Every stage already skips them, so no new row can appear; this cleans up
+     * what a previous build wrote. The interest pool is a per-month aggregate
+     * rather than per member, so it must be rebuilt (Build interest pool) for
+     * their share to drop out of the allocation.
+     *
+     * @return array<string,int> rows deleted, keyed by short table name
+     */
+    function system_fix_tx_purge_excluded(mysqli $conn): array
+    {
+        $excluded = system_fix_tx_excluded_member_ids($conn);
+        if (empty($excluded)) {
+            return [];
+        }
+
+        $list = implode(',', array_map('intval', $excluded));
+        $targets = [
+            'transactions' => system_fix_tx_table(),
+            'roster' => system_fix_tx_running_members_table(),
+            'regular' => system_fix_tx_regular_capture_table(),
+            'terminations' => system_fix_tx_terminations_table(),
+            'schedule' => system_fix_tx_schedule_table(),
+        ];
+
+        $deleted = [];
+        foreach ($targets as $key => $table) {
+            try {
+                $conn->query("DELETE FROM `{$table}` WHERE `memberID` IN ({$list})");
+                if ($conn->affected_rows > 0) {
+                    $deleted[$key] = (int) $conn->affected_rows;
+                }
+            } catch (mysqli_sql_exception $e) {
+                error_log("System Fix: unable to purge excluded members from {$table}: " . $e->getMessage());
+            }
+        }
+
+        return $deleted;
+    }
+}
+
 if (!function_exists('system_fix_tx_resolve_member')) {
     /**
      * Resolve a CSV MemberNo into the internal tblmembers.MemberID.
@@ -442,6 +646,10 @@ if (!function_exists('system_fix_tx_resolve_member')) {
      *
      * Mirrors the CAST(... AS UNSIGNED) join used by generate_adhoc_sql.php so
      * that zero-padded MemberNo values (e.g. "001758") still match.
+     *
+     * Members on the exclusion list (system_fix_tx_excluded_member_nos) are still
+     * resolved, but carry `Excluded => true` so callers can skip them with a
+     * clear message instead of posting a transaction.
      */
     function system_fix_tx_resolve_member(mysqli $conn, string $memberNo): ?array
     {
@@ -456,6 +664,11 @@ if (!function_exists('system_fix_tx_resolve_member')) {
         $result = $stmt->get_result();
         $row = $result->fetch_assoc() ?: null;
         $stmt->close();
+
+        if ($row !== null) {
+            $row['Excluded'] = system_fix_tx_is_excluded_member_no($row['MemberNo'])
+                || system_fix_tx_is_excluded_member_no($memberNo);
+        }
 
         return $row;
     }
@@ -813,6 +1026,7 @@ if (!function_exists('system_fix_tx_preview_adhocs')) {
                     'terminated' => null,
                     'amount' => $amount,
                     'resolved' => false,
+                    'excluded' => false,
                 ];
                 continue;
             }
@@ -826,6 +1040,7 @@ if (!function_exists('system_fix_tx_preview_adhocs')) {
                 'terminated' => (int) $member['Terminated'],
                 'amount' => $amount,
                 'resolved' => true,
+                'excluded' => !empty($member['Excluded']),
             ];
         }
 
@@ -1012,7 +1227,7 @@ if (!function_exists('system_fix_tx_scheduled_termination_ids')) {
         try {
             $stmt = $conn->prepare(
                 "SELECT DISTINCT `MemberID` FROM `terminations`
-                 WHERE `TerminationDate` BETWEEN ? AND ?"
+                 WHERE `TerminationDate` BETWEEN ? AND ?" . system_fix_tx_excluded_sql($conn)
             );
             $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
             $stmt->execute();
@@ -1046,7 +1261,7 @@ if (!function_exists('system_fix_tx_termination_rows')) {
             $stmt = $conn->prepare(
                 "SELECT `MemberID`, `MemberNo`, `TerminationDate`, `Amount`
                  FROM `terminations`
-                 WHERE `TerminationDate` BETWEEN ? AND ?
+                 WHERE `TerminationDate` BETWEEN ? AND ?" . system_fix_tx_excluded_sql($conn) . "
                  ORDER BY `TerminationDate` ASC, `MemberID` ASC"
             );
             $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
@@ -1263,6 +1478,13 @@ if (!function_exists('system_fix_tx_stage_adhocs')) {
 
             $memberId = (int) $member['MemberID'];
             $memberNo = (string) $member['MemberNo'];
+
+            // Members barred from the fix are skipped outright.
+            if (!empty($member['Excluded']) || system_fix_tx_is_excluded_member_id($conn, $memberId)) {
+                $skipped[] = "Line {$row['line']}: member {$memberNo} is excluded from the fix and was skipped.";
+                continue;
+            }
+
             $requested = (float) $row['amount'];
             // Type comes from the spreadsheet when present, else Ad Hoc Payment (4).
             $type = (int) ($row['type'] ?? 4);
@@ -1423,6 +1645,12 @@ if (!function_exists('system_fix_tx_post_capital_row')) {
             return $result;
         }
 
+        // Members barred from the fix are never credited.
+        if (!empty($member['Excluded'])) {
+            $result['skipped'] = "Line {$row['line']}: member {$memberNo} is excluded from the fix and was skipped.";
+            return $result;
+        }
+
         // Idempotency: never credit the same row twice when the sheet is re-run.
         //
         // Matching on member/date/amount alone would swallow a member who
@@ -1578,7 +1806,7 @@ if (!function_exists('system_fix_tx_capital_rows')) {
             $stmt = $conn->prepare(
                 "SELECT `MemberID`, `MemberNo`, `TransactionDate`, `Amount`
                  FROM `additional_capital`
-                 WHERE `TransactionDate` BETWEEN ? AND ?
+                 WHERE `TransactionDate` BETWEEN ? AND ?" . system_fix_tx_excluded_sql($conn) . "
                  ORDER BY `TransactionDate` ASC, `MemberID` ASC"
             );
             $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
@@ -1744,9 +1972,17 @@ if (!function_exists('system_fix_tx_insert')) {
      * The sandbox mirrors `tblmemberaccounts` exactly: (TransactionDate,
      * TransactionTypeID, memberID, Details, Credit, StartingBalance, Amount,
      * NewBalance, Comments).
+     *
+     * Excluded members (system_fix_tx_excluded_member_nos) are never written,
+     * whatever stage produced the row: this is the last line of defence so no
+     * sandbox transaction can exist for them.
      */
     function system_fix_tx_insert(mysqli $conn, array $row): void
     {
+        if (system_fix_tx_is_excluded_member_id($conn, (int) ($row['member_id'] ?? 0))) {
+            return;
+        }
+
         $table = system_fix_tx_table();
         $stmt = $conn->prepare(
             "INSERT INTO `{$table}`
@@ -1986,6 +2222,13 @@ if (!function_exists('system_fix_tx_stage_regular_from_rows')) {
 
             $memberId = (int) $member['MemberID'];
             $memberNo = (string) $member['MemberNo'];
+
+            // Members barred from the fix are skipped outright.
+            if (!empty($member['Excluded']) || system_fix_tx_is_excluded_member_id($conn, $memberId)) {
+                $skipped[] = "Line {$row['line']}: member {$memberNo} is excluded from the fix and was skipped.";
+                continue;
+            }
+
             $amount = (float) $row['amount'];
             if ($amount <= 0) {
                 continue;
@@ -2402,7 +2645,8 @@ if (!function_exists('system_fix_tx_scope_ids')) {
         }
         $stmt->close();
 
-        return $ids;
+        // Members barred from the fix never take part in a run.
+        return system_fix_tx_filter_excluded($conn, $ids);
     }
 }
 
@@ -2442,6 +2686,11 @@ if (!function_exists('system_fix_tx_roster_add')) {
 
         foreach (array_unique(array_map('intval', $memberIds)) as $memberId) {
             if ($memberId <= 0) {
+                continue;
+            }
+
+            // Members barred from the fix are not on the roster.
+            if (system_fix_tx_is_excluded_member_id($conn, $memberId)) {
                 continue;
             }
 
@@ -2487,7 +2736,7 @@ if (!function_exists('system_fix_tx_roster_ids')) {
         }
         $stmt->close();
 
-        return $ids;
+        return system_fix_tx_filter_excluded($conn, $ids);
     }
 }
 
@@ -2536,6 +2785,11 @@ if (!function_exists('system_fix_tx_capture_regular')) {
             $memberId = (int) $row['memberID'];
             $amount = (float) $row['amount'];
             $txCount = (int) $row['tx_count'];
+
+            // Members barred from the fix have no regular payment captured.
+            if (system_fix_tx_is_excluded_member_id($conn, $memberId)) {
+                continue;
+            }
 
             $upsert->bind_param('sidis', $period, $memberId, $amount, $txCount, $source);
             $upsert->execute();
@@ -2594,7 +2848,7 @@ if (!function_exists('system_fix_tx_populate_interest_pool')) {
                        COALESCE(SUM(`Amount`), 0) AS pool
                 FROM `tblmemberaccounts`
                 WHERE `TransactionTypeID` = 8
-                  AND `TransactionDate` IS NOT NULL";
+                  AND `TransactionDate` IS NOT NULL" . system_fix_tx_excluded_sql($conn);
         if ($fromMonth !== null && $fromMonth !== '') {
             $sql .= " AND `TransactionDate` >= ?";
         }
@@ -2990,7 +3244,8 @@ if (!function_exists('system_fix_tx_build_schedule')) {
                  FROM `tblmemberaccounts`
                  WHERE `memberID` > 0
                  GROUP BY `memberID`
-             ) a ON a.`memberID` = m.`MemberID`"
+             ) a ON a.`memberID` = m.`MemberID`
+             WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'MemberID')
         );
 
         $count = $conn->query("SELECT COUNT(*) AS c FROM `{$schedule}`")->fetch_assoc();
@@ -3025,7 +3280,7 @@ if (!function_exists('system_fix_tx_schedule_member_ids')) {
         }
         $stmt->close();
 
-        return $ids;
+        return system_fix_tx_filter_excluded($conn, $ids);
     }
 }
 
@@ -3054,6 +3309,12 @@ if (!function_exists('system_fix_tx_backfill_from_production')) {
         if ($memberIds === null) {
             $memberIds = system_fix_tx_schedule_member_ids($conn, $periodDate);
         }
+        if (empty($memberIds)) {
+            return ['members' => 0, 'rows' => 0, 'openings' => 0];
+        }
+
+        // Members barred from the fix are never backfilled.
+        $memberIds = system_fix_tx_filter_excluded($conn, $memberIds);
         if (empty($memberIds)) {
             return ['members' => 0, 'rows' => 0, 'openings' => 0];
         }
@@ -3191,6 +3452,12 @@ if (!function_exists('system_fix_tx_ensure_openings')) {
      */
     function system_fix_tx_ensure_openings(mysqli $conn, string $periodDate, array $memberIds): int
     {
+        if (empty($memberIds)) {
+            return 0;
+        }
+
+        // Members barred from the fix never receive an opening balance.
+        $memberIds = system_fix_tx_filter_excluded($conn, $memberIds);
         if (empty($memberIds)) {
             return 0;
         }
@@ -3671,6 +3938,7 @@ if (!function_exists('system_fix_tx_recon')) {
                                AND `f`.`TransactionTypeID` = 8
                                AND `f`.`TransactionDate` <= @cutoff_end), 0)   AS `fix_int_total`
                 FROM `tblmembers` `m`
+                WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'MemberID') . "
             ) `t`
             GROUP BY `t`.`MemberNo` WITH ROLLUP
         ) `r`
