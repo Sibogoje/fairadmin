@@ -3975,23 +3975,44 @@ if (!function_exists('system_fix_tx_recon')) {
 }
 if (!function_exists('system_fix_tx_consolidated_statement')) {
     /**
-     * Consolidated (all-members) statement for one period, read from the rebuild
-     * in `transactionsfix`.
+     * Consolidated (all-members) statement for a date range, read from the
+     * rebuild in `transactionsfix`.
      *
-     * Opening balance is the balance carried into the month (the closing balance
-     * of the member's last row before the period starts); closing balance is the
-     * balance after the member's last row inside the period. Members with no
-     * balance and no activity in the month are left out, so a settled or dormant
-     * account does not clutter the sheet with zeros.
+     * Opening balance is the balance carried into `$fromDate` (the closing
+     * balance of the member's last row before it); closing balance is the
+     * balance after the member's last row on or before `$toDate`. Members with
+     * no balance and no activity in the range are left out, so a settled or
+     * dormant account does not clutter the sheet with zeros.
      *
-     * @return array{rows:array<int,array<string,mixed>>,total_opening:float,total_closing:float,period:string,label:string,count:int}
+     * When `$toDate` is omitted the range covers the whole month of `$fromDate`.
+     *
+     * @return array{rows:array<int,array<string,mixed>>,total_opening:float,total_closing:float,period:string,label:string,count:int,from:string,to:string}
      */
-    function system_fix_tx_consolidated_statement(mysqli $conn, string $periodDate): array
+    function system_fix_tx_consolidated_statement(mysqli $conn, string $fromDate, ?string $toDate = null): array
     {
         $table = system_fix_tx_table();
-        $bounds = system_fix_tx_period_bounds($periodDate);
-        $start = $conn->real_escape_string($bounds['start']);
-        $end = $conn->real_escape_string($bounds['end']);
+
+        if ($toDate === null || trim($toDate) === '') {
+            // One argument means "the whole month of that date".
+            $from = date('Y-m-01', strtotime($fromDate));
+            $to = date('Y-m-t', strtotime($fromDate));
+        } else {
+            $from = date('Y-m-d', strtotime($fromDate));
+            $to = date('Y-m-d', strtotime($toDate));
+        }
+        if ($to < $from) {
+            [$from, $to] = [$to, $from];
+        }
+
+        // A range that exactly covers one calendar month is labelled by month.
+        $isWholeMonth = $from === date('Y-m-01', strtotime($from))
+            && $to === date('Y-m-t', strtotime($to))
+            && date('Y-m', strtotime($from)) === date('Y-m', strtotime($to));
+
+        $periodLabel = $isWholeMonth ? date('Y-m', strtotime($from)) : $from . ' to ' . $to;
+
+        $start = $conn->real_escape_string($from);
+        $end = $conn->real_escape_string($to);
 
         $sql = "
         SELECT `t`.*
@@ -4026,7 +4047,6 @@ if (!function_exists('system_fix_tx_consolidated_statement')) {
         $rows = [];
         $totalOpening = 0.0;
         $totalClosing = 0.0;
-        $periodKey = system_fix_tx_period_key($bounds['end']);
 
         $result = $conn->query($sql);
         while ($row = $result->fetch_assoc()) {
@@ -4037,7 +4057,7 @@ if (!function_exists('system_fix_tx_consolidated_statement')) {
                 'MemberNo' => (string) $row['MemberNo'],
                 'Name' => (string) $row['Name'],
                 'Surname' => (string) $row['Surname'],
-                'Period' => $periodKey,
+                'Period' => $periodLabel,
                 'OpeningBalance' => $opening,
                 'ClosingBalance' => $closing,
             ];
@@ -4051,8 +4071,12 @@ if (!function_exists('system_fix_tx_consolidated_statement')) {
             'count' => count($rows),
             'total_opening' => round($totalOpening, 2),
             'total_closing' => round($totalClosing, 2),
-            'period' => $bounds['end'],
-            'label' => $bounds['label'],
+            'period' => $periodLabel,
+            'label' => $isWholeMonth
+                ? date('F Y', strtotime($from))
+                : date('j F Y', strtotime($from)) . ' to ' . date('j F Y', strtotime($to)),
+            'from' => $from,
+            'to' => $to,
         ];
     }
 }

@@ -459,29 +459,36 @@ if (($action === 'recon' || $action === 'recon_export') && $sandboxTableReady) {
 
 /**
  * ---------------------------------------------------------------------------
- * CONSOLIDATED STATEMENT (all members, one period, from `transactionsfix`)
+ * CONSOLIDATED STATEMENT (all members, date range, from `transactionsfix`)
  * ---------------------------------------------------------------------------
  * Also handled before the action switch: the export streams a file and must
  * exit before any HTML is written.
  */
-$consolidatedPeriod = (string) ($_POST['consolidated_period'] ?? '');
+$consolidatedDefaultEnd = (string) ($_SESSION['system_fix_period'] ?? '');
+if ($consolidatedDefaultEnd === '' || strtotime($consolidatedDefaultEnd) === false) {
+    $consolidatedDefaultEnd = date('Y-m-t');
+}
+$consolidatedFrom = (string) ($_POST['consolidated_from'] ?? date('Y-m-01', strtotime($consolidatedDefaultEnd)));
+$consolidatedTo = (string) ($_POST['consolidated_to'] ?? date('Y-m-t', strtotime($consolidatedDefaultEnd)));
 $consolidatedData = null;
 $consolidatedError = '';
 $consolidatedRan = false;
 
 if (($action === 'consolidated_preview' || $action === 'consolidated_export') && $sandboxTableReady) {
     try {
-        // A month picker value (YYYY-MM) resolves to that month's last day.
-        $consolidatedEnd = system_fix_tx_normalise_date($consolidatedPeriod);
-        if ($consolidatedEnd === null) {
-            $consolidatedError = 'Choose the period to report on.';
+        $consolidatedFromDate = system_fix_tx_normalise_date($consolidatedFrom);
+        $consolidatedToDate = system_fix_tx_normalise_date($consolidatedTo);
+        if ($consolidatedFromDate === null || $consolidatedToDate === null) {
+            $consolidatedError = 'Choose both the from and the to dates.';
+        } elseif ($consolidatedFromDate > $consolidatedToDate) {
+            $consolidatedError = 'The from date must be on or before the to date.';
         } else {
-            $consolidatedData = system_fix_tx_consolidated_statement($conn, $consolidatedEnd);
+            $consolidatedData = system_fix_tx_consolidated_statement($conn, $consolidatedFromDate, $consolidatedToDate);
             $consolidatedRan = true;
 
             if ($action === 'consolidated_export') {
-                $periodKey = system_fix_tx_period_key($consolidatedEnd);
-                $filename = 'consolidated-statement-' . $periodKey . '.xls';
+                $fileKey = str_replace(' to ', '_to_', (string) $consolidatedData['period']);
+                $filename = 'consolidated-statement-' . $fileKey . '.xls';
 
                 // Excel opens an HTML table when served as .xls — the same
                 // approach used by fund/fundsummaryexcel.php and the recon export.
@@ -1639,13 +1646,17 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
             <h5 class="card-title">Consolidated Statement <small class="text-muted">(all members, from <code>transactionsfix</code>)</small></h5>
 
             <form method="post" class="row g-3 align-items-end" id="consolidatedForm">
-              <div class="col-md-4">
-                <label class="form-label" for="consolidated_period">Period</label>
-                <input type="month" class="form-control" id="consolidated_period" name="consolidated_period"
-                       value="<?= htmlspecialchars($consolidatedPeriod !== '' ? $consolidatedPeriod : date('Y-m')) ?>">
-                <div class="form-text">The month to report on. Balances come from the rebuilt ledger.</div>
+              <div class="col-md-3">
+                <label class="form-label" for="consolidated_from">From date</label>
+                <input type="date" class="form-control" id="consolidated_from" name="consolidated_from"
+                       value="<?= htmlspecialchars($consolidatedFrom) ?>" required>
               </div>
-              <div class="col-md-8 d-flex gap-2">
+              <div class="col-md-3">
+                <label class="form-label" for="consolidated_to">To date</label>
+                <input type="date" class="form-control" id="consolidated_to" name="consolidated_to"
+                       value="<?= htmlspecialchars($consolidatedTo) ?>" required>
+              </div>
+              <div class="col-md-6 d-flex gap-2">
                 <button type="submit" name="action" value="consolidated_preview" class="btn btn-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
                   <i class="bi bi-table me-1"></i>Preview
                 </button>
@@ -1658,9 +1669,11 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
               <div class="col-12">
                 <div class="form-text">
                   One row per member: <strong>MemberNo, Name, Surname, Period, Opening Balance, Closing Balance</strong>.
-                  Opening balance is the balance carried into the month; closing balance is the balance after the member's
-                  last transaction in it. Members with a zero balance and no movement in the month are left out.
-                  Run the rebuild first — an unrebuilt month shows the previous month's closing balance.
+                  Opening balance is the balance carried into the <em>from</em> date; closing balance is the balance after
+                  the member's last transaction up to the <em>to</em> date. A range covering exactly one calendar month is
+                  labelled by month (<code>2026-06</code>), anything else by range. Members with a zero balance and no
+                  movement in the range are left out. Run the rebuild first — an unrebuilt range shows the previous
+                  closing balance.
                 </div>
               </div>
             </form>
@@ -1713,7 +1726,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
               </table>
             </div>
 <?php else: ?>
-            <p class="text-muted mt-3 mb-0">No member has a balance or any movement in <code>transactionsfix</code> for this period.</p>
+            <p class="text-muted mt-3 mb-0">No member has a balance or any movement in <code>transactionsfix</code> for this range.</p>
 <?php endif; ?>
 <?php endif; ?>
           </div>
