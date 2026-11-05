@@ -3973,3 +3973,86 @@ if (!function_exists('system_fix_tx_recon')) {
         return $rows;
     }
 }
+if (!function_exists('system_fix_tx_consolidated_statement')) {
+    /**
+     * Consolidated (all-members) statement for one period, read from the rebuild
+     * in `transactionsfix`.
+     *
+     * Opening balance is the balance carried into the month (the closing balance
+     * of the member's last row before the period starts); closing balance is the
+     * balance after the member's last row inside the period. Members with no
+     * balance and no activity in the month are left out, so a settled or dormant
+     * account does not clutter the sheet with zeros.
+     *
+     * @return array{rows:array<int,array<string,mixed>>,total_opening:float,total_closing:float,period:string,label:string,count:int}
+     */
+    function system_fix_tx_consolidated_statement(mysqli $conn, string $periodDate): array
+    {
+        $table = system_fix_tx_table();
+        $bounds = system_fix_tx_period_bounds($periodDate);
+        $start = $conn->real_escape_string($bounds['start']);
+        $end = $conn->real_escape_string($bounds['end']);
+
+        $sql = "
+        SELECT `t`.*
+        FROM (
+            SELECT
+                `m`.`MemberNo`                                    AS `MemberNo`,
+                `m`.`MemberFirstname`                             AS `Name`,
+                `m`.`MemberSurname`                               AS `Surname`,
+                IFNULL((SELECT `f`.`NewBalance`
+                          FROM `{$table}` `f`
+                         WHERE `f`.`memberID` = `m`.`MemberID`
+                           AND `f`.`TransactionDate` < '{$start}'
+                         ORDER BY `f`.`TransactionDate` DESC, `f`.`accountsID` DESC LIMIT 1), 0) AS `OpeningBalance`,
+                IFNULL((SELECT `f`.`NewBalance`
+                          FROM `{$table}` `f`
+                         WHERE `f`.`memberID` = `m`.`MemberID`
+                           AND `f`.`TransactionDate` <= '{$end}'
+                         ORDER BY `f`.`TransactionDate` DESC, `f`.`accountsID` DESC LIMIT 1), 0) AS `ClosingBalance`,
+                (SELECT COUNT(*)
+                   FROM `{$table}` `f`
+                  WHERE `f`.`memberID` = `m`.`MemberID`
+                    AND `f`.`TransactionDate` >= '{$start}'
+                    AND `f`.`TransactionDate` <= '{$end}')        AS `PeriodRows`
+            FROM `tblmembers` `m`
+            WHERE 1 = 1" . system_fix_tx_excluded_sql($conn, 'm.MemberID') . "
+        ) `t`
+        WHERE `t`.`OpeningBalance` <> 0
+           OR `t`.`ClosingBalance` <> 0
+           OR `t`.`PeriodRows` > 0
+        ORDER BY CAST(`t`.`MemberNo` AS UNSIGNED) ASC, `t`.`MemberNo` ASC";
+
+        $rows = [];
+        $totalOpening = 0.0;
+        $totalClosing = 0.0;
+        $periodKey = system_fix_tx_period_key($bounds['end']);
+
+        $result = $conn->query($sql);
+        while ($row = $result->fetch_assoc()) {
+            $opening = (float) $row['OpeningBalance'];
+            $closing = (float) $row['ClosingBalance'];
+
+            $rows[] = [
+                'MemberNo' => (string) $row['MemberNo'],
+                'Name' => (string) $row['Name'],
+                'Surname' => (string) $row['Surname'],
+                'Period' => $periodKey,
+                'OpeningBalance' => $opening,
+                'ClosingBalance' => $closing,
+            ];
+
+            $totalOpening += $opening;
+            $totalClosing += $closing;
+        }
+
+        return [
+            'rows' => $rows,
+            'count' => count($rows),
+            'total_opening' => round($totalOpening, 2),
+            'total_closing' => round($totalClosing, 2),
+            'period' => $bounds['end'],
+            'label' => $bounds['label'],
+        ];
+    }
+}

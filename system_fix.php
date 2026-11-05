@@ -457,6 +457,78 @@ if (($action === 'recon' || $action === 'recon_export') && $sandboxTableReady) {
     }
 }
 
+/**
+ * ---------------------------------------------------------------------------
+ * CONSOLIDATED STATEMENT (all members, one period, from `transactionsfix`)
+ * ---------------------------------------------------------------------------
+ * Also handled before the action switch: the export streams a file and must
+ * exit before any HTML is written.
+ */
+$consolidatedPeriod = (string) ($_POST['consolidated_period'] ?? '');
+$consolidatedData = null;
+$consolidatedError = '';
+$consolidatedRan = false;
+
+if (($action === 'consolidated_preview' || $action === 'consolidated_export') && $sandboxTableReady) {
+    try {
+        // A month picker value (YYYY-MM) resolves to that month's last day.
+        $consolidatedEnd = system_fix_tx_normalise_date($consolidatedPeriod);
+        if ($consolidatedEnd === null) {
+            $consolidatedError = 'Choose the period to report on.';
+        } else {
+            $consolidatedData = system_fix_tx_consolidated_statement($conn, $consolidatedEnd);
+            $consolidatedRan = true;
+
+            if ($action === 'consolidated_export') {
+                $periodKey = system_fix_tx_period_key($consolidatedEnd);
+                $filename = 'consolidated-statement-' . $periodKey . '.xls';
+
+                // Excel opens an HTML table when served as .xls — the same
+                // approach used by fund/fundsummaryexcel.php and the recon export.
+                header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+                header('Content-Disposition: attachment; filename="' . $filename . '"');
+                header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+                $money = static fn($value): string => number_format((float) $value, 2, '.', '');
+
+                echo "\xEF\xBB\xBF"; // UTF-8 BOM so Excel reads accents correctly
+                echo '<table border="1"><thead><tr>';
+                foreach (['MemberNo', 'Name', 'Surname', 'Period', 'Opening Balance', 'Closing Balance'] as $heading) {
+                    echo '<th>' . htmlspecialchars($heading) . '</th>';
+                }
+                echo '</tr></thead><tbody>';
+
+                foreach ($consolidatedData['rows'] as $row) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($row['MemberNo']) . '</td>';
+                    echo '<td>' . htmlspecialchars($row['Name']) . '</td>';
+                    echo '<td>' . htmlspecialchars($row['Surname']) . '</td>';
+                    echo '<td>' . htmlspecialchars($row['Period']) . '</td>';
+                    echo '<td style="text-align:right;">' . $money($row['OpeningBalance']) . '</td>';
+                    echo '<td style="text-align:right;">' . $money($row['ClosingBalance']) . '</td>';
+                    echo '</tr>';
+                }
+
+                echo '<tr style="font-weight:bold;background:#eee;">';
+                echo '<td colspan="4">GRAND TOTAL (' . $consolidatedData['count'] . ' member(s))</td>';
+                echo '<td style="text-align:right;">' . $money($consolidatedData['total_opening']) . '</td>';
+                echo '<td style="text-align:right;">' . $money($consolidatedData['total_closing']) . '</td>';
+                echo '</tr></tbody></table>';
+
+                audit_trail_log(
+                    $conn,
+                    'system_fix_consolidated_export',
+                    'Exported consolidated statement for ' . $consolidatedData['label'] . ' (' . $consolidatedData['count'] . ' members)'
+                );
+                exit;
+            }
+        }
+    } catch (Throwable $e) {
+        error_log('System Fix consolidated statement error: ' . $e->getMessage());
+        $consolidatedError = 'Consolidated statement failed: ' . $e->getMessage();
+    }
+}
+
 if ($action !== '' && $sandboxTableReady) {
     $periodField = $action === 'stage_capital' ? 'capital_period' : 'period';
     $period = system_fix_tx_normalise_date((string) ($_POST[$periodField] ?? '')) ?: $_SESSION['system_fix_period'];
@@ -467,6 +539,10 @@ if ($action !== '' && $sandboxTableReady) {
             case 'view_statement':
                 // Read-only: nothing to do here, the statement is rendered below
                 // from the selected member's `transactionsfix` rows.
+                break;
+
+            case 'consolidated_preview':
+                // Read-only: the sheet is built before any HTML is written.
                 break;
 
             case 'clear_run':
@@ -992,9 +1068,12 @@ $checkMeta = [
 audit_trail_log($conn, 'system_fix_view', 'Opened System Fix page');
 
 // Which tab to show: the statement tab when previewing a statement, the recon
-// tab after a recon run, else the run tab.
+// tab after a recon run, the consolidated tab after building that sheet, else
+// the run tab.
 if ($action === 'view_statement' || $statementMemberId > 0) {
     $activeTab = 'statement';
+} elseif ($action === 'consolidated_preview' || $action === 'consolidated_export') {
+    $activeTab = 'consolidated';
 } elseif ($action === 'recon' || $action === 'recon_export') {
     $activeTab = 'recon';
 } else {
@@ -1140,6 +1219,13 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 data-bs-toggle="tab" data-bs-target="#tab-statement" type="button" role="tab"
                 aria-controls="tab-statement" aria-selected="<?= $activeTab === 'statement' ? 'true' : 'false' ?>">
           <i class="bi bi-file-earmark-text me-1"></i>Statements
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $activeTab === 'consolidated' ? 'active' : '' ?>" id="tab-consolidated-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-consolidated" type="button" role="tab"
+                aria-controls="tab-consolidated" aria-selected="<?= $activeTab === 'consolidated' ? 'true' : 'false' ?>">
+          <i class="bi bi-file-earmark-spreadsheet me-1"></i>Consolidated
         </button>
       </li>
     </ul>
@@ -1541,6 +1627,101 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
     </div>
 
       </div><!-- /#tab-statement -->
+
+      <!-- ============ TAB: CONSOLIDATED ============ -->
+      <div class="tab-pane fade <?= $activeTab === 'consolidated' ? 'show active' : '' ?>" id="tab-consolidated"
+           role="tabpanel" aria-labelledby="tab-consolidated-btn" tabindex="0">
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Consolidated Statement <small class="text-muted">(all members, from <code>transactionsfix</code>)</small></h5>
+
+            <form method="post" class="row g-3 align-items-end" id="consolidatedForm">
+              <div class="col-md-4">
+                <label class="form-label" for="consolidated_period">Period</label>
+                <input type="month" class="form-control" id="consolidated_period" name="consolidated_period"
+                       value="<?= htmlspecialchars($consolidatedPeriod !== '' ? $consolidatedPeriod : date('Y-m')) ?>">
+                <div class="form-text">The month to report on. Balances come from the rebuilt ledger.</div>
+              </div>
+              <div class="col-md-8 d-flex gap-2">
+                <button type="submit" name="action" value="consolidated_preview" class="btn btn-primary" <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-table me-1"></i>Preview
+                </button>
+                <button type="submit" name="action" value="consolidated_export" class="btn btn-outline-success"
+                        formnovalidate <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-file-earmark-excel me-1"></i>Download Spreadsheet
+                </button>
+              </div>
+
+              <div class="col-12">
+                <div class="form-text">
+                  One row per member: <strong>MemberNo, Name, Surname, Period, Opening Balance, Closing Balance</strong>.
+                  Opening balance is the balance carried into the month; closing balance is the balance after the member's
+                  last transaction in it. Members with a zero balance and no movement in the month are left out.
+                  Run the rebuild first — an unrebuilt month shows the previous month's closing balance.
+                </div>
+              </div>
+            </form>
+
+<?php if ($consolidatedError !== ''): ?>
+            <div class="alert alert-danger mt-3 mb-0" role="alert"><?= htmlspecialchars($consolidatedError) ?></div>
+<?php endif; ?>
+
+<?php if ($consolidatedRan && $consolidatedData !== null): ?>
+            <div class="alert alert-info mt-3" role="alert">
+              <i class="bi bi-info-circle me-1"></i>
+              <strong><?= htmlspecialchars($consolidatedData['label']) ?></strong>:
+              <?= number_format($consolidatedData['count']) ?> member(s), opening total
+              <strong>E <?= htmlspecialchars(number_format($consolidatedData['total_opening'], 2)) ?></strong>, closing total
+              <strong>E <?= htmlspecialchars(number_format($consolidatedData['total_closing'], 2)) ?></strong>.
+            </div>
+
+<?php if (!empty($consolidatedData['rows'])): ?>
+            <div class="table-responsive mt-3" style="max-height: 520px; overflow-y: auto;">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                  <tr>
+                    <th scope="col">MemberNo</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Surname</th>
+                    <th scope="col">Period</th>
+                    <th scope="col" class="text-end">Opening Balance</th>
+                    <th scope="col" class="text-end">Closing Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+<?php foreach ($consolidatedData['rows'] as $cRow): ?>
+                  <tr>
+                    <th scope="row"><?= htmlspecialchars($cRow['MemberNo']) ?></th>
+                    <td><?= htmlspecialchars($cRow['Name']) ?></td>
+                    <td><?= htmlspecialchars($cRow['Surname']) ?></td>
+                    <td><?= htmlspecialchars($cRow['Period']) ?></td>
+                    <td class="text-end"><?= htmlspecialchars(number_format($cRow['OpeningBalance'], 2)) ?></td>
+                    <td class="text-end"><?= htmlspecialchars(number_format($cRow['ClosingBalance'], 2)) ?></td>
+                  </tr>
+<?php endforeach; ?>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr style="font-weight:bold;">
+                    <td colspan="4">Grand total (<?= number_format($consolidatedData['count']) ?> member(s))</td>
+                    <td class="text-end"><?= htmlspecialchars(number_format($consolidatedData['total_opening'], 2)) ?></td>
+                    <td class="text-end"><?= htmlspecialchars(number_format($consolidatedData['total_closing'], 2)) ?></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+<?php else: ?>
+            <p class="text-muted mt-3 mb-0">No member has a balance or any movement in <code>transactionsfix</code> for this period.</p>
+<?php endif; ?>
+<?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      </div><!-- /#tab-consolidated -->
 
     </div><!-- /#systemFixTabsContent -->
   </section>
