@@ -4243,6 +4243,10 @@ if (!function_exists('system_fix_tx_parse_impairment')) {
      * Column order does not matter; when the header matches nothing, the first
      * column is read as the member number and the second as the impairment.
      *
+     * An impairment always reduces a balance, so the figures may arrive either
+     * positive or negative (`-3.99` and `3.99` both mean "take 3.99"). The sign
+     * is ignored and the magnitude is used.
+     *
      * @return array{rows:array<int,array{line:int,member_no:string,impairment:float}>, errors:array<int,string>}
      */
     function system_fix_tx_parse_impairment(string $filePath): array
@@ -4258,7 +4262,8 @@ if (!function_exists('system_fix_tx_parse_impairment')) {
         }
 
         $memberIdx = $map['memberno'] ?? $map['member'] ?? $map['memberid'] ?? 0;
-        $impairmentIdx = $map['impairment'] ?? $map['impairments'] ?? $map['impairmentamount'] ?? $map['amount'] ?? 1;
+        $impairmentIdx = $map['impairment'] ?? $map['impairments'] ?? $map['impairmentamount']
+            ?? $map['amount'] ?? ($memberIdx === 0 ? 1 : 0);
 
         $rows = [];
         $errors = [];
@@ -4283,7 +4288,7 @@ if (!function_exists('system_fix_tx_parse_impairment')) {
             $rows[] = [
                 'line' => $lineNo,
                 'member_no' => $memberNo,
-                'impairment' => round((float) $rawImpairment, 2),
+                'impairment' => round(abs((float) $rawImpairment), 2),
             ];
         }
 
@@ -4416,7 +4421,6 @@ if (!function_exists('system_fix_tx_apply_impairment')) {
                 }
 
                 $before = system_fix_tx_balance_at($conn, $memberId, $date);
-                $after = round($before - $impairment, 2);
 
                 // The member can never be left owing money: when the impairment
                 // is larger than the balance it is capped there, so a member
