@@ -4335,10 +4335,14 @@ if (!function_exists('system_fix_tx_apply_impairment')) {
      *
      * For EVERY row on the sheet:
      *   balance_before = member's sandbox balance as at $date
-     *   balance_after  = balance_before - impairment        (may go negative)
+     *   applied        = min(impairment, balance_before), never below zero
+     *   balance_after  = balance_before - applied   (0.00 when the impairment
+     *                    exceeds the balance, e.g. 90 - 100 = 0.00 with 90 applied)
      *
      * `transactionsfix_impairment` always receives the row, even when the member
-     * has nothing left to take.
+     * has nothing to take (balance_before <= 0), so every member on the sheet is
+     * visible. `Impairment` keeps the full amount asked for; `AppliedAmount`
+     * records what could actually be taken.
      *
      * `transactionsfix` receives a debit ONLY when balance_before is above zero,
      * capped at that balance so the ledger can never go negative:
@@ -4414,12 +4418,15 @@ if (!function_exists('system_fix_tx_apply_impairment')) {
                 $before = system_fix_tx_balance_at($conn, $memberId, $date);
                 $after = round($before - $impairment, 2);
 
-                // The ledger cannot go negative, so the debit taken from it is
-                // limited to what the member actually holds.
+                // The member can never be left owing money: when the impairment
+                // is larger than the balance it is capped there, so a member
+                // with 90 impaired by 100 ends at 0.00 holding an impairment of
+                // 90.00 (the shortfall stays visible in `Impairment`).
                 $applied = $before > 0 ? round(min($impairment, $before), 2) : 0.0;
+                $after = round($before - $applied, 2);
                 $posted = $applied > 0 ? 1 : 0;
 
-                if ($after < 0) {
+                if ($applied < $impairment || $before <= 0) {
                     $result['negatives']++;
                 }
 

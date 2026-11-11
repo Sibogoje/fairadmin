@@ -708,7 +708,7 @@ if ($action !== '' && $sandboxTableReady) {
                 }
 
                 $sandboxMessages[] = sprintf(
-                    'Impairments applied from %s as at %s: %d member(s) written to transactionsfix_impairment for %s, total E %s impaired, E %s debited to transactionsfix as %d ledger row(s), %d member(s) left at or below zero. Any earlier impairment for %s was replaced (%d table row(s), %d ledger row(s) removed).',
+                    'Impairments applied from %s as at %s: %d member(s) written to transactionsfix_impairment for %s, total E %s impaired, E %s debited to transactionsfix as %d ledger row(s), %d member(s) capped at their balance or with nothing to take. Any earlier impairment for %s was replaced (%d table row(s), %d ledger row(s) removed).',
                     htmlspecialchars($impairmentLabel),
                     $impairmentDate,
                     $impairmentResult['rows'],
@@ -1654,8 +1654,8 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
               <h6 class="alert-heading"><i class="bi bi-info-circle me-1"></i>How this works</h6>
               <ul class="mb-0 ps-3">
                 <li>For each member on the sheet the balance is read from <code>transactionsfix</code> as at the date above &mdash; the sheet's own figures are never used.</li>
-                <li><code>transactionsfix_impairment</code> records every member on the sheet: <em>BalanceBefore</em>, <em>Impairment</em> and <em>BalanceAfter</em>. This working table <strong>may go negative</strong>.</li>
-                <li>A debit is posted to <code>transactionsfix</code> (type <strong>13 &mdash; Impairment</strong>, details <code>Impairment</code>, comment <code>Impairment of &lt;amount&gt; Applied</code>) <strong>only for members with a balance above zero</strong>, and is capped at that balance so the ledger can never go negative.</li>
+                <li><code>transactionsfix_impairment</code> records every member on the sheet: <em>BalanceBefore</em>, <em>Impairment</em> and <em>BalanceAfter</em>. <em>Impairment</em> keeps the full amount asked for while <em>BalanceAfter</em> stops at <strong>0.00</strong> &mdash; a member holding 90 impaired by 100 is taken down to zero with 90 applied, never to &minus;10.</li>
+                <li>A debit is posted to <code>transactionsfix</code> (type <strong>13 &mdash; Impairment</strong>, details <code>Impairment</code>, comment <code>Impairment of &lt;amount&gt; Applied</code>) <strong>only for members with a balance above zero</strong>, capped at that balance so the ledger can never go negative.</li>
                 <li>Re-applying the same month replaces the previous impairment rows and ledger entries for that month. Apply impairments <strong>after</strong> the month's run is final.</li>
               </ul>
             </div>
@@ -1690,9 +1690,9 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
               </div>
               <div class="col-6 col-lg-3">
                 <div class="card border-0 bg-light h-100"><div class="card-body py-3">
-                  <div class="text-muted small">At or below zero</div>
-                  <div class="fs-4 <?= $impairmentTotals['negatives'] > 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($impairmentTotals['negatives']) ?></div>
-                  <div class="small text-muted">not posted to the ledger</div>
+                  <div class="text-muted small">Capped / nothing to take</div>
+                  <div class="fs-4 <?= $impairmentTotals['negatives'] > 0 ? 'text-warning' : 'text-success' ?>"><?= number_format($impairmentTotals['negatives']) ?></div>
+                  <div class="small text-muted">taken only as far as the balance</div>
                 </div></div>
               </div>
             </div>
@@ -1714,14 +1714,21 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
 <?php foreach ($impairmentRows as $impairmentRow): ?>
 <?php
     $impAfter = (float) $impairmentRow['BalanceAfter'];
+    $impAsked = (float) $impairmentRow['Impairment'];
     $impApplied = (float) $impairmentRow['AppliedAmount'];
     $impPosted = (int) $impairmentRow['Posted'] === 1;
+    $impCapped = $impApplied < $impAsked;
 ?>
                 <tr>
                   <th scope="row"><?= htmlspecialchars((string) $impairmentRow['MemberNo']) ?></th>
                   <td class="text-end"><?= number_format((float) $impairmentRow['BalanceBefore'], 2) ?></td>
-                  <td class="text-end"><?= number_format((float) $impairmentRow['Impairment'], 2) ?></td>
-                  <td class="text-end <?= $impAfter < 0 ? 'text-danger fw-bold' : '' ?>"><?= number_format($impAfter, 2) ?></td>
+                  <td class="text-end">
+                    <?= number_format($impAsked, 2) ?>
+<?php if ($impCapped): ?>
+                    <i class="bi bi-scissors text-warning" title="Capped at the available balance"></i>
+<?php endif; ?>
+                  </td>
+                  <td class="text-end <?= $impApplied > 0 ? 'text-danger fw-bold' : '' ?>"><?= number_format($impAfter, 2) ?></td>
                   <td class="text-end"><?= number_format($impApplied, 2) ?></td>
                   <td>
 <?php if ($impPosted): ?>
