@@ -143,6 +143,22 @@ if (!function_exists('system_fix_tx_schedule_table')) {
     }
 }
 
+if (!function_exists('system_fix_tx_impairment_table')) {
+    /**
+     * Standalone impairment working table.
+     *
+     * One row per member on the uploaded impairment sheet, holding the balance
+     * BEFORE the impairment, the impairment itself and the resulting balance
+     * AFTER it. Unlike `transactionsfix`, this table is allowed to go negative:
+     * it is the true record of what the impairment does to the member, even when
+     * the fund balance is not enough to absorb it.
+     */
+    function system_fix_tx_impairment_table(): string
+    {
+        return 'transactionsfix_impairment';
+    }
+}
+
 if (!function_exists('system_fix_tx_termination_fee_percent')) {
     /**
      * Termination fee percentage (1%). All 736 members carry
@@ -345,6 +361,7 @@ if (!function_exists('system_fix_tx_ensure_table')) {
      *   transactionsfix_regular  — captured regular-payment amounts per member/month
      *   interestfix              — summed interest pool (type 8) per month/year
      *   transactionsfix_schedule — member ledger schedule (join date + capital movements)
+     *   transactionsfix_impairment — uploaded impairments with before/after balances
      *
      * All are sandbox objects; production tables are read-only.
      */
@@ -356,6 +373,7 @@ if (!function_exists('system_fix_tx_ensure_table')) {
         $interestTable = system_fix_tx_interest_pool_table();
         $termTable = system_fix_tx_terminations_table();
         $scheduleTable = system_fix_tx_schedule_table();
+        $impairmentTable = system_fix_tx_impairment_table();
 
         $sql = "CREATE TABLE IF NOT EXISTS `{$table}` (
             `accountsID` INT(10) NOT NULL AUTO_INCREMENT,
@@ -441,12 +459,31 @@ if (!function_exists('system_fix_tx_ensure_table')) {
             KEY `idx_schedule_joined` (`DateJoined`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
 
+        $impairmentSql = "CREATE TABLE IF NOT EXISTS `{$impairmentTable}` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `RunID` CHAR(7) NOT NULL,
+            `TransactionDate` DATE NULL,
+            `MemberNo` VARCHAR(20) NOT NULL,
+            `memberID` INT NULL,
+            `BalanceBefore` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `Impairment` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `BalanceAfter` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `AppliedAmount` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `Posted` TINYINT(1) NOT NULL DEFAULT 0,
+            `Source` VARCHAR(80) NULL,
+            `CreatedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            KEY `idx_impairment_run` (`RunID`),
+            KEY `idx_impairment_member` (`memberID`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
         return (bool) $conn->query($sql)
             && (bool) $conn->query($membersSql)
             && (bool) $conn->query($regularSql)
             && (bool) $conn->query($interestSql)
             && (bool) $conn->query($termSql)
-            && (bool) $conn->query($scheduleSql);
+            && (bool) $conn->query($scheduleSql)
+            && (bool) $conn->query($impairmentSql);
     }
 }
 
@@ -570,6 +607,14 @@ if (!function_exists('system_fix_tx_clear_run')) {
         $deleted = $stmt->affected_rows;
         $stmt->close();
 
+        // The impairment working rows for this month describe balances that no
+        // longer exist once the month is cleared, so drop them as well.
+        $impairmentTable = system_fix_tx_impairment_table();
+        $stmt = $conn->prepare("DELETE FROM `{$impairmentTable}` WHERE `RunID` = ?");
+        $stmt->bind_param('s', $period);
+        $stmt->execute();
+        $stmt->close();
+
         return $deleted;
     }
 }
@@ -590,6 +635,7 @@ if (!function_exists('system_fix_tx_clear_all')) {
             'interest' => system_fix_tx_interest_pool_table(),
             'terminations' => system_fix_tx_terminations_table(),
             'schedule' => system_fix_tx_schedule_table(),
+            'impairment' => system_fix_tx_impairment_table(),
         ];
 
         $cleared = [];
@@ -627,6 +673,7 @@ if (!function_exists('system_fix_tx_purge_excluded')) {
             'regular' => system_fix_tx_regular_capture_table(),
             'terminations' => system_fix_tx_terminations_table(),
             'schedule' => system_fix_tx_schedule_table(),
+            'impairment' => system_fix_tx_impairment_table(),
         ];
 
         $deleted = [];
@@ -929,9 +976,23 @@ if (!function_exists('system_fix_tx_xlsx_rows')) {
                 $colIndex--;
 
                 $type = (string) $c['t'];
-                $value = (string) $c->v;
-                if ($type === 's') {
-                    $value = $shared[(int) $value] ?? '';
+                if ($type === 'inlineStr') {
+                    // Some writers (openpyxl, Google Sheets, newer Excel) store
+                    // text inline instead of in xl/sharedStrings.xml.
+                    $value = '';
+                    foreach ($c->is->t as $inlineText) {
+                        $value .= (string) $inlineText;
+                    }
+                    if ($value === '' && isset($c->is->r)) {
+                        foreach ($c->is->r as $run) {
+                            $value .= (string) $run->t;
+                        }
+                    }
+                } else {
+                    $value = (string) $c->v;
+                    if ($type === 's') {
+                        $value = $shared[(int) $value] ?? '';
+                    }
                 }
 
                 $cells[$colIndex] = $value;
@@ -4078,5 +4139,361 @@ if (!function_exists('system_fix_tx_consolidated_statement')) {
             'from' => $from,
             'to' => $to,
         ];
+    }
+}
+
+/* =========================================================================
+ * IMPAIRMENT
+ * =========================================================================
+ * The impairment sheet lists MemberNo + Impairment for members whose fund
+ * balance must be written down. Two things happen for every row:
+ *
+ *   1. `transactionsfix_impairment` records balance before, the impairment and
+ *      balance after — for EVERY member on the sheet, including those whose
+ *      balance is already zero or would go negative.
+ *   2. `transactionsfix` receives a debit (type 13, Details 'Impairment') only
+ *      when the member actually has a balance above zero. The debit is capped
+ *      at that balance, because the ledger must never go negative; the working
+ *      table keeps the true (possibly negative) figure.
+ * ========================================================================= */
+
+if (!function_exists('system_fix_tx_balance_at')) {
+    /**
+     * Sandbox balance for a member as at a date (inclusive) — the NewBalance of
+     * their last `transactionsfix` row on or before that date.
+     *
+     * Falls back the same way system_fix_tx_base_balance() does when the sandbox
+     * holds nothing for the member yet: previous month in tblmemberaccounts,
+     * then the production `balances` figure.
+     */
+    function system_fix_tx_balance_at(mysqli $conn, int $memberId, string $date): float
+    {
+        $table = system_fix_tx_table();
+        $stmt = $conn->prepare(
+            "SELECT `NewBalance` FROM `{$table}`
+             WHERE `memberID` = ? AND `TransactionDate` <= ?
+             ORDER BY `TransactionDate` DESC, `accountsID` DESC
+             LIMIT 1"
+        );
+        $stmt->bind_param('is', $memberId, $date);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc() ?: null;
+        $stmt->close();
+
+        if ($row !== null) {
+            return round((float) $row['NewBalance'], 2);
+        }
+
+        $prior = system_fix_tx_prior_month_balance($conn, $memberId, $date);
+        if ($prior !== null) {
+            return round($prior, 2);
+        }
+
+        return round(system_fix_tx_member_balance($conn, $memberId), 2);
+    }
+}
+
+if (!function_exists('system_fix_tx_spreadsheet_rows')) {
+    /**
+     * Read a spreadsheet (CSV or .xlsx) into a header row plus data rows.
+     *
+     * @return array{header:array<int,string>, rows:array<int,array<int,string>>, errors:array<int,string>}
+     */
+    function system_fix_tx_spreadsheet_rows(string $filePath): array
+    {
+        if (preg_match('/\.xlsx$/i', $filePath) || system_fix_tx_looks_like_xlsx($filePath)) {
+            $read = system_fix_tx_xlsx_rows($filePath);
+            if (!empty($read['errors'])) {
+                return ['header' => [], 'rows' => [], 'errors' => $read['errors']];
+            }
+
+            $all = $read['rows'];
+            if (empty($all)) {
+                return ['header' => [], 'rows' => [], 'errors' => ['The spreadsheet is empty.']];
+            }
+
+            $header = array_shift($all);
+            return ['header' => $header, 'rows' => $all, 'errors' => []];
+        }
+
+        if (($handle = fopen($filePath, 'r')) === false) {
+            return ['header' => [], 'rows' => [], 'errors' => ['Unable to open the uploaded file.']];
+        }
+
+        $header = fgetcsv($handle, 0, ',') ?: [];
+        $rows = [];
+        while (($data = fgetcsv($handle, 0, ',')) !== false) {
+            $rows[] = $data;
+        }
+        fclose($handle);
+
+        if (empty($header)) {
+            return ['header' => [], 'rows' => [], 'errors' => ['The spreadsheet is empty.']];
+        }
+
+        return ['header' => $header, 'rows' => $rows, 'errors' => []];
+    }
+}
+
+if (!function_exists('system_fix_tx_parse_impairment')) {
+    /**
+     * Parse the IMPAIRMENT spreadsheet.
+     *
+     * Expected headers: `MemberNo` (Member No / Member) and `Impairment`.
+     * Column order does not matter; when the header matches nothing, the first
+     * column is read as the member number and the second as the impairment.
+     *
+     * @return array{rows:array<int,array{line:int,member_no:string,impairment:float}>, errors:array<int,string>}
+     */
+    function system_fix_tx_parse_impairment(string $filePath): array
+    {
+        $read = system_fix_tx_spreadsheet_rows($filePath);
+        if (!empty($read['errors'])) {
+            return ['rows' => [], 'errors' => $read['errors']];
+        }
+
+        $map = [];
+        foreach ($read['header'] as $index => $name) {
+            $map[strtolower(preg_replace('/[^a-z0-9]+/i', '', (string) $name))] = $index;
+        }
+
+        $memberIdx = $map['memberno'] ?? $map['member'] ?? $map['memberid'] ?? 0;
+        $impairmentIdx = $map['impairment'] ?? $map['impairments'] ?? $map['impairmentamount'] ?? $map['amount'] ?? 1;
+
+        $rows = [];
+        $errors = [];
+        $lineNo = 1;
+
+        foreach ($read['rows'] as $data) {
+            $lineNo++;
+
+            $memberNo = trim((string) ($data[$memberIdx] ?? ''));
+            // Strip currency symbols, thousands separators and spaces.
+            $rawImpairment = preg_replace('/[^0-9.\-]/', '', (string) ($data[$impairmentIdx] ?? ''));
+
+            if ($memberNo === '' && $rawImpairment === '') {
+                continue; // blank line
+            }
+
+            if ($memberNo === '' || !is_numeric($rawImpairment)) {
+                $errors[] = "Line {$lineNo}: skipped (MemberNo/Impairment could not be read).";
+                continue;
+            }
+
+            $rows[] = [
+                'line' => $lineNo,
+                'member_no' => $memberNo,
+                'impairment' => round((float) $rawImpairment, 2),
+            ];
+        }
+
+        if (empty($rows) && empty($errors)) {
+            $errors[] = 'No impairment rows were found in the file.';
+        }
+
+        return ['rows' => $rows, 'errors' => $errors];
+    }
+}
+
+if (!function_exists('system_fix_tx_clear_impairment')) {
+    /**
+     * Remove a run's impairments from BOTH tables, so re-uploading the same
+     * sheet replaces the previous result instead of debiting twice.
+     *
+     * @return array{rows:int, transactions:int}
+     */
+    function system_fix_tx_clear_impairment(mysqli $conn, string $runId): array
+    {
+        $impairmentTable = system_fix_tx_impairment_table();
+        $table = system_fix_tx_table();
+        $period = substr($runId, 0, 7);
+        $bounds = system_fix_tx_period_bounds($period . '-01');
+
+        $stmt = $conn->prepare("DELETE FROM `{$impairmentTable}` WHERE `RunID` = ?");
+        $stmt->bind_param('s', $period);
+        $stmt->execute();
+        $rows = (int) $stmt->affected_rows;
+        $stmt->close();
+
+        $stmt = $conn->prepare(
+            "DELETE FROM `{$table}`
+             WHERE `TransactionTypeID` = 13 AND `Details` = 'Impairment'
+               AND `TransactionDate` BETWEEN ? AND ?"
+        );
+        $stmt->bind_param('ss', $bounds['start'], $bounds['end']);
+        $stmt->execute();
+        $transactions = (int) $stmt->affected_rows;
+        $stmt->close();
+
+        return ['rows' => $rows, 'transactions' => $transactions];
+    }
+}
+
+if (!function_exists('system_fix_tx_apply_impairment')) {
+    /**
+     * Apply an impairment sheet as at a date.
+     *
+     * For EVERY row on the sheet:
+     *   balance_before = member's sandbox balance as at $date
+     *   balance_after  = balance_before - impairment        (may go negative)
+     *
+     * `transactionsfix_impairment` always receives the row, even when the member
+     * has nothing left to take.
+     *
+     * `transactionsfix` receives a debit ONLY when balance_before is above zero,
+     * capped at that balance so the ledger can never go negative:
+     *   TransactionTypeID 13, Details 'Impairment',
+     *   Comments 'Impairment of <amount applied> Applied'.
+     *
+     * @param array<int,array> $rows Output of system_fix_tx_parse_impairment().
+     * @return array{run_id:string, rows:int, posted:int, negatives:int,
+     *               total_impairment:float, total_applied:float,
+     *               skipped:array<int,string>, cleared:array{rows:int,transactions:int}}
+     */
+    function system_fix_tx_apply_impairment(
+        mysqli $conn,
+        array $rows,
+        string $date,
+        string $source = ''
+    ): array {
+        $runId = system_fix_tx_period_key($date);
+        $impairmentTable = system_fix_tx_impairment_table();
+
+        $result = [
+            'run_id' => $runId,
+            'rows' => 0,
+            'posted' => 0,
+            'negatives' => 0,
+            'total_impairment' => 0.0,
+            'total_applied' => 0.0,
+            'skipped' => [],
+            'cleared' => system_fix_tx_clear_impairment($conn, $runId),
+        ];
+
+        $insert = $conn->prepare(
+            "INSERT INTO `{$impairmentTable}`
+                (`RunID`, `TransactionDate`, `MemberNo`, `memberID`, `BalanceBefore`,
+                 `Impairment`, `BalanceAfter`, `AppliedAmount`, `Posted`, `Source`)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+
+        $seen = [];
+
+        try {
+            foreach ($rows as $row) {
+                $memberNo = (string) ($row['member_no'] ?? '');
+                $impairment = round((float) ($row['impairment'] ?? 0), 2);
+                $line = (int) ($row['line'] ?? 0);
+
+                $member = system_fix_tx_resolve_member($conn, $memberNo);
+                if ($member === null) {
+                    $result['skipped'][] = "Line {$line}: member {$memberNo} was not found in tblmembers.";
+                    continue;
+                }
+
+                $memberId = (int) $member['MemberID'];
+                $resolvedNo = (string) $member['MemberNo'];
+
+                if (!empty($member['Excluded'])) {
+                    $result['skipped'][] = "Line {$line}: member {$resolvedNo} is excluded from the fix and was skipped.";
+                    continue;
+                }
+
+                if (isset($seen[$memberId])) {
+                    $result['skipped'][] = "Line {$line}: member {$resolvedNo} already appeared on line {$seen[$memberId]}; skipped.";
+                    continue;
+                }
+                $seen[$memberId] = $line;
+
+                if ($impairment <= 0) {
+                    $result['skipped'][] = "Line {$line}: member {$resolvedNo} has an impairment of "
+                        . number_format($impairment, 2) . '; nothing to apply.';
+                    continue;
+                }
+
+                $before = system_fix_tx_balance_at($conn, $memberId, $date);
+                $after = round($before - $impairment, 2);
+
+                // The ledger cannot go negative, so the debit taken from it is
+                // limited to what the member actually holds.
+                $applied = $before > 0 ? round(min($impairment, $before), 2) : 0.0;
+                $posted = $applied > 0 ? 1 : 0;
+
+                if ($after < 0) {
+                    $result['negatives']++;
+                }
+
+                if ($posted === 1) {
+                    system_fix_tx_insert($conn, [
+                        'date' => $date,
+                        'type' => 13,
+                        'member_id' => $memberId,
+                        'details' => 'Impairment',
+                        'credit' => '0',
+                        'starting' => $before,
+                        'amount' => $applied,
+                        'new_balance' => round($before - $applied, 2),
+                        'comments' => 'Impairment of ' . number_format($applied, 2) . ' Applied',
+                    ]);
+                    $result['posted']++;
+                }
+
+                $insert->bind_param(
+                    'sssiddddis',
+                    $runId,
+                    $date,
+                    $resolvedNo,
+                    $memberId,
+                    $before,
+                    $impairment,
+                    $after,
+                    $applied,
+                    $posted,
+                    $source
+                );
+                $insert->execute();
+
+                $result['rows']++;
+                $result['total_impairment'] = round($result['total_impairment'] + $impairment, 2);
+                $result['total_applied'] = round($result['total_applied'] + $applied, 2);
+            }
+        } finally {
+            $insert->close();
+        }
+
+        return $result;
+    }
+}
+
+if (!function_exists('system_fix_tx_impairment_rows')) {
+    /**
+     * Impairment rows for display, newest run first then by member number.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    function system_fix_tx_impairment_rows(mysqli $conn, ?string $runId = null, int $limit = 1000): array
+    {
+        $table = system_fix_tx_impairment_table();
+        $sql = "SELECT `id`, `RunID`, `TransactionDate`, `MemberNo`, `memberID`, `BalanceBefore`,
+                       `Impairment`, `BalanceAfter`, `AppliedAmount`, `Posted`, `Source`, `CreatedAt`
+                FROM `{$table}`";
+        if ($runId !== null && $runId !== '') {
+            $sql .= " WHERE `RunID` = ?";
+        }
+        $sql .= " ORDER BY `RunID` DESC, CAST(`MemberNo` AS UNSIGNED) ASC LIMIT " . max(1, $limit);
+
+        $stmt = $conn->prepare($sql);
+        if ($runId !== null && $runId !== '') {
+            $stmt->bind_param('s', $runId);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $rows = [];
+        while ($row = $result->fetch_assoc()) {
+            $rows[] = $row;
+        }
+        $stmt->close();
+
+        return $rows;
     }
 }

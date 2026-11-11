@@ -670,6 +670,65 @@ if ($action !== '' && $sandboxTableReady) {
                 audit_trail_log($conn, 'system_fix_stage_capital', "Staged {$result['posted']} capital rows for {$period}");
                 break;
 
+            case 'apply_impairment':
+                // Impairment sheet: MemberNo + Impairment. Balances are pulled
+                // from the sandbox (never from the sheet), so the working table
+                // always shows what the ledger really held.
+                if (empty($_FILES['impairment_file']['tmp_name']) || !is_uploaded_file($_FILES['impairment_file']['tmp_name'])) {
+                    $sandboxErrors[] = 'Choose the impairment spreadsheet to upload, then apply again.';
+                    break;
+                }
+
+                $impairmentDate = system_fix_tx_normalise_date((string) ($_POST['impairment_date'] ?? ''));
+                if ($impairmentDate === null) {
+                    $sandboxErrors[] = 'Choose the date the impairment takes effect.';
+                    break;
+                }
+                $_SESSION['system_fix_impairment_date'] = $impairmentDate;
+
+                $impairmentLabel = (string) ($_FILES['impairment_file']['name'] ?? 'uploaded impairments');
+                $impairmentParsed = system_fix_tx_parse_impairment($_FILES['impairment_file']['tmp_name']);
+                foreach ($impairmentParsed['errors'] as $parseError) {
+                    $sandboxErrors[] = $parseError;
+                }
+
+                if (empty($impairmentParsed['rows'])) {
+                    break;
+                }
+
+                $impairmentResult = system_fix_tx_apply_impairment(
+                    $conn,
+                    $impairmentParsed['rows'],
+                    $impairmentDate,
+                    $impairmentLabel
+                );
+
+                foreach ($impairmentResult['skipped'] as $impairmentSkip) {
+                    $sandboxErrors[] = $impairmentSkip;
+                }
+
+                $sandboxMessages[] = sprintf(
+                    'Impairments applied from %s as at %s: %d member(s) written to transactionsfix_impairment for %s, total E %s impaired, E %s debited to transactionsfix as %d ledger row(s), %d member(s) left at or below zero. Any earlier impairment for %s was replaced (%d table row(s), %d ledger row(s) removed).',
+                    htmlspecialchars($impairmentLabel),
+                    $impairmentDate,
+                    $impairmentResult['rows'],
+                    $impairmentResult['run_id'],
+                    number_format($impairmentResult['total_impairment'], 2),
+                    number_format($impairmentResult['total_applied'], 2),
+                    $impairmentResult['posted'],
+                    $impairmentResult['negatives'],
+                    $impairmentResult['run_id'],
+                    $impairmentResult['cleared']['rows'],
+                    $impairmentResult['cleared']['transactions']
+                );
+                audit_trail_log(
+                    $conn,
+                    'system_fix_apply_impairment',
+                    'Applied ' . $impairmentResult['rows'] . ' impairment(s) as at ' . $impairmentDate
+                        . ' (E ' . number_format($impairmentResult['total_applied'], 2) . ' debited)'
+                );
+                break;
+
             case 'clear_all_seed':
                 // Full reset: empty every sandbox table, then re-seed the history
                 // baseline so the rebuild starts from production up to the seed date.
@@ -807,6 +866,42 @@ if ($action !== '' && $sandboxTableReady) {
 
 $sandboxPeriod = (string) $_SESSION['system_fix_period'];
 $sandboxRunId = system_fix_tx_period_key($sandboxPeriod);
+
+// --- Impairments -------------------------------------------------------------
+// The impairment tab always shows the run it last applied (or the selected
+// period when nothing has been applied yet).
+$impairmentDate = (string) ($_SESSION['system_fix_impairment_date'] ?? $sandboxPeriod);
+$impairmentDate = system_fix_tx_normalise_date($impairmentDate) ?: $sandboxPeriod;
+$impairmentRunId = system_fix_tx_period_key($impairmentDate);
+$impairmentRows = [];
+$impairmentTotals = [
+    'members' => 0,
+    'impairment' => 0.0,
+    'applied' => 0.0,
+    'negatives' => 0,
+    'posted' => 0,
+];
+
+if ($sandboxTableReady) {
+    try {
+        $impairmentRows = system_fix_tx_impairment_rows($conn, $impairmentRunId);
+        foreach ($impairmentRows as $impairmentRow) {
+            $impairmentTotals['members']++;
+            $impairmentTotals['impairment'] += (float) $impairmentRow['Impairment'];
+            $impairmentTotals['applied'] += (float) $impairmentRow['AppliedAmount'];
+            if ((float) $impairmentRow['BalanceAfter'] <= 0) {
+                $impairmentTotals['negatives']++;
+            }
+            if ((int) $impairmentRow['Posted'] === 1) {
+                $impairmentTotals['posted']++;
+            }
+        }
+    } catch (mysqli_sql_exception $e) {
+        error_log('System Fix impairment read error: ' . $e->getMessage());
+        $sandboxErrors[] = 'Unable to read the impairment table: ' . $e->getMessage();
+    }
+}
+
 $sandboxSummary = $sandboxTableReady ? system_fix_tx_summary($conn) : ['runs' => 0, 'rows' => 0, 'last_run' => null];
 $sandboxScopeCount = 0;
 $sandboxRosterCount = 0;
@@ -1081,6 +1176,8 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
     $activeTab = 'statement';
 } elseif ($action === 'consolidated_preview' || $action === 'consolidated_export') {
     $activeTab = 'consolidated';
+} elseif ($action === 'apply_impairment') {
+    $activeTab = 'impairment';
 } elseif ($action === 'recon' || $action === 'recon_export') {
     $activeTab = 'recon';
 } else {
@@ -1219,6 +1316,13 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 data-bs-toggle="tab" data-bs-target="#tab-recon" type="button" role="tab"
                 aria-controls="tab-recon" aria-selected="<?= $activeTab === 'recon' ? 'true' : 'false' ?>">
           <i class="bi bi-clipboard-check me-1"></i>Recon
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link <?= $activeTab === 'impairment' ? 'active' : '' ?>" id="tab-impairment-btn"
+                data-bs-toggle="tab" data-bs-target="#tab-impairment" type="button" role="tab"
+                aria-controls="tab-impairment" aria-selected="<?= $activeTab === 'impairment' ? 'true' : 'false' ?>">
+          <i class="bi bi-graph-down-arrow me-1"></i>Impairments
         </button>
       </li>
       <li class="nav-item" role="presentation">
@@ -1511,6 +1615,148 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
     </div>
 
       </div><!-- /#tab-recon -->
+
+      <!-- ============ TAB: IMPAIRMENTS ============ -->
+      <div class="tab-pane fade <?= $activeTab === 'impairment' ? 'show active' : '' ?>" id="tab-impairment"
+           role="tabpanel" aria-labelledby="tab-impairment-btn" tabindex="0">
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Apply Impairment
+              <small class="text-muted">(writes to <code>transactionsfix_impairment</code> and <code>transactionsfix</code>)</small>
+            </h5>
+
+            <form method="post" enctype="multipart/form-data" class="row g-3 align-items-end" id="impairmentForm"
+                  onsubmit="return confirm('Apply this impairment sheet? Balances are read from transactionsfix, the impairment is deducted, and a type 13 debit is posted for every member with a positive balance. Any impairment already applied for this month is replaced.');">
+              <div class="col-md-5">
+                <label class="form-label" for="impairment_file">Impairment spreadsheet <span class="text-muted">(MemberNo, Impairment)</span></label>
+                <input type="file" class="form-control" id="impairment_file" name="impairment_file"
+                       accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+                <div class="form-text">Only the members listed on the sheet are touched.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="impairment_date">Apply as at</label>
+                <input type="date" class="form-control" id="impairment_date" name="impairment_date"
+                       value="<?= htmlspecialchars($impairmentDate) ?>" required>
+                <div class="form-text">Determines the month (RunID) the impairment belongs to.</div>
+              </div>
+              <div class="col-md-3 d-grid">
+                <button type="submit" name="action" value="apply_impairment" class="btn btn-danger"
+                        <?= $sandboxTableReady ? '' : 'disabled' ?>>
+                  <i class="bi bi-graph-down-arrow me-1"></i>Apply Impairment
+                </button>
+              </div>
+            </form>
+
+            <div class="alert alert-info mt-4 mb-0" role="alert">
+              <h6 class="alert-heading"><i class="bi bi-info-circle me-1"></i>How this works</h6>
+              <ul class="mb-0 ps-3">
+                <li>For each member on the sheet the balance is read from <code>transactionsfix</code> as at the date above &mdash; the sheet's own figures are never used.</li>
+                <li><code>transactionsfix_impairment</code> records every member on the sheet: <em>BalanceBefore</em>, <em>Impairment</em> and <em>BalanceAfter</em>. This working table <strong>may go negative</strong>.</li>
+                <li>A debit is posted to <code>transactionsfix</code> (type <strong>13 &mdash; Impairment</strong>, details <code>Impairment</code>, comment <code>Impairment of &lt;amount&gt; Applied</code>) <strong>only for members with a balance above zero</strong>, and is capped at that balance so the ledger can never go negative.</li>
+                <li>Re-applying the same month replaces the previous impairment rows and ledger entries for that month. Apply impairments <strong>after</strong> the month's run is final.</li>
+              </ul>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between mt-4">
+              <h6 class="mb-2">Applied impairments &mdash; period <code><?= htmlspecialchars($impairmentRunId) ?></code>
+                <span class="text-muted small">(as at <?= htmlspecialchars($impairmentDate) ?>)</span>
+              </h6>
+              <span class="text-muted small"><?= number_format($impairmentTotals['members']) ?> member(s) on file</span>
+            </div>
+
+<?php if (!empty($impairmentRows)): ?>
+            <div class="row mt-2 g-3">
+              <div class="col-6 col-lg-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">Members impaired</div>
+                  <div class="fs-4"><?= number_format($impairmentTotals['members']) ?></div>
+                </div></div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">Total impairment</div>
+                  <div class="fs-4 text-danger"><?= number_format($impairmentTotals['impairment'], 2) ?></div>
+                </div></div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">Debited to ledger</div>
+                  <div class="fs-4"><?= number_format($impairmentTotals['applied'], 2) ?></div>
+                  <div class="small text-muted"><?= number_format($impairmentTotals['posted']) ?> ledger row(s)</div>
+                </div></div>
+              </div>
+              <div class="col-6 col-lg-3">
+                <div class="card border-0 bg-light h-100"><div class="card-body py-3">
+                  <div class="text-muted small">At or below zero</div>
+                  <div class="fs-4 <?= $impairmentTotals['negatives'] > 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($impairmentTotals['negatives']) ?></div>
+                  <div class="small text-muted">not posted to the ledger</div>
+                </div></div>
+              </div>
+            </div>
+
+            <div class="table-responsive mt-3">
+            <table class="table datatable table-sm table-striped" style="width:100%" id="impairmentTable">
+              <thead>
+                <tr>
+                  <th scope="col">MemberNo</th>
+                  <th scope="col" class="text-end">Balance Before</th>
+                  <th scope="col" class="text-end">Impairment</th>
+                  <th scope="col" class="text-end">Balance After</th>
+                  <th scope="col" class="text-end">Applied</th>
+                  <th scope="col">Posted</th>
+                  <th scope="col">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+<?php foreach ($impairmentRows as $impairmentRow): ?>
+<?php
+    $impAfter = (float) $impairmentRow['BalanceAfter'];
+    $impApplied = (float) $impairmentRow['AppliedAmount'];
+    $impPosted = (int) $impairmentRow['Posted'] === 1;
+?>
+                <tr>
+                  <th scope="row"><?= htmlspecialchars((string) $impairmentRow['MemberNo']) ?></th>
+                  <td class="text-end"><?= number_format((float) $impairmentRow['BalanceBefore'], 2) ?></td>
+                  <td class="text-end"><?= number_format((float) $impairmentRow['Impairment'], 2) ?></td>
+                  <td class="text-end <?= $impAfter < 0 ? 'text-danger fw-bold' : '' ?>"><?= number_format($impAfter, 2) ?></td>
+                  <td class="text-end"><?= number_format($impApplied, 2) ?></td>
+                  <td>
+<?php if ($impPosted): ?>
+                    <span class="badge bg-success">Posted</span>
+<?php else: ?>
+                    <span class="badge bg-secondary" title="No positive balance to debit">Skipped</span>
+<?php endif; ?>
+                  </td>
+                  <td class="small text-muted"><?= htmlspecialchars((string) $impairmentRow['Source']) ?></td>
+                </tr>
+<?php endforeach; ?>
+              </tbody>
+              <tfoot>
+                <tr class="table-dark fw-bold">
+                  <th scope="row">TOTAL</th>
+                  <td class="text-end"></td>
+                  <td class="text-end"><?= number_format($impairmentTotals['impairment'], 2) ?></td>
+                  <td class="text-end"></td>
+                  <td class="text-end"><?= number_format($impairmentTotals['applied'], 2) ?></td>
+                  <td colspan="2"><?= number_format($impairmentTotals['posted']) ?> posted / <?= number_format($impairmentTotals['members'] - $impairmentTotals['posted']) ?> skipped</td>
+                </tr>
+              </tfoot>
+            </table>
+            </div><!-- /.table-responsive -->
+<?php elseif ($sandboxTableReady): ?>
+            <p class="text-muted mt-2 mb-0">No impairment has been applied for period <code><?= htmlspecialchars($impairmentRunId) ?></code> yet.</p>
+<?php else: ?>
+            <p class="text-muted mt-2 mb-0">Build the sandbox first &mdash; impairments are calculated from <code>transactionsfix</code>.</p>
+<?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      </div><!-- /#tab-impairment -->
 
       <!-- ============ TAB: STATEMENTS ============ -->
       <div class="tab-pane fade <?= $activeTab === 'statement' ? 'show active' : '' ?>" id="tab-statement"
