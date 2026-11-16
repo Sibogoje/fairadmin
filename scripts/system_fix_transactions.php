@@ -4534,19 +4534,15 @@ if (!function_exists('system_fix_tx_impairment_report')) {
     /**
      * Impairment report for one applied run.
      *
-     * One row per impaired member:
+     * One row per impaired member, reconciling balance before the impairment
+     * against what was actually taken:
      *   - `TerminationDate` is the member's `tblmembers` termination date, or
      *     null when the member has not been terminated.
-     *   - `Balance` is the balance held at termination for a terminated member
-     *     (their sandbox balance on the termination date) and the balance before
-     *     the impairment for everyone else.
+     *   - `Balance` is the balance held before the impairment was applied.
      *   - `Impairment` is the amount impaired, i.e. the money written off.
-     *   - `Owed` is the part of `Impairment` that could not be taken from the
-     *     member's balance, i.e. `Impairment` minus `AppliedAmount`.
-     *
-     * A member's balance on their termination date is resolved in a single
-     * correlated lookup so a 600-member report stays a single round trip; the
-     * recorded `BalanceBefore` is used when the sandbox holds no earlier row.
+     *   - `Applied` is the part of `Impairment` that was actually debited from
+     *     the member's balance (`AppliedAmount`), i.e. `min(Impairment, Balance)`.
+     *   - `Owed` is what is left after that, i.e. `Impairment - Applied`.
      *
      * @param  array<int,int|string> $memberIds empty means every member on the run
      * @return array{rows:array<int,array<string,mixed>>, totals:array<string,float|int>}
@@ -4554,7 +4550,6 @@ if (!function_exists('system_fix_tx_impairment_report')) {
     function system_fix_tx_impairment_report(mysqli $conn, string $runId, array $memberIds = []): array
     {
         $impairmentTable = system_fix_tx_impairment_table();
-        $table = system_fix_tx_table();
 
         $ids = [];
         foreach ($memberIds as $memberId) {
@@ -4565,12 +4560,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
         }
 
         $sql = "SELECT i.`MemberNo`, i.`memberID`, i.`BalanceBefore`, i.`Impairment`, i.`AppliedAmount`,
-                       m.`TerminationDate`, m.`Terminated`,
-                       (SELECT t.`NewBalance` FROM `{$table}` t
-                         WHERE t.`memberID` = i.`memberID`
-                           AND t.`TransactionDate` <= COALESCE(NULLIF(m.`TerminationDate`, '0000-00-00'), i.`TransactionDate`)
-                         ORDER BY t.`TransactionDate` DESC, t.`accountsID` DESC
-                         LIMIT 1) AS `BalanceAtTermination`
+                       m.`TerminationDate`
                 FROM `{$impairmentTable}` i
                 LEFT JOIN `tblmembers` m ON m.`MemberID` = i.`memberID`
                 WHERE i.`RunID` = ?";
@@ -4588,25 +4578,25 @@ if (!function_exists('system_fix_tx_impairment_report')) {
         $result = $stmt->get_result();
 
         $rows = [];
-        $totals = ['members' => 0, 'terminated' => 0, 'balance' => 0.0, 'impairment' => 0.0, 'owed' => 0.0];
+        $totals = ['members' => 0, 'terminated' => 0, 'balance' => 0.0, 'impairment' => 0.0, 'applied' => 0.0, 'owed' => 0.0];
 
         while ($row = $result->fetch_assoc()) {
             $terminationDate = trim((string) ($row['TerminationDate'] ?? ''));
             $isTerminated = $terminationDate !== '' && $terminationDate !== '0000-00-00';
 
-            $balance = $isTerminated && $row['BalanceAtTermination'] !== null
-                ? (float) $row['BalanceAtTermination']
-                : (float) $row['BalanceBefore'];
-            $impairment = (float) $row['Impairment'];
-            $owed = max(0.0, round($impairment - (float) $row['AppliedAmount'], 2));
+            $balance = round((float) $row['BalanceBefore'], 2);
+            $impairment = round((float) $row['Impairment'], 2);
+            $applied = round((float) $row['AppliedAmount'], 2);
+            $owed = max(0.0, round($impairment - $applied, 2));
 
             $rows[] = [
                 'MemberNo' => (string) $row['MemberNo'],
                 'memberID' => (int) $row['memberID'],
                 'Terminated' => $isTerminated,
                 'TerminationDate' => $isTerminated ? $terminationDate : null,
-                'Balance' => round($balance, 2),
-                'Impairment' => round($impairment, 2),
+                'Balance' => $balance,
+                'Impairment' => $impairment,
+                'Applied' => $applied,
                 'Owed' => $owed,
             ];
 
@@ -4616,6 +4606,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
             }
             $totals['balance'] = round($totals['balance'] + $balance, 2);
             $totals['impairment'] = round($totals['impairment'] + $impairment, 2);
+            $totals['applied'] = round($totals['applied'] + $applied, 2);
             $totals['owed'] = round($totals['owed'] + $owed, 2);
         }
         $stmt->close();
