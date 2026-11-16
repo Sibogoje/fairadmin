@@ -4681,6 +4681,9 @@ if (!function_exists('system_fix_tx_impairment_report')) {
      *   - `TerminationDate` is the member's termination date from `members_fix`
      *     (the sandbox copy, driven by the termination fee), or null when the
      *     member has not been terminated.
+     *   - `OpeningBalance` is the money the member brought in when the account
+     *     was opened (the sandbox type-1 "Opening Balance" credit), falling back
+     *     to production when the sandbox has no opening row.
      *   - `Balance` is the balance held before the impairment was applied.
      *   - `Impairment` is the amount impaired, i.e. the money written off.
      *   - `Applied` is the part of `Impairment` that was actually debited from
@@ -4693,6 +4696,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
     function system_fix_tx_impairment_report(mysqli $conn, string $runId, array $memberIds = []): array
     {
         $impairmentTable = system_fix_tx_impairment_table();
+        $ledgerTable = system_fix_tx_table();
 
         // Termination dates come from members_fix, never from tblmembers.
         system_fix_tx_members_fix_sync_terminations($conn);
@@ -4707,7 +4711,11 @@ if (!function_exists('system_fix_tx_impairment_report')) {
         }
 
         $sql = "SELECT i.`MemberNo`, i.`memberID`, i.`BalanceBefore`, i.`Impairment`, i.`AppliedAmount`,
-                       m.`DateAccountOpened`, m.`TerminationDate`
+                       m.`DateAccountOpened`, m.`TerminationDate`,
+                       (SELECT t.`Amount` FROM `{$ledgerTable}` t
+                         WHERE t.`memberID` = i.`memberID` AND t.`TransactionTypeID` = 1
+                         ORDER BY t.`TransactionDate` ASC, t.`accountsID` ASC
+                         LIMIT 1) AS `OpeningBalance`
                 FROM `{$impairmentTable}` i
                 LEFT JOIN `{$membersTable}` m ON m.`MemberID` = i.`memberID`
                 WHERE i.`RunID` = ?";
@@ -4725,7 +4733,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
         $result = $stmt->get_result();
 
         $rows = [];
-        $totals = ['members' => 0, 'terminated' => 0, 'balance' => 0.0, 'impairment' => 0.0, 'applied' => 0.0, 'owed' => 0.0];
+        $totals = ['members' => 0, 'terminated' => 0, 'opening' => 0.0, 'balance' => 0.0, 'impairment' => 0.0, 'applied' => 0.0, 'owed' => 0.0];
 
         while ($row = $result->fetch_assoc()) {
             $terminationDate = trim((string) ($row['TerminationDate'] ?? ''));
@@ -4734,6 +4742,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
             $joiningDate = trim((string) ($row['DateAccountOpened'] ?? ''));
             $joiningDate = ($joiningDate === '' || $joiningDate === '0000-00-00') ? null : $joiningDate;
 
+            $opening = $row['OpeningBalance'] === null ? null : round((float) $row['OpeningBalance'], 2);
             $balance = round((float) $row['BalanceBefore'], 2);
             $impairment = round((float) $row['Impairment'], 2);
             $applied = round((float) $row['AppliedAmount'], 2);
@@ -4745,6 +4754,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
                 'JoiningDate' => $joiningDate,
                 'Terminated' => $isTerminated,
                 'TerminationDate' => $isTerminated ? $terminationDate : null,
+                'OpeningBalance' => $opening,
                 'Balance' => $balance,
                 'Impairment' => $impairment,
                 'Applied' => $applied,
@@ -4761,6 +4771,15 @@ if (!function_exists('system_fix_tx_impairment_report')) {
             $totals['owed'] = round($totals['owed'] + $owed, 2);
         }
         $stmt->close();
+
+        // Members with no opening row in the sandbox read theirs from production.
+        foreach ($rows as &$row) {
+            if ($row['OpeningBalance'] === null) {
+                $row['OpeningBalance'] = round(system_fix_tx_production_opening($conn, $row['memberID']), 2);
+            }
+            $totals['opening'] = round($totals['opening'] + $row['OpeningBalance'], 2);
+        }
+        unset($row);
 
         return ['rows' => $rows, 'totals' => $totals];
     }
