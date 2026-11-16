@@ -885,6 +885,13 @@ $impairmentTotals = [
 
 if ($sandboxTableReady) {
     try {
+        // `members_fix` mirrors `tblmembers`, but its TerminationDate follows the
+        // termination fee posted to the sandbox ledger instead of the source row.
+        if (!system_fix_tx_members_fix_ensure($conn)) {
+            $sandboxErrors[] = 'Unable to prepare the members_fix table.';
+        }
+        system_fix_tx_members_fix_sync_terminations($conn);
+
         $latestImpairmentRun = system_fix_tx_impairment_latest_run($conn);
         if ($latestImpairmentRun !== null) {
             $impairmentRunId = $latestImpairmentRun;

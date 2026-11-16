@@ -159,6 +159,144 @@ if (!function_exists('system_fix_tx_impairment_table')) {
     }
 }
 
+if (!function_exists('system_fix_tx_members_fix_table')) {
+    /**
+     * Working copy of `tblmembers` used by the sandbox.
+     *
+     * Structure and rows are copied from `tblmembers`, but the termination date
+     * is owned by the sandbox from then on: it is derived from the termination
+     * fee (`transactionsfix.TransactionTypeID = 12`) posted by the fix, so a
+     * rebuild can move a member's termination date without touching the live
+     * `tblmembers` table.
+     */
+    function system_fix_tx_members_fix_table(): string
+    {
+        return 'members_fix';
+    }
+}
+
+if (!function_exists('system_fix_tx_members_fix_ensure')) {
+    /**
+     * Make sure `members_fix` exists and holds every member from `tblmembers`.
+     *
+     * The table is created once as an exact structural copy of `tblmembers`
+     * (`CREATE TABLE ... LIKE` keeps the primary key and indexes), then any
+     * member that has no row yet is copied across. Existing rows are left alone
+     * so sandbox termination dates are never overwritten by the source table.
+     *
+     * @return bool true when the table is usable
+     */
+    function system_fix_tx_members_fix_ensure(mysqli $conn): bool
+    {
+        static $ready = [];
+
+        $key = spl_object_hash($conn);
+        if (!empty($ready[$key])) {
+            return true;
+        }
+
+        $table = system_fix_tx_members_fix_table();
+
+        try {
+            $conn->query("CREATE TABLE IF NOT EXISTS `{$table}` LIKE `tblmembers`");
+            $conn->query(
+                "INSERT INTO `{$table}`
+                 SELECT s.* FROM `tblmembers` s
+                 LEFT JOIN `{$table}` d ON d.`MemberID` = s.`MemberID`
+                 WHERE d.`MemberID` IS NULL"
+            );
+        } catch (Throwable $e) {
+            error_log('System Fix members_fix setup failed: ' . $e->getMessage());
+            return false;
+        }
+
+        $ready[$key] = true;
+
+        return true;
+    }
+}
+
+if (!function_exists('system_fix_tx_members_fix_sync_terminations')) {
+    /**
+     * Set `members_fix.TerminationDate` from the termination fee posted by the
+     * fix, falling back to the `tblmembers` date when the member has no
+     * termination fee in the sandbox.
+     *
+     * The earliest type-12 row per member is the termination date, so the value
+     * is fully derived and the call is idempotent: re-posting, rebuilding or
+     * clearing a run simply recomputes it.
+     *
+     * @param  int|null $memberId limit the sync to a single member
+     * @return int number of members whose termination date had to be changed
+     */
+    function system_fix_tx_members_fix_sync_terminations(mysqli $conn, ?int $memberId = null): int
+    {
+        // The page and the impairment report both ask for a full sync, so only
+        // do that work once per request.
+        static $allSynced = false;
+
+        if ($memberId === null && $allSynced) {
+            return 0;
+        }
+
+        if (!system_fix_tx_members_fix_ensure($conn)) {
+            return 0;
+        }
+
+        $table = system_fix_tx_members_fix_table();
+        $ledger = system_fix_tx_table();
+
+        $joins = "LEFT JOIN (
+                      SELECT `memberID`, MIN(DATE(`TransactionDate`)) AS `TerminationDate`
+                      FROM `{$ledger}`
+                      WHERE `TransactionTypeID` = 12
+                      GROUP BY `memberID`
+                  ) t ON t.`memberID` = f.`MemberID`
+                  LEFT JOIN `tblmembers` s ON s.`MemberID` = f.`MemberID`";
+
+        $scope = $memberId !== null ? 'f.`MemberID` = ?' : '1 = 1';
+        $where = "WHERE {$scope}
+                  AND NOT (f.`TerminationDate` <=> COALESCE(t.`TerminationDate`, NULLIF(s.`TerminationDate`, '0000-00-00')))";
+
+        // MariaDB reports matched rather than changed rows for a multi-table
+        // UPDATE, so count what actually needs changing first.
+        $countSql = "SELECT COUNT(*) AS `c` FROM `{$table}` f {$joins} {$where}";
+        $updateSql = "UPDATE `{$table}` f {$joins}
+                      SET f.`TerminationDate` = COALESCE(t.`TerminationDate`, NULLIF(s.`TerminationDate`, '0000-00-00')),
+                          f.`Terminated` = CASE
+                              WHEN COALESCE(t.`TerminationDate`, NULLIF(s.`TerminationDate`, '0000-00-00')) IS NULL
+                              THEN f.`Terminated` ELSE '1' END
+                      {$where}";
+
+        try {
+            $count = $conn->prepare($countSql);
+            $update = $conn->prepare($updateSql);
+            if ($memberId !== null) {
+                $count->bind_param('i', $memberId);
+                $update->bind_param('i', $memberId);
+            }
+
+            $count->execute();
+            $pending = (int) ($count->get_result()->fetch_assoc()['c'] ?? 0);
+            $count->close();
+
+            if ($pending > 0) {
+                $update->execute();
+            }
+            $update->close();
+        } catch (Throwable $e) {
+            error_log('System Fix members_fix termination sync failed: ' . $e->getMessage());
+            return 0;
+        }
+
+        if ($memberId === null) {
+            $allSynced = true;
+        }
+
+        return $pending;
+    }
+}
+
 if (!function_exists('system_fix_tx_termination_fee_percent')) {
     /**
      * Termination fee percentage (1%). All 736 members carry
@@ -1984,6 +2122,9 @@ if (!function_exists('system_fix_tx_terminate_member')) {
             'new_balance' => $payout,
             'comments' => $comments,
         ]);
+
+        // The termination fee date is the member's termination date from here on.
+        system_fix_tx_members_fix_sync_terminations($conn, $memberId);
 
         // --- Final transaction / payout (type 11) ----------------------------
         system_fix_tx_insert($conn, [
@@ -4536,8 +4677,9 @@ if (!function_exists('system_fix_tx_impairment_report')) {
      *
      * One row per impaired member, reconciling balance before the impairment
      * against what was actually taken:
-     *   - `TerminationDate` is the member's `tblmembers` termination date, or
-     *     null when the member has not been terminated.
+     *   - `TerminationDate` is the member's termination date from `members_fix`
+     *     (the sandbox copy, driven by the termination fee), or null when the
+     *     member has not been terminated.
      *   - `Balance` is the balance held before the impairment was applied.
      *   - `Impairment` is the amount impaired, i.e. the money written off.
      *   - `Applied` is the part of `Impairment` that was actually debited from
@@ -4551,6 +4693,10 @@ if (!function_exists('system_fix_tx_impairment_report')) {
     {
         $impairmentTable = system_fix_tx_impairment_table();
 
+        // Termination dates come from members_fix, never from tblmembers.
+        system_fix_tx_members_fix_sync_terminations($conn);
+        $membersTable = system_fix_tx_members_fix_table();
+
         $ids = [];
         foreach ($memberIds as $memberId) {
             $memberId = (int) $memberId;
@@ -4562,7 +4708,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
         $sql = "SELECT i.`MemberNo`, i.`memberID`, i.`BalanceBefore`, i.`Impairment`, i.`AppliedAmount`,
                        m.`TerminationDate`
                 FROM `{$impairmentTable}` i
-                LEFT JOIN `tblmembers` m ON m.`MemberID` = i.`memberID`
+                LEFT JOIN `{$membersTable}` m ON m.`MemberID` = i.`memberID`
                 WHERE i.`RunID` = ?";
 
         if (!empty($ids)) {
