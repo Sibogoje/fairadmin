@@ -868,11 +868,12 @@ $sandboxPeriod = (string) $_SESSION['system_fix_period'];
 $sandboxRunId = system_fix_tx_period_key($sandboxPeriod);
 
 // --- Impairments -------------------------------------------------------------
-// The impairment tab always shows the run it last applied (or the selected
-// period when nothing has been applied yet).
+// The impairment tab always shows the newest impairment that was applied, or
+// the selected period when nothing has been applied yet.
 $impairmentDate = (string) ($_SESSION['system_fix_impairment_date'] ?? $sandboxPeriod);
 $impairmentDate = system_fix_tx_normalise_date($impairmentDate) ?: $sandboxPeriod;
 $impairmentRunId = system_fix_tx_period_key($impairmentDate);
+$impairmentAsAt = $impairmentDate;
 $impairmentRows = [];
 $impairmentTotals = [
     'members' => 0,
@@ -884,7 +885,16 @@ $impairmentTotals = [
 
 if ($sandboxTableReady) {
     try {
+        $latestImpairmentRun = system_fix_tx_impairment_latest_run($conn);
+        if ($latestImpairmentRun !== null) {
+            $impairmentRunId = $latestImpairmentRun;
+        }
+
         $impairmentRows = system_fix_tx_impairment_rows($conn, $impairmentRunId);
+        if (!empty($impairmentRows)) {
+            $impairmentAsAt = (string) $impairmentRows[0]['TransactionDate'];
+        }
+
         foreach ($impairmentRows as $impairmentRow) {
             $impairmentTotals['members']++;
             $impairmentTotals['impairment'] += (float) $impairmentRow['Impairment'];
@@ -899,6 +909,82 @@ if ($sandboxTableReady) {
     } catch (mysqli_sql_exception $e) {
         error_log('System Fix impairment read error: ' . $e->getMessage());
         $sandboxErrors[] = 'Unable to read the impairment table: ' . $e->getMessage();
+    }
+}
+
+// --- Impairment report -------------------------------------------------------
+$impairmentReport = null;
+$impairmentReportError = '';
+$impairmentReportSelection = [];
+
+if ($action === 'impairment_report_preview' || $action === 'impairment_report_export') {
+    $reportAllMembers = !empty($_POST['impairment_report_all']);
+    $reportMembers = (array) ($_POST['impairment_report_members'] ?? []);
+    foreach ($reportMembers as $reportMember) {
+        $reportMember = (int) $reportMember;
+        if ($reportMember > 0) {
+            $impairmentReportSelection[$reportMember] = $reportMember;
+        }
+    }
+    $impairmentReportSelection = array_values($impairmentReportSelection);
+
+    if (!$reportAllMembers && empty($impairmentReportSelection)) {
+        $impairmentReportError = 'Choose at least one member, or tick "All members".';
+    } elseif (empty($impairmentRows)) {
+        $impairmentReportError = 'No impairment has been applied for period ' . $impairmentRunId . ' yet.';
+    } else {
+        try {
+            $impairmentReport = system_fix_tx_impairment_report(
+                $conn,
+                $impairmentRunId,
+                $reportAllMembers ? [] : $impairmentReportSelection
+            );
+
+            if ($action === 'impairment_report_export') {
+                $filename = 'impairment-report-' . $impairmentRunId . '.xls';
+
+                // Excel opens an HTML table when served as .xls — the same
+                // approach used by the consolidated statement export.
+                header('Content-Type: application/vnd.ms-excel; charset=utf-8');
+                header('Content-Disposition: attachment; filename="' . $filename . '"');
+                header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+                $money = static fn($value): string => number_format((float) $value, 2, '.', '');
+
+                echo "\xEF\xBB\xBF"; // UTF-8 BOM so Excel reads accents correctly
+                echo '<table border="1"><thead><tr>';
+                foreach (['MemberNo', 'Termination Date', 'Balance', 'Impairment Owed'] as $heading) {
+                    echo '<th>' . htmlspecialchars($heading) . '</th>';
+                }
+                echo '</tr></thead><tbody>';
+
+                foreach ($impairmentReport['rows'] as $reportRow) {
+                    echo '<tr>';
+                    echo '<td>' . htmlspecialchars($reportRow['MemberNo']) . '</td>';
+                    echo '<td>' . htmlspecialchars($reportRow['TerminationDate'] ?? '') . '</td>';
+                    echo '<td style="text-align:right;">' . $money($reportRow['Balance']) . '</td>';
+                    echo '<td style="text-align:right;">' . $money($reportRow['Owed']) . '</td>';
+                    echo '</tr>';
+                }
+
+                echo '<tr style="font-weight:bold;background:#eee;">';
+                echo '<td colspan="2">TOTAL (' . number_format($impairmentReport['totals']['members']) . ' member(s))</td>';
+                echo '<td style="text-align:right;">' . $money($impairmentReport['totals']['balance']) . '</td>';
+                echo '<td style="text-align:right;">' . $money($impairmentReport['totals']['owed']) . '</td>';
+                echo '</tr></tbody></table>';
+
+                audit_trail_log(
+                    $conn,
+                    'system_fix_impairment_report_export',
+                    'Exported impairment report for ' . $impairmentRunId
+                        . ' (' . $impairmentReport['totals']['members'] . ' member(s))'
+                );
+                exit;
+            }
+        } catch (mysqli_sql_exception $e) {
+            error_log('System Fix impairment report error: ' . $e->getMessage());
+            $impairmentReportError = 'Impairment report failed: ' . $e->getMessage();
+        }
     }
 }
 
@@ -1176,7 +1262,9 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
     $activeTab = 'statement';
 } elseif ($action === 'consolidated_preview' || $action === 'consolidated_export') {
     $activeTab = 'consolidated';
-} elseif ($action === 'apply_impairment') {
+} elseif ($action === 'apply_impairment'
+    || $action === 'impairment_report_preview'
+    || $action === 'impairment_report_export') {
     $activeTab = 'impairment';
 } elseif ($action === 'recon' || $action === 'recon_export') {
     $activeTab = 'recon';
@@ -1624,6 +1712,117 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
       <div class="col-lg-12">
         <div class="card">
           <div class="card-body">
+            <h5 class="card-title">Impairment Report
+              <small class="text-muted">(period <code><?= htmlspecialchars($impairmentRunId) ?></code>, as at <?= htmlspecialchars($impairmentAsAt) ?>)</small>
+            </h5>
+
+            <form method="post" class="row g-3 align-items-end" id="impairmentReportForm">
+              <div class="col-md-8">
+                <label class="form-label" for="impairment_report_members">Members</label>
+                <select class="form-select" id="impairment_report_members" name="impairment_report_members[]" multiple size="8">
+<?php foreach ($impairmentRows as $impairmentRow): ?>
+                  <option value="<?= (int) $impairmentRow['memberID'] ?>" <?= in_array((int) $impairmentRow['memberID'], $impairmentReportSelection, true) ? 'selected' : '' ?>>
+                    <?= htmlspecialchars((string) $impairmentRow['MemberNo']) ?>
+                  </option>
+<?php endforeach; ?>
+                </select>
+                <div class="form-text">Search and pick one or several members, or tick <em>All members</em> for the whole list.</div>
+              </div>
+              <div class="col-md-4">
+                <div class="form-check mb-3">
+                  <input class="form-check-input" type="checkbox" value="1" id="impairment_report_all" name="impairment_report_all"
+                         <?= empty($impairmentReportSelection) ? 'checked' : '' ?>>
+                  <label class="form-check-label" for="impairment_report_all">
+                    All members <span class="text-muted small">(<?= number_format($impairmentTotals['members']) ?>)</span>
+                  </label>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" name="action" value="impairment_report_preview" class="btn btn-primary"
+                          <?= $sandboxTableReady && !empty($impairmentRows) ? '' : 'disabled' ?>>
+                    <i class="bi bi-table me-1"></i>Preview
+                  </button>
+                  <button type="submit" name="action" value="impairment_report_export" class="btn btn-outline-success"
+                          formnovalidate <?= $sandboxTableReady && !empty($impairmentRows) ? '' : 'disabled' ?>>
+                    <i class="bi bi-file-earmark-excel me-1"></i>Download
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <div class="form-text mt-2">
+              <strong>MemberNo, Termination Date, Balance, Impairment Owed</strong>.
+              Terminated members show the date they terminated and the balance they held on that date;
+              everyone else shows <code>-</code> and the balance they held before the impairment.
+              <em>Impairment Owed</em> is the part of the impairment that could not be taken from the
+              member's balance &mdash; money still owed to the fund after the impairment.
+            </div>
+
+<?php if ($impairmentReportError !== ''): ?>
+            <div class="alert alert-danger mt-3 mb-0" role="alert"><?= htmlspecialchars($impairmentReportError) ?></div>
+<?php endif; ?>
+
+<?php if ($impairmentReport !== null): ?>
+            <div class="alert alert-info mt-3" role="alert">
+              <i class="bi bi-info-circle me-1"></i>
+              <strong><?= htmlspecialchars($impairmentRunId) ?></strong>:
+              <?= number_format($impairmentReport['totals']['members']) ?> member(s),
+              <?= number_format($impairmentReport['totals']['terminated']) ?> with a termination date,
+              balance total <strong>E <?= htmlspecialchars(number_format($impairmentReport['totals']['balance'], 2)) ?></strong>,
+              impairment total <strong>E <?= htmlspecialchars(number_format($impairmentReport['totals']['impairment'], 2)) ?></strong>,
+              of which <strong>E <?= htmlspecialchars(number_format($impairmentReport['totals']['owed'], 2)) ?></strong> is still owed.
+            </div>
+
+<?php if (!empty($impairmentReport['rows'])): ?>
+            <div class="table-responsive mt-3" style="max-height: 520px; overflow-y: auto;">
+              <table class="table table-sm table-striped align-middle mb-0">
+                <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                  <tr>
+                    <th scope="col">MemberNo</th>
+                    <th scope="col">Termination Date</th>
+                    <th scope="col" class="text-end">Balance</th>
+                    <th scope="col" class="text-end">Impairment Owed</th>
+                  </tr>
+                </thead>
+                <tbody>
+<?php foreach ($impairmentReport['rows'] as $reportRow): ?>
+                  <tr>
+                    <th scope="row"><?= htmlspecialchars($reportRow['MemberNo']) ?></th>
+                    <td>
+<?php if ($reportRow['TerminationDate'] !== null): ?>
+                      <?= htmlspecialchars($reportRow['TerminationDate']) ?>
+<?php else: ?>
+                      <span class="text-muted">&mdash;</span>
+<?php endif; ?>
+                    </td>
+                    <td class="text-end"><?= htmlspecialchars(number_format((float) $reportRow['Balance'], 2)) ?></td>
+                    <td class="text-end text-danger"><?= htmlspecialchars(number_format((float) $reportRow['Owed'], 2)) ?></td>
+                  </tr>
+<?php endforeach; ?>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr style="font-weight:bold;">
+                    <td colspan="2">Grand total (<?= number_format($impairmentReport['totals']['members']) ?> member(s))</td>
+                    <td class="text-end"><?= htmlspecialchars(number_format($impairmentReport['totals']['balance'], 2)) ?></td>
+                    <td class="text-end"><?= htmlspecialchars(number_format($impairmentReport['totals']['owed'], 2)) ?></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+<?php else: ?>
+            <p class="text-muted mt-3 mb-0">No impairment row matches that selection for period <code><?= htmlspecialchars($impairmentRunId) ?></code>.</p>
+<?php endif; ?>
+<?php endif; ?>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="card">
+          <div class="card-body">
+            <?php /* The upload/apply controls are intentionally hidden while the tab is used for reports. */ ?>
+            <div class="d-none" aria-hidden="true">
             <h5 class="card-title">Apply Impairment
               <small class="text-muted">(writes to <code>transactionsfix_impairment</code> and <code>transactionsfix</code>)</small>
             </h5>
@@ -1659,10 +1858,11 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 <li>Re-applying the same month replaces the previous impairment rows and ledger entries for that month. Apply impairments <strong>after</strong> the month's run is final.</li>
               </ul>
             </div>
+            </div><!-- /.d-none (upload controls hidden) -->
 
             <div class="d-flex flex-wrap align-items-center justify-content-between mt-4">
               <h6 class="mb-2">Applied impairments &mdash; period <code><?= htmlspecialchars($impairmentRunId) ?></code>
-                <span class="text-muted small">(as at <?= htmlspecialchars($impairmentDate) ?>)</span>
+                <span class="text-muted small">(as at <?= htmlspecialchars($impairmentAsAt) ?>)</span>
               </h6>
               <span class="text-muted small"><?= number_format($impairmentTotals['members']) ?> member(s) on file</span>
             </div>
@@ -2178,6 +2378,29 @@ document.addEventListener('DOMContentLoaded', function () {
       placeholder: 'Search by member no, surname or first name…',
       allowClear: true
     });
+    jQuery('#impairment_report_members').select2({
+      width: '100%',
+      placeholder: 'Search by member no…',
+      closeOnSelect: false
+    });
+  }
+
+  // "All members" wins over any hand-picked members.
+  var reportAll = document.getElementById('impairment_report_all');
+  var reportMembers = document.getElementById('impairment_report_members');
+  if (reportAll && reportMembers) {
+    var syncReportMembers = function () {
+      if (reportAll.checked) {
+        if (typeof jQuery !== 'undefined' && jQuery.fn.select2) {
+          jQuery(reportMembers).val(null).trigger('change');
+        } else {
+          Array.prototype.forEach.call(reportMembers.options, function (option) { option.selected = false; });
+        }
+      }
+      reportMembers.disabled = reportAll.checked;
+    };
+    reportAll.addEventListener('change', syncReportMembers);
+    syncReportMembers();
   }
 
   // Initialise whatever is visible on load.
