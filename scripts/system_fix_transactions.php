@@ -4677,6 +4677,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
      *
      * One row per impaired member, reconciling balance before the impairment
      * against what was actually taken:
+     *   - `JoiningDate` is the date the member's account was opened, or null when blank.
      *   - `TerminationDate` is the member's termination date from `members_fix`
      *     (the sandbox copy, driven by the termination fee), or null when the
      *     member has not been terminated.
@@ -4706,7 +4707,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
         }
 
         $sql = "SELECT i.`MemberNo`, i.`memberID`, i.`BalanceBefore`, i.`Impairment`, i.`AppliedAmount`,
-                       m.`TerminationDate`
+                       m.`DateAccountOpened`, m.`TerminationDate`
                 FROM `{$impairmentTable}` i
                 LEFT JOIN `{$membersTable}` m ON m.`MemberID` = i.`memberID`
                 WHERE i.`RunID` = ?";
@@ -4730,6 +4731,9 @@ if (!function_exists('system_fix_tx_impairment_report')) {
             $terminationDate = trim((string) ($row['TerminationDate'] ?? ''));
             $isTerminated = $terminationDate !== '' && $terminationDate !== '0000-00-00';
 
+            $joiningDate = trim((string) ($row['DateAccountOpened'] ?? ''));
+            $joiningDate = ($joiningDate === '' || $joiningDate === '0000-00-00') ? null : $joiningDate;
+
             $balance = round((float) $row['BalanceBefore'], 2);
             $impairment = round((float) $row['Impairment'], 2);
             $applied = round((float) $row['AppliedAmount'], 2);
@@ -4738,6 +4742,7 @@ if (!function_exists('system_fix_tx_impairment_report')) {
             $rows[] = [
                 'MemberNo' => (string) $row['MemberNo'],
                 'memberID' => (int) $row['memberID'],
+                'JoiningDate' => $joiningDate,
                 'Terminated' => $isTerminated,
                 'TerminationDate' => $isTerminated ? $terminationDate : null,
                 'Balance' => $balance,

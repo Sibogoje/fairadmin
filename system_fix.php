@@ -960,7 +960,7 @@ if ($action === 'impairment_report_preview' || $action === 'impairment_report_ex
 
                 echo "\xEF\xBB\xBF"; // UTF-8 BOM so Excel reads accents correctly
                 echo '<table border="1"><thead><tr>';
-                foreach (['MemberNo', 'Termination Date', 'Balance Before', 'Impairment', 'Impairment Applied', 'Owed'] as $heading) {
+                foreach (['MemberNo', 'Joining Date', 'Termination Date', 'Balance Before', 'Impairment', 'Impairment Applied', 'Owed'] as $heading) {
                     echo '<th>' . htmlspecialchars($heading) . '</th>';
                 }
                 echo '</tr></thead><tbody>';
@@ -968,6 +968,7 @@ if ($action === 'impairment_report_preview' || $action === 'impairment_report_ex
                 foreach ($impairmentReport['rows'] as $reportRow) {
                     echo '<tr>';
                     echo '<td>' . htmlspecialchars($reportRow['MemberNo']) . '</td>';
+                    echo '<td>' . htmlspecialchars($reportRow['JoiningDate'] ?? '') . '</td>';
                     echo '<td>' . htmlspecialchars($reportRow['TerminationDate'] ?? '') . '</td>';
                     echo '<td style="text-align:right;">' . $money($reportRow['Balance']) . '</td>';
                     echo '<td style="text-align:right;">' . $money($reportRow['Impairment']) . '</td>';
@@ -977,7 +978,7 @@ if ($action === 'impairment_report_preview' || $action === 'impairment_report_ex
                 }
 
                 echo '<tr style="font-weight:bold;background:#eee;">';
-                echo '<td colspan="2">TOTAL (' . number_format($impairmentReport['totals']['members']) . ' member(s))</td>';
+                echo '<td colspan="3">TOTAL (' . number_format($impairmentReport['totals']['members']) . ' member(s))</td>';
                 echo '<td style="text-align:right;">' . $money($impairmentReport['totals']['balance']) . '</td>';
                 echo '<td style="text-align:right;">' . $money($impairmentReport['totals']['impairment']) . '</td>';
                 echo '<td style="text-align:right;">' . $money($impairmentReport['totals']['applied']) . '</td>';
@@ -1761,7 +1762,8 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
             </form>
 
             <div class="form-text mt-2">
-              <strong>MemberNo, Termination Date, Balance Before, Impairment, Impairment Applied, Owed</strong>.
+              <strong>MemberNo, Joining Date, Termination Date, Balance Before, Impairment, Impairment Applied, Owed</strong>.
+              <em>Joining Date</em> is the date the member's account was opened.
               Terminated members show the date they terminated; everyone else shows <code>-</code>.
               <em>Balance Before</em> is the balance held before the impairment,
               <em>Impairment</em> is the amount impaired, <em>Impairment Applied</em> is what was actually
@@ -1791,6 +1793,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                   <tr>
                     <th scope="col">MemberNo</th>
+                    <th scope="col">Joining Date</th>
                     <th scope="col">Termination Date</th>
                     <th scope="col" class="text-end">Balance Before</th>
                     <th scope="col" class="text-end">Impairment</th>
@@ -1802,6 +1805,13 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
 <?php foreach ($impairmentReport['rows'] as $reportRow): ?>
                   <tr>
                     <th scope="row"><?= htmlspecialchars($reportRow['MemberNo']) ?></th>
+                    <td>
+<?php if ($reportRow['JoiningDate'] !== null): ?>
+                      <?= htmlspecialchars($reportRow['JoiningDate']) ?>
+<?php else: ?>
+                      <span class="text-muted">&mdash;</span>
+<?php endif; ?>
+                    </td>
                     <td>
 <?php if ($reportRow['TerminationDate'] !== null): ?>
                       <?= htmlspecialchars($reportRow['TerminationDate']) ?>
@@ -1818,7 +1828,7 @@ if ($action === 'view_statement' || $statementMemberId > 0) {
                 </tbody>
                 <tfoot class="table-light">
                   <tr style="font-weight:bold;">
-                    <td colspan="2">Grand total (<?= number_format($impairmentReport['totals']['members']) ?> member(s))</td>
+                    <td colspan="3">Grand total (<?= number_format($impairmentReport['totals']['members']) ?> member(s))</td>
                     <td class="text-end"><?= htmlspecialchars(number_format($impairmentReport['totals']['balance'], 2)) ?></td>
                     <td class="text-end"><?= htmlspecialchars(number_format($impairmentReport['totals']['impairment'], 2)) ?></td>
                     <td class="text-end"><?= htmlspecialchars(number_format($impairmentReport['totals']['applied'], 2)) ?></td>
