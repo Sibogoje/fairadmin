@@ -3,7 +3,14 @@
 if (!function_exists('access_control_known_roles')) {
     function access_control_known_roles()
     {
-        return ['admin', 'Operations', 'clerk', 'Accounts'];
+        return ['admin', 'Operations', 'clerk', 'Accounts', 'Reports'];
+    }
+}
+
+if (!function_exists('access_control_default_deny_roles')) {
+    function access_control_default_deny_roles()
+    {
+        return ['Reports'];
     }
 }
 
@@ -16,6 +23,7 @@ if (!function_exists('access_control_normalize_role')) {
             'operations' => 'Operations',
             'clerk' => 'clerk',
             'accounts' => 'Accounts',
+            'reports' => 'Reports',
         ];
 
         return $map[$role] ?? trim((string)$role);
@@ -26,6 +34,13 @@ if (!function_exists('access_control_permission_definitions')) {
     function access_control_permission_definitions()
     {
         return [
+            'reports_member_statement' => [
+                'label' => 'Reports: Member Statement',
+                'patterns' => [
+                    '#/membership/profileaccount\.php$#',
+                ],
+                'default_roles' => ['admin', 'Operations', 'clerk'],
+            ],
             'beneficiary_core' => [
                 'label' => 'Beneficiary: Core Pages',
                 'patterns' => [
@@ -51,7 +66,7 @@ if (!function_exists('access_control_permission_definitions')) {
             'reports_core' => [
                 'label' => 'Reports: Core Statements',
                 'patterns' => [
-                    '#/(membership/profile\.php|membership/membersummary\.php|membership/profileaccount\.php|reports/beneficiaries\.php|membership/existence\.php|membership/membermove\.php)$#',
+                    '#/(membership/profile\.php|membership/membersummary\.php|reports/beneficiaries\.php|membership/existence\.php|membership/membermove\.php)$#',
                 ],
                 'default_roles' => ['admin', 'Operations', 'clerk'],
             ],
@@ -306,7 +321,7 @@ if (!function_exists('access_control_is_allowed')) {
         $routePath = access_control_normalize_route($routePath);
 
         if (preg_match('#/dash\.php$#', $routePath)) {
-            return true;
+            return !access_control_role_in($role, access_control_default_deny_roles());
         }
 
         $definitions = access_control_permission_definitions();
@@ -319,7 +334,7 @@ if (!function_exists('access_control_is_allowed')) {
             }
         }
 
-        return true;
+        return !access_control_role_in($role, access_control_default_deny_roles());
     }
 }
 
@@ -345,7 +360,7 @@ if (!function_exists('access_control_can_show_menu_item')) {
         $routePath = access_control_normalize_route($routePath);
 
         if (preg_match('#/dash\.php$#', $routePath)) {
-            return true;
+            return !access_control_role_in($role, access_control_default_deny_roles());
         }
 
         $permissionKey = access_control_matching_permission_key($routePath);
@@ -365,7 +380,10 @@ if (!function_exists('access_control_forbidden')) {
     function access_control_forbidden()
     {
         http_response_code(403);
-        echo '<!doctype html><html><head><meta charset="utf-8"><title>Access denied</title></head><body style="font-family:Arial,sans-serif;padding:24px;"><h2>Access denied</h2><p>You do not have permission to access this page.</p><p><a href="' . htmlspecialchars(app_url('dash.php')) . '">Return to dashboard</a></p></body></html>';
+        $home = access_control_is_allowed($_SESSION['role'] ?? '', '/dash.php')
+            ? app_url('dash.php')
+            : app_url('membership/profileaccount.php');
+        echo '<!doctype html><html><head><meta charset="utf-8"><title>Access denied</title></head><body style="font-family:Arial,sans-serif;padding:24px;"><h2>Access denied</h2><p>You do not have permission to access this page.</p><p><a href="' . htmlspecialchars($home) . '">Return to your home page</a></p></body></html>';
         exit;
     }
 }

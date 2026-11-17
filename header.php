@@ -11,6 +11,9 @@ header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 $role = access_control_normalize_role($_SESSION['role'] ?? '');
 $username = $gg ?? ($_SESSION['user'] ?? 'User');
+$homeUrl = access_control_is_allowed($role, '/dash.php')
+  ? app_url('dash.php')
+  : app_url('membership/profileaccount.php');
 
 $currentRoutePath = access_control_route_path();
 if (!access_control_is_allowed($role, $currentRoutePath)) {
@@ -113,7 +116,7 @@ try {
 <header id="header" class="header fixed-top d-flex align-items-center">
 
   <div class="d-flex align-items-center justify-content-between">
-    <a href="<?= app_url('dash.php') ?>" class="logo d-flex align-items-center">
+    <a href="<?= $homeUrl ?>" class="logo d-flex align-items-center">
       <img src="<?= app_url('logo.png') ?>" alt="">
       <span class="d-none d-lg-block">Fairlife</span>
     </a>

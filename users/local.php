@@ -210,6 +210,7 @@ include '../header.php'; ?>
 					<option value="clerk">Office Admin</option>
 					<option value="Operations">Operations Officer</option>
 						<option value="Accounts">Accountant</option>
+						<option value="Reports">Reports Viewer</option>
                   </select>
                 </div>
              

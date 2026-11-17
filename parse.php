@@ -2,6 +2,7 @@
 require_once __DIR__ . '/scripts/bootstrap.php';
 session_start();
 require_once 'scripts/connection.php';
+require_once 'scripts/access_control.php';
 require_once 'scripts/audit.php';
 set_time_limit(0);
 
@@ -40,8 +41,11 @@ if(count($_POST) > 0){
 	 		// Write session to disk before redirect
 	 		session_write_close();
 	 		
-	 		// Redirect to dashboard
-	 		header('Location: ' . APP_URL . 'dash.php');
+		// Redirect to the user's landing page
+		$landing = access_control_role_in($role, access_control_default_deny_roles())
+			? 'membership/profileaccount.php'
+			: 'dash.php';
+		header('Location: ' . APP_URL . $landing);
 	 		exit;
 	 	}	 
 	 } 
