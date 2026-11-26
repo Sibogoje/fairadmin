@@ -31,9 +31,10 @@ if(count($_POST) > 0){
 	 		$_SESSION['xid'] = $id;
 	 		$session = 1;
 
-	 		// Update server-side session marker
-	 		$updatesession = $conn->prepare("UPDATE realuzer SET session=? WHERE id=?");
-	 		$updatesession->bind_param("ss", $session, $id);
+	 		// Update server-side session marker and record the login time (SAST)
+	 		$loginAt = (new DateTime('now', new DateTimeZone('Africa/Johannesburg')))->format('Y-m-d H:i:s');
+	 		$updatesession = $conn->prepare("UPDATE realuzer SET session=?, last_login=? WHERE id=?");
+	 		$updatesession->bind_param("sss", $session, $loginAt, $id);
 	 		$updatesession->execute();
 
 	 		audit_trail_log($conn, 'login', 'Authenticated with role: ' . $role);

@@ -9,12 +9,10 @@ if(isset($_SESSION['zid']))
     $userid = isset($_SESSION['xid']) ? $_SESSION['xid'] : null;
     $username = audit_trail_username();
 
-    // update server session flag
+    // update server session flag (last_login is recorded at login in parse.php)
     if ($userid) {
-        date_default_timezone_set('Africa/Johannesburg');
-        $login = date('Y-m-d H:i:s');
-        $updatesession = $conn->prepare("UPDATE realuzer SET session=?, last_login=? WHERE id=? ");
-        $updatesession->bind_param("sss", $session, $login, $userid);
+        $updatesession = $conn->prepare("UPDATE realuzer SET session=? WHERE id=? ");
+        $updatesession->bind_param("ss", $session, $userid);
         $updatesession->execute();
     }
 

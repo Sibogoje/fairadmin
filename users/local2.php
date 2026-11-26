@@ -395,7 +395,7 @@ include '../header.php'; ?>
                     <th scope="col">Username</th>
                     <th scope="col">Role</th>
                     <th scope="col">Online</th>
-                    <th scope="col">Last Logout</th>
+                    <th scope="col">Last Login</th>
 				
 					<th scope="col">Action</th>
                   </tr>
@@ -403,7 +403,10 @@ include '../header.php'; ?>
                 <tbody>
 				<?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
-$stmt = $conn->prepare("SELECT * FROM `realuzer`");
+// Last login comes from the audit trail (stored in UTC), because realuzer.last_login
+// held logout times before parse.php started recording logins.
+$stmt = $conn->prepare("SELECT u.*, (SELECT MAX(a.`created_at`) FROM `audit_trail` a WHERE a.`username` = u.`username` AND a.`action` = 'login') AS `audit_last_login` FROM `realuzer` u");
+$sast = new DateTimeZone('Africa/Johannesburg');
 
 $stmt->execute();
 $result = $stmt->get_result();
@@ -424,8 +427,12 @@ echo htmlspecialchars($row['username']); ?></a></td>
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['session']; ?></td>
                     <td><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['last_login']; ?></td>
+if (!empty($row['audit_last_login'])) {
+    $lastLogin = new DateTime($row['audit_last_login'], new DateTimeZone('UTC'));
+    echo htmlspecialchars($lastLogin->setTimezone($sast)->format('Y-m-d H:i'));
+} else {
+    echo '<span class="text-muted">&mdash;</span>';
+} ?></td>
 
 					<td>
 			<button type="button" data-link="edit.php?id=<?php
