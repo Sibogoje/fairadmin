@@ -3,7 +3,9 @@
 if (!function_exists('audit_trail_username')) {
     function audit_trail_username(): string
     {
-        if (session_status() === PHP_SESSION_ACTIVE) {
+        // $_SESSION stays readable after session_write_close(), which endpoints
+        // call early to release the session lock, so check the array itself.
+        if (isset($_SESSION) && is_array($_SESSION)) {
             if (!empty($_SESSION['user'])) {
                 return (string) $_SESSION['user'];
             }

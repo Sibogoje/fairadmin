@@ -376,6 +376,64 @@ if (!function_exists('access_control_can_show_menu_item')) {
     }
 }
 
+if (!function_exists('access_control_require_endpoint')) {
+    /**
+     * Guard for action endpoints called by AJAX/forms from another page
+     * (e.g. Transactions/adhocprocess.php called from Transactions/adhoc.php).
+     *
+     * The caller must call session_start() first. Access is granted when the
+     * user is logged in and allowed on at least one of the pages that call this
+     * endpoint, so it follows the same rules as the Access Control Manager.
+     *
+     * Releases the session lock before returning; $_SESSION stays readable.
+     * On failure, responds in the JSON shape the calling pages already alert on.
+     */
+    function access_control_require_endpoint(array $parentRoutes)
+    {
+        $loggedIn = isset($_SESSION['zid']) && !empty($_SESSION['user']);
+        $role = $_SESSION['role'] ?? '';
+
+        $allowed = false;
+        if ($loggedIn) {
+            foreach ($parentRoutes as $route) {
+                if (access_control_is_allowed($role, $route)) {
+                    $allowed = true;
+                    break;
+                }
+            }
+        }
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+
+        if ($allowed) {
+            return;
+        }
+
+        $message = $loggedIn
+            ? 'You do not have permission to perform this action.'
+            : 'Your session has expired. Please log in again.';
+
+        error_log(sprintf(
+            'Endpoint access denied: route=%s user=%s role=%s ip=%s',
+            access_control_route_path(),
+            $loggedIn ? (string)$_SESSION['user'] : '(not logged in)',
+            (string)$role,
+            $_SERVER['REMOTE_ADDR'] ?? ''
+        ));
+
+        // No JSON content-type: callers JSON.parse() the raw text themselves.
+        echo json_encode([
+            'statusCode' => 201,
+            'datas' => $message,
+            'rerror' => $message,
+            'retrieveerror' => $message,
+        ]);
+        exit;
+    }
+}
+
 if (!function_exists('access_control_forbidden')) {
     function access_control_forbidden()
     {

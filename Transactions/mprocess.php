@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
+session_start();
+require_once __DIR__ . '/../scripts/access_control.php';
+access_control_require_endpoint(['/transactions/monthlyfees.php']);
 require_once '../scripts/connection.php';
 set_time_limit(0);
 require_once __DIR__ . '/../scripts/audit.php';

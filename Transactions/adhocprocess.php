@@ -1,5 +1,8 @@
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
+session_start();
+require_once __DIR__ . '/../scripts/access_control.php';
+access_control_require_endpoint(['/transactions/adhoc.php']);
 require_once '../scripts/connection.php';
 require_once __DIR__ . '/../scripts/audit.php';
 if(count($_POST)>0){
