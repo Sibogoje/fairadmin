@@ -50,13 +50,13 @@ $sql = "SELECT `username`, `action`, `details`, `route`, `ip_address`, `created_
      . ($isFiltered ? ' WHERE ' . implode(' AND ', $where) : '')
      . " ORDER BY `created_at` DESC, `id` DESC LIMIT " . $limit;
 
-$stmt = $conn->prepare($sql);
+$auditStmt = $conn->prepare($sql);
 if ($isFiltered) {
-    $stmt->bind_param($types, ...$params);
+    $auditStmt->bind_param($types, ...$params);
 }
-$stmt->execute();
-$result = $stmt->get_result();
-$rowCount = $result ? $result->num_rows : 0;
+$auditStmt->execute();
+$auditResult = $auditStmt->get_result();
+$rowCount = $auditResult ? $auditResult->num_rows : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -138,8 +138,8 @@ $rowCount = $result ? $result->num_rows : 0;
               </tr>
             </thead>
             <tbody>
-<?php if ($result && $result->num_rows > 0): ?>
-<?php while ($row = $result->fetch_assoc()): ?>
+<?php if ($auditResult && $auditResult->num_rows > 0): ?>
+<?php while ($row = $auditResult->fetch_assoc()): ?>
               <tr>
                 <td><?php echo htmlspecialchars($row['created_at']); ?></td>
                 <td><?php echo htmlspecialchars($row['username']); ?></td>
