@@ -304,9 +304,8 @@ $uid = $row['id'];
                     <th scope="row"><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['id']; ?></th>
-                    <td><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['username']; ?></td>
+                    <td><a href="../audit_log.php?user=<?php echo urlencode($row['username']); ?>" title="View activity logs for this user"><?php
+echo htmlspecialchars($row['username']); ?></a></td>
                     <td><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['role']; ?></td>
@@ -335,6 +334,7 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['password']; ?>"
 			data-bs-toggle="modal" data-bs-target="#editUserModal"
 			><i class="bi bi-eye-fill"></i></button>
+			<a href="../audit_log.php?user=<?php echo urlencode($row['username']); ?>" class="btn btn-outline-secondary" title="View logs"><i class="bi bi-journal-text"></i></a>
 		
   
 					</td>
