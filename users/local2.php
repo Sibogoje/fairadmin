@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 require_once __DIR__ . '/../scripts/access_control.php';
@@ -20,96 +19,161 @@ if(isset($_SESSION['zid'])) {
     $role = $_SESSION['role'];
     require_once '../scripts/connection.php';
 
-    // Add new user
-    if(isset($_POST['savenew'])) {
-        // Check if all required fields are filled
-        if(empty($_POST['addusername']) || empty($_POST['addpassword']) || empty($_POST['addrole'])) {
-            echo "<script>alert('All fields are required');</script>";
+    // Roles an admin can assign, with the labels shown in the forms.
+    $roleLabels = [
+        'admin'      => 'System Admin',
+        'clerk'      => 'Office Admin',
+        'Operations' => 'Operations Officer',
+        'Accounts'   => 'Accountant',
+        'Reports'    => 'Reports Viewer',
+    ];
+    $roleLabels = array_intersect_key($roleLabels, array_flip(access_control_known_roles()));
+
+    $currentUserId = (string)($_SESSION['xid'] ?? '');
+
+    // Post/Redirect/Get: store a message, redirect back to this page, show it once.
+    $finish = function ($type, $message) {
+        $_SESSION['users_flash'] = ['type' => $type, 'message' => $message];
+        header('Location: local2.php');
+        exit();
+    };
+
+    $usernameTaken = function ($username, $exceptId = null) use ($conn) {
+        $sql = "SELECT `id` FROM `realuzer` WHERE `username` = ?" . ($exceptId !== null ? " AND `id` <> ?" : "") . " LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        if ($exceptId !== null) {
+            $stmt->bind_param('ss', $username, $exceptId);
         } else {
-            // Sanitize input to prevent SQL injection
-            $username = mysqli_real_escape_string($conn, $_POST['addusername']);
-            $password = md5($_POST['addpassword']); // Note: md5 is not a secure way to hash passwords, consider using bcrypt or argon2
-            $role = mysqli_real_escape_string($conn, $_POST['addrole']);
-
-            // Prepare the SQL statement
-            $stmt = $conn->prepare("INSERT INTO `realuzer` (`username`, `password`, `role`) VALUES (?, ?, ?)");
-
-            // Bind parameters
-            $stmt->bind_param("sss", $username, $password, $role);
-
-            // Execute the statement
-            if($stmt->execute()) {
-              audit_trail_log($conn, 'user_create', 'Created user ' . $username . ' with role ' . $role);
-                // Display an alert if insertion was successful
-                echo "<script>alert('Data inserted successfully');</script>";
-                echo "<script>window.location.href = 'local.php';</script>";
-                exit();
-            } else {
-                // Display an alert if insertion failed
-                echo "<script>alert('Failed to insert data: " . $conn->error . "');</script>";
-            }
-
-            // Close statement and connection
-            $stmt->close();
-            $conn->close();
+            $stmt->bind_param('s', $username);
         }
+        $stmt->execute();
+        $taken = $stmt->get_result()->num_rows > 0;
+        $stmt->close();
+        return $taken;
+    };
+
+    $validUsername = function ($username) {
+        return (bool)preg_match('/^[A-Za-z0-9._-]{3,50}$/', $username);
+    };
+
+    // Add new user
+    if (isset($_POST['savenew'])) {
+        $username = trim((string)($_POST['addusername'] ?? ''));
+        $password = (string)($_POST['addpassword'] ?? '');
+        $confirm  = (string)($_POST['addpassword2'] ?? '');
+        $newRole  = access_control_normalize_role($_POST['addrole'] ?? '');
+
+        if ($username === '' || $password === '' || $newRole === '') {
+            $finish('danger', 'All fields are required.');
+        }
+        if (!$validUsername($username)) {
+            $finish('danger', 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore.');
+        }
+        if (!isset($roleLabels[$newRole])) {
+            $finish('danger', 'Please choose a valid role.');
+        }
+        if (strlen($password) < 8) {
+            $finish('danger', 'Password must be at least 8 characters.');
+        }
+        if ($password !== $confirm) {
+            $finish('danger', 'The two passwords do not match.');
+        }
+        if ($usernameTaken($username)) {
+            $finish('danger', 'A user named "' . $username . '" already exists.');
+        }
+
+        // md5 matches what parse.php checks at login.
+        $hash = md5($password);
+        $stmt = $conn->prepare("INSERT INTO `realuzer` (`username`, `password`, `role`) VALUES (?, ?, ?)");
+        $stmt->bind_param('sss', $username, $hash, $newRole);
+        if ($stmt->execute()) {
+            audit_trail_log($conn, 'user_create', 'Created user ' . $username . ' with role ' . $newRole);
+            $finish('success', 'User "' . $username . '" created as ' . $roleLabels[$newRole] . '.');
+        }
+        error_log('User create failed: ' . $conn->error);
+        $finish('danger', 'Could not create the user. Please try again.');
     }
 
     // Edit existing user
-   if(isset($_POST['edit'])) {
-        // Check if all required fields are filled
-        if(empty($_POST['username']) || empty($_POST['role'])) {
-            echo "<script>alert('All fields are required');</script>";
-        } else {
-            // Sanitize input to prevent SQL injection
-            $username = mysqli_real_escape_string($conn, $_POST['username']);
-            $role = mysqli_real_escape_string($conn, $_POST['role']);
-            $id = mysqli_real_escape_string($conn, $_POST['id']);
+    if (isset($_POST['edit'])) {
+        $id       = trim((string)($_POST['id'] ?? ''));
+        $username = trim((string)($_POST['username'] ?? ''));
+        $newRole  = access_control_normalize_role($_POST['role'] ?? '');
 
-            // Prepare the SQL statement
-            $sql = "UPDATE `realuzer` SET `username` = ?, `role` = ?";
-            $params = array($username, $role);
-
-            // Check if a new password is provided
-            if(!empty($_POST['password'])) {
-                $password = md5($_POST['password']); // Note: md5 is not a secure way to hash passwords, consider using bcrypt or argon2
-                $sql .= ", `password` = ?";
-                $params[] = $password;
-            }
-
-            $sql .= " WHERE `id` = ?";
-            $params[] = $id;
-
-            // Prepare the SQL statement
-            $stmt = $conn->prepare($sql);
-
-            // Bind parameters
-            $types = str_repeat("s", count($params)); // Determine parameter types dynamically
-            $stmt->bind_param($types, ...$params);
-
-            // Execute the statement
-            if($stmt->execute()) {
-              audit_trail_log($conn, 'user_update', 'Updated user ' . $username . ' with role ' . $role);
-                // Display an alert if update was successful
-                echo "<script>alert('Data updated successfully');</script>";
-                echo "<script>window.location.href = 'local.php';</script>";
-                exit();
-            } else {
-                // Display an alert if update failed
-                echo "<script>alert('Failed to update data: " . $conn->error . "');</script>";
-            }
-
-            // Close statement and connection
-            $stmt->close();
-            $conn->close();
+        if ($id === '' || $username === '' || $newRole === '') {
+            $finish('danger', 'All fields are required.');
         }
+        if (!$validUsername($username)) {
+            $finish('danger', 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore.');
+        }
+        if (!isset($roleLabels[$newRole])) {
+            $finish('danger', 'Please choose a valid role.');
+        }
+        if ($id === $currentUserId && $newRole !== 'admin') {
+            $finish('danger', 'You cannot remove your own admin role. Ask another admin to change it.');
+        }
+        if ($usernameTaken($username, $id)) {
+            $finish('danger', 'A user named "' . $username . '" already exists.');
+        }
+
+        $sql = "UPDATE `realuzer` SET `username` = ?, `role` = ?";
+        $params = [$username, $newRole];
+        $passwordChanged = !empty($_POST['change_password']) && (string)($_POST['password'] ?? '') !== '';
+        if ($passwordChanged) {
+            if (strlen((string)$_POST['password']) < 8) {
+                $finish('danger', 'Password must be at least 8 characters.');
+            }
+            $sql .= ", `password` = ?";
+            $params[] = md5((string)$_POST['password']);
+        }
+        $sql .= " WHERE `id` = ?";
+        $params[] = $id;
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param(str_repeat('s', count($params)), ...$params);
+        if ($stmt->execute()) {
+            audit_trail_log($conn, 'user_update', 'Updated user ' . $username . ' (ID ' . $id . ') with role ' . $newRole . ($passwordChanged ? ', password changed' : ''));
+            $finish('success', 'User "' . $username . '" updated.');
+        }
+        error_log('User update failed: ' . $conn->error);
+        $finish('danger', 'Could not update the user. Please try again.');
     }
+
+    // Delete user
+    if (isset($_POST['delete'])) {
+        $id = trim((string)($_POST['id'] ?? ''));
+        if ($id === '') {
+            $finish('danger', 'No user selected.');
+        }
+        if ($id === $currentUserId) {
+            $finish('danger', 'You cannot delete your own account.');
+        }
+        $stmt = $conn->prepare("SELECT `username` FROM `realuzer` WHERE `id` = ?");
+        $stmt->bind_param('s', $id);
+        $stmt->execute();
+        $target = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        if (!$target) {
+            $finish('danger', 'That user no longer exists.');
+        }
+        $stmt = $conn->prepare("DELETE FROM `realuzer` WHERE `id` = ?");
+        $stmt->bind_param('s', $id);
+        if ($stmt->execute()) {
+            audit_trail_log($conn, 'user_delete', 'Deleted user ' . $target['username'] . ' (ID ' . $id . ')');
+            $finish('success', 'User "' . $target['username'] . '" deleted.');
+        }
+        error_log('User delete failed: ' . $conn->error);
+        $finish('danger', 'Could not delete the user. Please try again.');
+    }
+
+    $flash = $_SESSION['users_flash'] ?? null;
+    unset($_SESSION['users_flash']);
 } else {
   header('Location: ' . app_url('index.php'));
   exit();
 }
 ?>
-
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -243,23 +307,63 @@ include '../header.php'; ?>
                 </div>
             
                 <div class="col-md-12">
+                  <label for="role" class="form-label small mb-1">Role</label>
                   <select class="form-select" name="role" id="role">
-                    <option value="admin">System Admin</option>
-					<option value="clerk">Office Admin</option>
-					<option value="Operations">Operations Officer</option>
-					<option value="Accounts">Accountant</option>
-					<option value="Reports">Reports Viewer</option>
+<?php foreach ($roleLabels as $value => $label): ?>
+                    <option value="<?php echo htmlspecialchars($value); ?>"><?php echo htmlspecialchars($label); ?></option>
+<?php endforeach; ?>
                   </select>
                 </div>
-             
-				
+
+
                 <div class="text-center">
                   <button type="submit" class="btn btn-primary" name="edit">Save</button>
-                  <button type="reset" class="btn btn-secondary">Clear</button>
-                  <button type="submit" class="btn btn-danger" name="delete" id="delete" >Delete</button>
-				  <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-outline-danger" name="delete" id="delete" formnovalidate onclick="return confirm('Delete this user? They will no longer be able to log in. This cannot be undone.');">Delete</button>
+				  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
               </form><!-- End No Labels Form -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+               <form class="row g-3" method="post" action="local2.php" autocomplete="off" id="addUserForm">
+                <div class="col-md-12">
+                  <label for="addusername" class="form-label small mb-1">Username</label>
+                  <input type="text" class="form-control" name="addusername" id="addusername" autocomplete="off" required minlength="3" maxlength="50" pattern="[A-Za-z0-9._\-]{3,50}" title="3-50 characters: letters, numbers, dot, dash or underscore">
+                </div>
+                <div class="col-md-6">
+                  <label for="addpassword" class="form-label small mb-1">Password</label>
+                  <input type="password" class="form-control" name="addpassword" id="addpassword" autocomplete="new-password" required minlength="8">
+                </div>
+                <div class="col-md-6">
+                  <label for="addpassword2" class="form-label small mb-1">Confirm password</label>
+                  <input type="password" class="form-control" name="addpassword2" id="addpassword2" autocomplete="new-password" required minlength="8">
+                </div>
+                <div class="col-md-12">
+                  <label for="addrole" class="form-label small mb-1">Role</label>
+                  <select class="form-select" name="addrole" id="addrole" required>
+                    <option value="" selected disabled>Choose a role</option>
+<?php foreach ($roleLabels as $value => $label): ?>
+                    <option value="<?php echo htmlspecialchars($value); ?>"><?php echo htmlspecialchars($label); ?></option>
+<?php endforeach; ?>
+                  </select>
+                  <div class="form-text">What each role can open is set in Access Control Manager.</div>
+                </div>
+                <div class="text-center">
+                  <button type="submit" class="btn btn-primary" name="savenew"><i class="bi bi-person-plus"></i> Create user</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+              </form>
             </div>
         </div>
     </div>
@@ -271,8 +375,17 @@ include '../header.php'; ?>
 
           <div class="card">
             <div class="card-body">
- 
-	
+<?php if (!empty($flash)): ?>
+              <div class="alert alert-<?php echo $flash['type'] === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show mt-3" role="alert">
+                <?php echo htmlspecialchars($flash['message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+<?php endif; ?>
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title">System Users</h5>
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-person-plus"></i> Add User</button>
+              </div>
+
   <div class="table-responsive"> 
               <!-- Table with stripped rows -->
               <table class="table datatable" id="jj">
@@ -306,9 +419,7 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['id']; ?></th>
                     <td><a href="../audit_log.php?user=<?php echo urlencode($row['username']); ?>" title="View activity logs for this user"><?php
 echo htmlspecialchars($row['username']); ?></a></td>
-                    <td><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['role']; ?></td>
+                    <td><?php echo htmlspecialchars($roleLabels[access_control_normalize_role($row['role'])] ?? $row['role']); ?></td>
                     <td><?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['session']; ?></td>
@@ -323,15 +434,8 @@ echo $row['id']; ?>" class="btn btn-outline-primary edit"  title="Edit"
 			data-id="<?php
 require_once __DIR__ . '/../scripts/bootstrap.php';
 echo $row['id']; ?>"
-			data-username="<?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['username']; ?>"
-			data-role="<?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['role']; ?>"
-			data-password="<?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['password']; ?>"
+			data-username="<?php echo htmlspecialchars($row['username']); ?>"
+			data-role="<?php echo htmlspecialchars(access_control_normalize_role($row['role'])); ?>"
 			data-bs-toggle="modal" data-bs-target="#editUserModal"
 			><i class="bi bi-eye-fill"></i></button>
 			<a href="../audit_log.php?user=<?php echo urlencode($row['username']); ?>" class="btn btn-outline-secondary" title="View logs"><i class="bi bi-journal-text"></i></a>
@@ -401,7 +505,6 @@ $('.edit').click(function() {
     var id = $(this).data("id");
     var username = $(this).data("username");
     var role = $(this).data("role");
-    var password = $(this).data("password");
 
     $('#username').val(username);
     $('#use').val(id);
@@ -413,6 +516,15 @@ $('.edit').click(function() {
     $('#changePasswordCheckbox').prop('checked', false);
     $('#passwordField').hide();
     $('#password').val('');
+});
+
+// Add User: make sure both passwords match before submitting
+$('#addUserForm').on('submit', function(e) {
+    if ($('#addpassword').val() !== $('#addpassword2').val()) {
+        e.preventDefault();
+        alert('The two passwords do not match.');
+        $('#addpassword2').focus();
+    }
 });
 
 // Toggle password field visibility based on checkbox
