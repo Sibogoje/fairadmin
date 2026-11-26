@@ -433,30 +433,55 @@ try {
 </aside>
 
 <script>
-function activityWatcher() {
-    var secondsSinceLastActivity = 0;
-    var maxInactivity = (60 * 25);
+// Inactivity logout, shared across all open tabs. The server enforces the same
+// limit (scripts/session_guard.php); this timer logs out promptly and pings the
+// server while the user is active so a long stay on one page is not timed out.
+(function activityWatcher() {
+    var maxInactivityMs = <?= (int)SESSION_IDLE_TIMEOUT ?> * 1000;
+    var pingEveryMs = 5 * 60 * 1000;
+    var key = 'fairlife_last_activity';
+    var logoutUrl = '<?= app_url('logout.php?reason=idle') ?>';
+    var pingUrl = '<?= app_url('session_ping.php') ?>';
+    var memoryLast = Date.now();
+    var lastPing = Date.now();
+    var lastWrite = 0;
 
-    setInterval(function () {
-        secondsSinceLastActivity++;
-        if (secondsSinceLastActivity > maxInactivity) {
-            location.href = '<?= app_url('logout.php') ?>';
-        }
-    }, 1000);
-
-    function activity() {
-        secondsSinceLastActivity = 0;
+    function readLast() {
+        var stored = 0;
+        try { stored = parseInt(localStorage.getItem(key) || '0', 10) || 0; } catch (e) {}
+        return Math.max(stored, memoryLast);
     }
 
-    var activityEvents = [
-        'mousedown', 'mousemove', 'keydown',
-        'scroll', 'touchstart'
-    ];
+    function activity() {
+        var now = Date.now();
+        memoryLast = now;
+        if (now - lastWrite > 1000) { // throttle storage writes on mousemove
+            lastWrite = now;
+            try { localStorage.setItem(key, String(now)); } catch (e) {}
+        }
+    }
 
-    activityEvents.forEach(function (eventName) {
+    activity();
+
+    setInterval(function () {
+        var now = Date.now();
+        var last = readLast();
+        if (now - last > maxInactivityMs) {
+            location.href = logoutUrl;
+            return;
+        }
+        // Active since the last ping: tell the server, and follow it if it already logged us out.
+        if (last > lastPing && now - lastPing > pingEveryMs) {
+            lastPing = now;
+            fetch(pingUrl, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { if (d && (d.sessionExpired || d.loggedIn === false)) { location.href = '<?= app_url('index.php?timeout=1') ?>'; } })
+                .catch(function () {});
+        }
+    }, 5000);
+
+    ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(function (eventName) {
         document.addEventListener(eventName, activity, true);
     });
-}
-
-activityWatcher();
+})();
 </script>

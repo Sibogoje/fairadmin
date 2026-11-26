@@ -34,7 +34,11 @@ session_start();
             <small class="text-muted">Welcome & Sign in to Continue</small>
           </div>
 
-          <div id="alert-placeholder"></div>
+          <div id="alert-placeholder">
+<?php if (isset($_GET['timeout'])): ?>
+            <div class="alert alert-warning small" role="alert">You were logged out after <?php echo (int)session_guard_minutes(); ?> minutes of inactivity. Please log in again.</div>
+<?php endif; ?>
+          </div>
 
           <form id="loginform" method="post" action="parse.php" novalidate>
             <div class="mb-3 form-floating">

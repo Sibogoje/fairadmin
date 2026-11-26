@@ -3,6 +3,10 @@ require_once __DIR__ . '/scripts/bootstrap.php';
 session_start();
 require_once 'scripts/connection.php';
 require_once 'scripts/audit.php';
+// reason=idle is sent by the inactivity timer in header.php
+$isIdleLogout = ($_GET['reason'] ?? '') === 'idle';
+$loginUrl = APP_URL . 'index.php' . ($isIdleLogout ? '?timeout=1' : '');
+
 if(isset($_SESSION['zid']))
 {
     $session = 0;
@@ -16,7 +20,11 @@ if(isset($_SESSION['zid']))
         $updatesession->execute();
     }
 
-    audit_trail_log($conn, 'logout', 'User logged out: ' . $username);
+    if ($isIdleLogout) {
+        audit_trail_log($conn, 'logout_auto', 'Logged out automatically after ' . session_guard_minutes() . ' minutes of inactivity');
+    } else {
+        audit_trail_log($conn, 'logout', 'User logged out: ' . $username);
+    }
 
     // Send no-cache headers to prevent back-button showing cached pages
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -35,8 +43,11 @@ if(isset($_SESSION['zid']))
     session_unset();
     session_destroy();
 
-    header('Location: ' . APP_URL . 'index.php');
+    header('Location: ' . $loginUrl);
     exit();
 }
 
+// Already logged out (e.g. the server timed the session out first): go to login.
+header('Location: ' . $loginUrl);
+exit();
 ?>

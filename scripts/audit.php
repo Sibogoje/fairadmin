@@ -52,14 +52,18 @@ if (!function_exists('audit_trail_ensure_table')) {
 }
 
 if (!function_exists('audit_trail_log')) {
-    function audit_trail_log(mysqli $conn, string $action, string $details = ''): void
+    /**
+     * $overrides may set 'username', 'route' and 'ip' when the entry is about
+     * someone other than the current requester (e.g. marking an idle user offline).
+     */
+    function audit_trail_log(mysqli $conn, string $action, string $details = '', array $overrides = []): void
     {
         try {
             audit_trail_ensure_table($conn);
 
-            $username = audit_trail_username();
-            $route = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
-            $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
+            $username = $overrides['username'] ?? audit_trail_username();
+            $route = $overrides['route'] ?? (parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '');
+            $ipAddress = $overrides['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? '');
 
             $stmt = $conn->prepare("INSERT INTO `audit_trail` (`username`, `action`, `details`, `route`, `ip_address`) VALUES (?, ?, ?, ?, ?)");
             $stmt->bind_param('sssss', $username, $action, $details, $route, $ipAddress);

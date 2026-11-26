@@ -53,7 +53,7 @@ if(isset($_SESSION['zid'])) {
     };
 
     $validUsername = function ($username) {
-        return (bool)preg_match('/^[A-Za-z0-9._-]{3,50}$/', $username);
+        return (bool)preg_match('/^[A-Za-z0-9._-]{3,20}$/', $username);
     };
 
     // Add new user
@@ -67,7 +67,7 @@ if(isset($_SESSION['zid'])) {
             $finish('danger', 'All fields are required.');
         }
         if (!$validUsername($username)) {
-            $finish('danger', 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore.');
+            $finish('danger', 'Username must be 3-20 characters: letters, numbers, dot, dash or underscore.');
         }
         if (!isset($roleLabels[$newRole])) {
             $finish('danger', 'Please choose a valid role.');
@@ -104,7 +104,7 @@ if(isset($_SESSION['zid'])) {
             $finish('danger', 'All fields are required.');
         }
         if (!$validUsername($username)) {
-            $finish('danger', 'Username must be 3-50 characters: letters, numbers, dot, dash or underscore.');
+            $finish('danger', 'Username must be 3-20 characters: letters, numbers, dot, dash or underscore.');
         }
         if (!isset($roleLabels[$newRole])) {
             $finish('danger', 'Please choose a valid role.');
@@ -339,7 +339,7 @@ include '../header.php'; ?>
                <form class="row g-3" method="post" action="local2.php" autocomplete="off" id="addUserForm">
                 <div class="col-md-12">
                   <label for="addusername" class="form-label small mb-1">Username</label>
-                  <input type="text" class="form-control" name="addusername" id="addusername" autocomplete="off" required minlength="3" maxlength="50" pattern="[A-Za-z0-9._\-]{3,50}" title="3-50 characters: letters, numbers, dot, dash or underscore">
+                  <input type="text" class="form-control" name="addusername" id="addusername" autocomplete="off" required minlength="3" maxlength="20" pattern="[A-Za-z0-9._\-]{3,20}" title="3-20 characters: letters, numbers, dot, dash or underscore">
                 </div>
                 <div class="col-md-6">
                   <label for="addpassword" class="form-label small mb-1">Password</label>
@@ -394,7 +394,7 @@ include '../header.php'; ?>
                     <th scope="col">ID</th>
                     <th scope="col">Username</th>
                     <th scope="col">Role</th>
-                    <th scope="col">Online</th>
+                    <th scope="col">Status</th>
                     <th scope="col">Last Login</th>
 				
 					<th scope="col">Action</th>
@@ -407,6 +407,9 @@ require_once __DIR__ . '/../scripts/bootstrap.php';
 // held logout times before parse.php started recording logins.
 $stmt = $conn->prepare("SELECT u.*, (SELECT MAX(a.`created_at`) FROM `audit_trail` a WHERE a.`username` = u.`username` AND a.`action` = 'login') AS `audit_last_login` FROM `realuzer` u");
 $sast = new DateTimeZone('Africa/Johannesburg');
+// Mark anyone idle past the timeout offline first, so the Online column is current.
+session_guard_sweep($conn);
+$onlineCutoff = session_guard_now()->modify('-' . SESSION_IDLE_TIMEOUT . ' seconds');
 
 $stmt->execute();
 $result = $stmt->get_result();
@@ -424,8 +427,14 @@ echo $row['id']; ?></th>
 echo htmlspecialchars($row['username']); ?></a></td>
                     <td><?php echo htmlspecialchars($roleLabels[access_control_normalize_role($row['role'])] ?? $row['role']); ?></td>
                     <td><?php
-require_once __DIR__ . '/../scripts/bootstrap.php';
-echo $row['session']; ?></td>
+// Online = flagged as logged in AND made a request within the idle timeout.
+$seenRecently = !empty($row['last_seen'])
+    && (new DateTime($row['last_seen'], $sast)) >= $onlineCutoff;
+if ((int)$row['session'] === 1 && $seenRecently): ?>
+                      <span class="badge bg-success">Online</span>
+<?php else: ?>
+                      <span class="badge bg-secondary">Offline</span>
+<?php endif; ?></td>
                     <td><?php
 if (!empty($row['audit_last_login'])) {
     $lastLogin = new DateTime($row['audit_last_login'], new DateTimeZone('UTC'));

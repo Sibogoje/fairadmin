@@ -385,7 +385,8 @@ if (!function_exists('access_control_require_endpoint')) {
      * user is logged in and allowed on at least one of the pages that call this
      * endpoint, so it follows the same rules as the Access Control Manager.
      *
-     * Releases the session lock before returning; $_SESSION stays readable.
+     * The session lock is released once the idle check in scripts/connection.php
+     * has run (or straight away if the connection is already loaded).
      * On failure, responds in the JSON shape the calling pages already alert on.
      */
     function access_control_require_endpoint(array $parentRoutes)
@@ -403,12 +404,19 @@ if (!function_exists('access_control_require_endpoint')) {
             }
         }
 
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_write_close();
+        if ($allowed) {
+            // Keep the session open until scripts/connection.php has run the idle
+            // check (session_guard.php), which then releases the lock. If the
+            // connection is already loaded, release it now.
+            $GLOBALS['session_guard_release_lock'] = true;
+            if (isset($GLOBALS['conn']) && session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+            return;
         }
 
-        if ($allowed) {
-            return;
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
         }
 
         $message = $loggedIn

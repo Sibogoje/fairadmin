@@ -17,5 +17,7 @@ try {
     die("Database connection error. Please try again later.");
 }
 
-//
+// Idle timeout and online tracking for logged-in staff (see session_guard.php).
+require_once __DIR__ . '/session_guard.php';
+session_guard_check($conn);
 ?>
