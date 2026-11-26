@@ -1,6 +1,10 @@
 <?php
 /**
- * Idle timeout and online tracking for staff sessions.
+ * Idle timeout, online tracking and password expiry for staff sessions.
+ *
+ * Password expiry: realuzer.password_changed_at records when the password was
+ * last set. PASSWORD_MAX_AGE after that, every page sends the user to
+ * change_password.php until they choose a new one.
  *
  * Runs on every request that loads scripts/connection.php with an active,
  * logged-in session:
@@ -16,6 +20,18 @@ require_once __DIR__ . '/audit.php';
 
 if (!defined('SESSION_IDLE_TIMEOUT')) {
     define('SESSION_IDLE_TIMEOUT', 25 * 60);
+}
+// Passwords must be changed this long after they were last set (DateTime modifier).
+if (!defined('PASSWORD_MAX_AGE')) {
+    define('PASSWORD_MAX_AGE', '+3 months');
+}
+// Show a reminder this many days before the password expires.
+if (!defined('PASSWORD_WARN_DAYS')) {
+    define('PASSWORD_WARN_DAYS', 7);
+}
+// password_changed_at value that means "must change at next login" (set when an admin sets a password).
+if (!defined('PASSWORD_EXPIRED_MARKER')) {
+    define('PASSWORD_EXPIRED_MARKER', '2000-01-01 00:00:00');
 }
 
 if (!function_exists('session_guard_now')) {
@@ -39,17 +55,17 @@ if (!function_exists('session_guard_is_ajax')) {
     }
 }
 
-if (!function_exists('session_guard_exempt')) {
-    function session_guard_exempt(): bool
+if (!function_exists('session_guard_script_is')) {
+    /** True when the running script is one of these files in the project root. */
+    function session_guard_script_is(array $rootFiles): bool
     {
-        // The root login form, login handler and logout manage the session themselves.
-        // Compare full paths so fund/index.php, membership/index.php etc. are still guarded.
+        // Compare full paths so fund/index.php, membership/index.php etc. do not match.
         $script = realpath($_SERVER['SCRIPT_FILENAME'] ?? '');
         if ($script === false) {
             return false;
         }
         $root = dirname(__DIR__);
-        foreach (['index.php', 'parse.php', 'logout.php'] as $file) {
+        foreach ($rootFiles as $file) {
             if ($script === realpath($root . DIRECTORY_SEPARATOR . $file)) {
                 return true;
             }
@@ -58,8 +74,16 @@ if (!function_exists('session_guard_exempt')) {
     }
 }
 
+if (!function_exists('session_guard_exempt')) {
+    function session_guard_exempt(): bool
+    {
+        // The root login form, login handler and logout manage the session themselves.
+        return session_guard_script_is(['index.php', 'parse.php', 'logout.php']);
+    }
+}
+
 if (!function_exists('session_guard_prepare')) {
-    /** Prepare a statement on realuzer, adding the last_seen column first if it is missing. */
+    /** Prepare a statement on realuzer, adding the tracking columns first if they are missing. */
     function session_guard_prepare(mysqli $conn, string $sql): mysqli_stmt
     {
         try {
@@ -68,9 +92,77 @@ if (!function_exists('session_guard_prepare')) {
             if ((int)$e->getCode() !== 1054) { // unknown column
                 throw $e;
             }
-            $conn->query("ALTER TABLE `realuzer` ADD COLUMN IF NOT EXISTS `last_seen` DATETIME NULL");
+            $conn->query("ALTER TABLE `realuzer`
+                ADD COLUMN IF NOT EXISTS `last_seen` DATETIME NULL,
+                ADD COLUMN IF NOT EXISTS `password_changed_at` DATETIME NULL");
             return $conn->prepare($sql);
         }
+    }
+}
+
+if (!function_exists('session_guard_password_expires_at')) {
+    /**
+     * When the user's password expires (unix time). A user with no recorded
+     * change date starts the clock now, so existing users are not locked out
+     * the moment this feature is deployed.
+     */
+    function session_guard_password_expires_at(mysqli $conn, string $userId): int
+    {
+        $st = session_guard_prepare($conn, "SELECT `password_changed_at` FROM `realuzer` WHERE `id` = ?");
+        $st->bind_param('s', $userId);
+        $st->execute();
+        $changedAt = $st->get_result()->fetch_assoc()['password_changed_at'] ?? null;
+        $st->close();
+
+        $tz = new DateTimeZone('Africa/Johannesburg');
+        if ($changedAt === null) {
+            $changedAt = session_guard_now()->format('Y-m-d H:i:s');
+            $init = $conn->prepare("UPDATE `realuzer` SET `password_changed_at` = ? WHERE `id` = ? AND `password_changed_at` IS NULL");
+            $init->bind_param('ss', $changedAt, $userId);
+            $init->execute();
+            $init->close();
+        }
+        return (new DateTime($changedAt, $tz))->modify(PASSWORD_MAX_AGE)->getTimestamp();
+    }
+}
+
+if (!function_exists('session_guard_password_days_left')) {
+    /** Days until the current user's password expires (a part day counts as 1), or null if unknown. */
+    function session_guard_password_days_left(): ?int
+    {
+        if (!isset($_SESSION['password_expires_at'])) {
+            return null;
+        }
+        return max(0, (int)ceil(((int)$_SESSION['password_expires_at'] - time()) / 86400));
+    }
+}
+
+if (!function_exists('session_guard_require_password_change')) {
+    /** Send a user whose password has expired to the Change Password page. */
+    function session_guard_require_password_change(): void
+    {
+        // These pages stay usable so the user can change the password or leave.
+        if (session_guard_script_is(['change_password.php', 'logout.php', 'session_ping.php'])) {
+            return;
+        }
+        $message = 'Your password has expired. Please change it before continuing.';
+        if (session_guard_is_ajax()) {
+            echo json_encode([
+                'statusCode' => 201,
+                'datas' => $message,
+                'error' => $message,
+                'rerror' => $message,
+                'retrieveerror' => $message,
+                'passwordExpired' => true,
+            ]);
+        } elseif (!headers_sent()) {
+            header('Location: ' . app_url('change_password.php?expired=1'));
+        } else {
+            $url = htmlspecialchars(app_url('change_password.php?expired=1'), ENT_QUOTES);
+            echo '<script>location.href=' . json_encode(app_url('change_password.php?expired=1')) . ';</script>'
+               . '<p>' . htmlspecialchars($message) . ' <a href="' . $url . '">Change password</a></p>';
+        }
+        exit;
     }
 }
 
@@ -192,6 +284,19 @@ if (!function_exists('session_guard_check')) {
                 error_log('Session last_seen update failed: ' . $e->getMessage());
             }
             session_guard_sweep($conn);
+        }
+
+        // Password age: look it up once per session (and after a change), then enforce.
+        $userId = (string)($_SESSION['xid'] ?? '');
+        if ($userId !== '' && !isset($_SESSION['password_expires_at'])) {
+            try {
+                $_SESSION['password_expires_at'] = session_guard_password_expires_at($conn, $userId);
+            } catch (Throwable $e) {
+                error_log('Password age check failed: ' . $e->getMessage());
+            }
+        }
+        if (isset($_SESSION['password_expires_at']) && time() >= (int)$_SESSION['password_expires_at']) {
+            session_guard_require_password_change(); // exits unless on an allowed page
         }
 
         // Action endpoints ask for the session lock to be released once checked.

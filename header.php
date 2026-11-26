@@ -15,6 +15,10 @@ $homeUrl = access_control_is_allowed($role, '/dash.php')
   ? app_url('dash.php')
   : app_url('membership/profileaccount.php');
 
+// Days until this user's password must be changed (see scripts/session_guard.php).
+$passwordDaysLeft = function_exists('session_guard_password_days_left') ? session_guard_password_days_left() : null;
+$showPasswordReminder = $passwordDaysLeft !== null && $passwordDaysLeft <= PASSWORD_WARN_DAYS;
+
 $currentRoutePath = access_control_route_path();
 if (!access_control_is_allowed($role, $currentRoutePath)) {
   access_control_forbidden();
@@ -146,6 +150,15 @@ try {
         </a>
 
         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+<?php if ($passwordDaysLeft !== null): ?>
+          <li class="dropdown-header small text-muted">Password expires in <?= (int)$passwordDaysLeft ?> day<?= $passwordDaysLeft === 1 ? '' : 's' ?></li>
+<?php endif; ?>
+          <li>
+            <a class="dropdown-item d-flex align-items-center" href="<?= app_url('change_password.php') ?>">
+              <i class="bi bi-key"></i>
+              <span>Change Password</span>
+            </a>
+          </li>
           <li><hr class="dropdown-divider"></li>
           <li id="logout">
             <a class="dropdown-item d-flex align-items-center" href="<?= app_url('logout.php') ?>">
@@ -432,6 +445,24 @@ try {
   </ul>
 </aside>
 
+<?php if ($showPasswordReminder): ?>
+<script>
+// Password expiry reminder at the top of the page content.
+document.addEventListener('DOMContentLoaded', function () {
+    var main = document.getElementById('main');
+    if (!main) { return; }
+    var box = document.createElement('div');
+    box.className = 'alert alert-warning alert-dismissible fade show';
+    box.setAttribute('role', 'alert');
+    box.innerHTML = <?= json_encode(
+        'Your password expires in ' . (int)$passwordDaysLeft . ' day' . ($passwordDaysLeft === 1 ? '' : 's')
+        . '. <a href="' . htmlspecialchars(app_url('change_password.php'), ENT_QUOTES) . '" class="alert-link">Change it now</a>.'
+        . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'
+    ) ?>;
+    main.insertBefore(box, main.firstChild);
+});
+</script>
+<?php endif; ?>
 <script>
 // Inactivity logout, shared across all open tabs. The server enforces the same
 // limit (scripts/session_guard.php); this timer logs out promptly and pings the

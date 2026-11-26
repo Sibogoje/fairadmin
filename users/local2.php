@@ -82,13 +82,15 @@ if(isset($_SESSION['zid'])) {
             $finish('danger', 'A user named "' . $username . '" already exists.');
         }
 
-        // md5 matches what parse.php checks at login.
+        // md5 matches what parse.php checks at login. The password counts as
+        // expired, so the new user must choose their own at first login.
         $hash = md5($password);
-        $stmt = $conn->prepare("INSERT INTO `realuzer` (`username`, `password`, `role`) VALUES (?, ?, ?)");
-        $stmt->bind_param('sss', $username, $hash, $newRole);
+        $expiredMarker = PASSWORD_EXPIRED_MARKER;
+        $stmt = session_guard_prepare($conn, "INSERT INTO `realuzer` (`username`, `password`, `role`, `password_changed_at`) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param('ssss', $username, $hash, $newRole, $expiredMarker);
         if ($stmt->execute()) {
             audit_trail_log($conn, 'user_create', 'Created user ' . $username . ' with role ' . $newRole);
-            $finish('success', 'User "' . $username . '" created as ' . $roleLabels[$newRole] . '.');
+            $finish('success', 'User "' . $username . '" created as ' . $roleLabels[$newRole] . '. They will be asked to choose their own password when they first log in.');
         }
         error_log('User create failed: ' . $conn->error);
         $finish('danger', 'Could not create the user. Please try again.');
@@ -123,17 +125,19 @@ if(isset($_SESSION['zid'])) {
             if (strlen((string)$_POST['password']) < 8) {
                 $finish('danger', 'Password must be at least 8 characters.');
             }
-            $sql .= ", `password` = ?";
+            // Reset by an admin: the user must choose their own at next login.
+            $sql .= ", `password` = ?, `password_changed_at` = ?";
             $params[] = md5((string)$_POST['password']);
+            $params[] = PASSWORD_EXPIRED_MARKER;
         }
         $sql .= " WHERE `id` = ?";
         $params[] = $id;
 
-        $stmt = $conn->prepare($sql);
+        $stmt = session_guard_prepare($conn, $sql);
         $stmt->bind_param(str_repeat('s', count($params)), ...$params);
         if ($stmt->execute()) {
             audit_trail_log($conn, 'user_update', 'Updated user ' . $username . ' (ID ' . $id . ') with role ' . $newRole . ($passwordChanged ? ', password changed' : ''));
-            $finish('success', 'User "' . $username . '" updated.');
+            $finish('success', 'User "' . $username . '" updated.' . ($passwordChanged ? ' They will be asked to choose a new password at next login.' : ''));
         }
         error_log('User update failed: ' . $conn->error);
         $finish('danger', 'Could not update the user. Please try again.');
