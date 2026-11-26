@@ -106,10 +106,12 @@ $rowCount = $auditResult ? $auditResult->num_rows : 0;
         </h5>
 
         <form method="get" action="audit_log.php" class="row g-2 align-items-end mb-3">
+<?php if ($filterUser !== ''): ?>
           <div class="col-sm-4 col-md-3">
             <label for="f-user" class="form-label small mb-1">Username</label>
-            <input type="text" id="f-user" name="user" class="form-control form-control-sm" value="<?php echo htmlspecialchars($filterUser); ?>" placeholder="All users">
+            <input type="text" id="f-user" name="user" class="form-control form-control-sm bg-light" value="<?php echo htmlspecialchars($filterUser); ?>" readonly tabindex="-1" aria-readonly="true">
           </div>
+<?php endif; ?>
           <div class="col-sm-4 col-md-3">
             <label for="f-from" class="form-label small mb-1">From</label>
             <input type="date" id="f-from" name="from" class="form-control form-control-sm" value="<?php echo htmlspecialchars($filterFrom); ?>">
@@ -120,8 +122,8 @@ $rowCount = $auditResult ? $auditResult->num_rows : 0;
           </div>
           <div class="col-md-3">
             <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filter</button>
-<?php if ($isFiltered): ?>
-            <a href="audit_log.php" class="btn btn-sm btn-outline-secondary">Clear</a>
+<?php if ($filterFrom !== '' || $filterTo !== ''): ?>
+            <a href="audit_log.php<?php echo $filterUser !== '' ? '?user=' . urlencode($filterUser) : ''; ?>" class="btn btn-sm btn-outline-secondary">Clear dates</a>
 <?php endif; ?>
           </div>
         </form>
