@@ -427,6 +427,7 @@ if (!function_exists('access_control_require_endpoint')) {
         echo json_encode([
             'statusCode' => 201,
             'datas' => $message,
+            'error' => $message,
             'rerror' => $message,
             'retrieveerror' => $message,
         ]);

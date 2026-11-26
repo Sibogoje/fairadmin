@@ -329,8 +329,9 @@ $(document).on("click",".dnew",function(e){
                         $("#mon").attr("disabled", false);					
 					}
 					else if(dataResult.statusCode==201){
-						var error = (dataResult.error);
+						var error = (dataResult.datas || dataResult.error);
 					   alert(error);
+					   $("#mon").attr("disabled", false);
 					}else if(dataResult.statusCode==203){
 						var mid = (dataResult.error2);
 					   alert("Please Update Recent Transaction for = "+mid);
